@@ -18,7 +18,16 @@
 #define Ki 0.0f
 #define PI (atan(1)*4)
 
-void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat);
-void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat);
+#ifdef __cplusplus 
+extern "C"
+{ 
+#endif
+	
+	void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat);
+	void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat);
+
+#ifdef __cplusplus 
+} 
+#endif
 
 #endif

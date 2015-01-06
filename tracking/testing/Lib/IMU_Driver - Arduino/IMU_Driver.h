@@ -46,20 +46,10 @@
 #define GFS_250DPS       0
 #define AFS_2G           0
 
-
-#ifdef __cplusplus 
-extern "C"
-{ 
-#endif
-	
-	void initMPU();
-	void initCompass();
-	int readMPUData(float * accel_X, float * accel_Y, float * accel_Z, float * gyro_X, float * gyro_Y, float * gyro_Z);
-	int readCompassData(float * mag_X, float * mag_Y, float * mag_Z);
-	void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY, float * gyro_OffsetZ);
-
-#ifdef __cplusplus 
-} 
-#endif
+void initMPU();
+void initCompass();
+int readMPUData(float * accel_X, float * accel_Y, float * accel_Z, float * gyro_X, float * gyro_Y, float * gyro_Z);
+int readCompassData(float * mag_X, float * mag_Y, float * mag_Z);
+void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY, float * gyro_OffsetZ);
 
 #endif

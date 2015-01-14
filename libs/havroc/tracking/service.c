@@ -8,6 +8,10 @@
 	#include <ti/sysbios/knl/Mailbox.h>
 #elif TIVAWARE
 	#include <xdc/runtime/System.h>
+	#include <xdc/runtime/Error.h>
+	#include <ti/sysbios/BIOS.h>
+	#include <ti/sysbios/knl/Event.h>
+	#include <ti/sysbios/knl/Mailbox.h>
 #endif
 
 #include <havroc/tracking/service.h>

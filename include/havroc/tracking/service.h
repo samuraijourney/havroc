@@ -4,6 +4,7 @@
 #ifdef cc3200
 	#include <ti/sysbios/knl/Task.h>
 #elif TIVAWARE
+	#include <ti/sysbios/knl/Task.h>
 #endif
 
 #include <havroc/error.h>

@@ -1,9 +1,7 @@
 #ifndef H_SERVICE
 #define H_SERVICE
 
-#ifdef cc3200
-	#include <ti/sysbios/knl/Task.h>
-#elif TIVAWARE
+#if defined(cc3200) || defined(TIVAWARE)
 	#include <ti/sysbios/knl/Task.h>
 #endif
 

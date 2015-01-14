@@ -1,12 +1,6 @@
 #include <stdbool.h>
 
-#ifdef cc3200
-	#include <xdc/runtime/System.h>
-	#include <xdc/runtime/Error.h>
-	#include <ti/sysbios/BIOS.h>
-	#include <ti/sysbios/knl/Event.h>
-	#include <ti/sysbios/knl/Mailbox.h>
-#elif TIVAWARE
+#if defined(cc3200) || defined(TIVAWARE)
 	#include <xdc/runtime/System.h>
 	#include <xdc/runtime/Error.h>
 	#include <ti/sysbios/BIOS.h>

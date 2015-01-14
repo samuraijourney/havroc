@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v5.2.0                      
 ******************************************************************************
->> Linked Wed Jan 14 17:45:55 2015
+>> Linked Wed Jan 14 18:08:11 2015
 
 OUTPUT FILE NAME:   <havroc_TM4C123GH6PM.out>
 ENTRY POINT SYMBOL: "_c_int00"  address: 0000589d
@@ -151,7 +151,7 @@ xdc.meta   0    00000000    000000f7     COPY SECTION
                   00005188    00000070     ti.targets.arm.rtsarm.aem4f : Memory.oem4f (.text:xdc_runtime_Memory_alloc__E)
                   000051f8    0000006c     sysbios.aem4f : BIOS.obj (.text:ti_sysbios_utils_Load_updateThreadContexts__E)
                   00005264    0000006c     ti.targets.arm.rtsarm.aem4f : Error.oem4f (.text:xdc_runtime_Error_print__E)
-                  000052d0    0000006a     main.obj (.text:main)
+                  000052d0    0000006a     service_test.obj (.text:main)
                   0000533a    0000006a     rtsv7M4_T_le_v4SPD16_eabi.lib : copy_decompress_rle.obj (.text)
                   000053a4    00000068                                   : trgmsg.obj (.text)
                   0000540c    00000066     ti.targets.arm.rtsarm.aem4f : Core-mem.oem4f (.text:xdc_runtime_Core_deleteObject__I)

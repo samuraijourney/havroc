@@ -5,3 +5,6 @@
 /subdir_vars.mk
 /tracking
 /apps
+/communications
+/apps_universal
+/pinMux

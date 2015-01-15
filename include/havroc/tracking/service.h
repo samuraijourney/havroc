@@ -1,12 +1,12 @@
 #ifndef H_SERVICE
 #define H_SERVICE
 
-#if defined(cc3200) || defined(TIVAWARE)
+#if defined(CCWARE) || defined(TIVAWARE)
 	#include <ti/sysbios/knl/Task.h>
 #endif
 
-#include <havroc/error.h>
-#include <havroc/id.h>
+#include <error.h>
+#include <id.h>
 
 int start_service();
 

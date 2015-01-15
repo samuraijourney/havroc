@@ -1,5 +1,5 @@
 #
-_XDCBUILDCOUNT = 
+_XDCBUILDCOUNT = 0
 ifneq (,$(findstring path,$(_USEXDCENV_)))
 override XDCPATH = C:/ti/tirtos_simplelink_2_01_00_03/packages;C:/ti/tirtos_simplelink_2_01_00_03/products/bios_6_40_03_39/packages;C:/ti/tirtos_simplelink_2_01_00_03/products/uia_2_00_01_34/packages;C:/ti/ccsv6/ccs_base;H:/Users/Akram/Programs/GitHub/havroc/projects/cc3200/.config
 override XDCROOT = c:/ti/xdctools_3_30_05_60_core

@@ -1,6 +1,6 @@
 #include <stdbool.h>
 
-#if defined(cc3200) || defined(TIVAWARE)
+#if defined(CCWARE) || defined(TIVAWARE)
 	#include <xdc/runtime/System.h>
 	#include <xdc/runtime/Error.h>
 	#include <ti/sysbios/BIOS.h>
@@ -8,9 +8,9 @@
 	#include <ti/sysbios/knl/Mailbox.h>
 #endif
 
-#include <havroc/tracking/service.h>
-#include <havroc/tracking/estimation.h>
-#include <havroc/communications/radio/radio_comm.h>
+#include <tracking/service.h>
+#include <tracking/estimation.h>
+#include <communications/radio/radio_comm.h>
 
 #define MAX_ATTEMPTS 100
 

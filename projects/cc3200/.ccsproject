@@ -11,4 +11,5 @@
 	<rts value="libc.a"/>
 	<createSlaveProjects value=""/>
 	<templateProperties value="id=com.ti.rtsc.TIRTOSsimplelink.example_3,type=rtsc,products=com.ti.rtsc.TIRTOSsimplelink,platform=ti.platforms.simplelink:$DeviceId$,buildProfile=release,isHybrid=true,configuroOptions=--compileOptions &quot;-g --optimize_with_debug&quot;,"/>
+	<isTargetManual value="false"/>
 </projectOptions>

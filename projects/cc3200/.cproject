@@ -36,6 +36,7 @@
 							<tool id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug.1166379054" name="ARM Compiler" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.exe.compilerDebug">
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE.2046675010" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="cc3200"/>
+									<listOptionValue builtIn="false" value="CCWARE"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.SILICON_VERSION.1260576858" name="Target processor version (--silicon_version, -mv)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.SILICON_VERSION" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.SILICON_VERSION.7M4" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.CODE_STATE.177307786" name="Designate code state, 16-bit (thumb) or 32-bit (--code_state)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.CODE_STATE" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.CODE_STATE.16" valueType="enumerated"/>
@@ -48,6 +49,11 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP.526499169" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.1515783061" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${COM_TI_RTSC_TIRTOSSIMPLELINK_INSTALL_DIR}/products/CC3200_driverlib_1.0.2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${COM_TI_RTSC_TIRTOSSIMPLELINK_INSTALL_DIR}/products/CC3200_driverlib_1.0.2/driverlib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${COM_TI_RTSC_TIRTOSSIMPLELINK_INSTALL_DIR}/products/CC3200_driverlib_1.0.2/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_UNIVERSAL}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_CC3200}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL}&quot;"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.LITTLE_ENDIAN.1445602220" name="Little endian code [See 'General' page to edit] (--little_endian, -me)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.LITTLE_ENDIAN" value="true" valueType="boolean"/>
@@ -93,7 +99,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="apps/main.c|tracking/imu_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="apps_universal/service_test/main.c|apps/imu_i2c_test|apps/main.c|tracking/imu_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

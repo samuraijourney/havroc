@@ -1,10 +1,10 @@
-#if defined(cc3200) || defined(TIVAWARE)
+#if defined(CCWARE) || defined(TIVAWARE)
 	#include <xdc/std.h>
 	#include <xdc/runtime/System.h>
 	#include <ti/sysbios/BIOS.h>
 #endif
 
-#include <havroc/tracking/service.h>
+#include <tracking/service.h>
 
 Int main()
 {

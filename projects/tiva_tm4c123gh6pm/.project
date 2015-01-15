@@ -32,9 +32,14 @@
 			<locationURI>HAVROC_LOC/libs/havroc/actuation</locationURI>
 		</link>
 		<link>
-			<name>apps</name>
+			<name>apps_tiva_c</name>
 			<type>2</type>
-			<locationURI>HAVROC_LOC/apps</locationURI>
+			<locationURI>HAVROC_LOC/apps/apps_tiva_c</locationURI>
+		</link>
+		<link>
+			<name>apps_universal</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/apps/apps_universal</locationURI>
 		</link>
 		<link>
 			<name>communications</name>
@@ -50,7 +55,15 @@
 	<variableList>
 		<variable>
 			<name>HAVROC_INCL</name>
-			<value>$%7BHAVROC_LOC%7D/include</value>
+			<value>$%7BHAVROC_LOC%7D/include/havroc</value>
+		</variable>
+		<variable>
+			<name>HAVROC_INCL_TIVA_C</name>
+			<value>$%7BHAVROC_LOC%7D/include/apps_tiva_c</value>
+		</variable>
+		<variable>
+			<name>HAVROC_INCL_UNIVERSAL</name>
+			<value>$%7BHAVROC_LOC%7D/include/apps_universal</value>
 		</variable>
 		<variable>
 			<name>HAVROC_LOC</name>

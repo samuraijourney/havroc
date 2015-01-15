@@ -1,4 +1,4 @@
-#include <havroc/tracking/estimation.h>
+#include <tracking/estimation.h>
 #include <math.h>
 
 // Implementation of Sebastian Madgwick's "...efficient orientation filter for... inertial/magnetic sensor arrays"

@@ -99,7 +99,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="apps_universal/service_test/main.c|apps/imu_i2c_test|apps/main.c|tracking/imu_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="modules/tracking/imu_driver.c|apps/apps_universal/service_test|apps_universal/service_test/main.c|apps/imu_i2c_test|apps/main.c|tracking/imu_driver.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

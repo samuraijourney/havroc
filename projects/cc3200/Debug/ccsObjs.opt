@@ -1,1 +1,1 @@
--l"./configPkg/linker.cmd" "./tracking/estimation.obj" "./tracking/service.obj" "./communications/suit/suit_i2c.obj" "./apps_universal/main.obj" "../cc3200v1p32.cmd" -l"libc.a" 
+-l"./configPkg/linker.cmd" "./modules/tracking/estimation.obj" "./modules/tracking/service.obj" "./modules/communications/suit/suit_i2c.obj" "./apps/apps_universal/core/main.obj" "../cc3200v1p32.cmd" -l"libc.a" 

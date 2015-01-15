@@ -27,27 +27,37 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>actuation</name>
+			<name>apps</name>
 			<type>2</type>
-			<locationURI>HAVROC_LOC/libs/havroc/actuation</locationURI>
+			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>apps_tiva_c</name>
+			<name>modules</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
+			<name>apps/apps_tiva_c</name>
 			<type>2</type>
 			<locationURI>HAVROC_LOC/apps/apps_tiva_c</locationURI>
 		</link>
 		<link>
-			<name>apps_universal</name>
+			<name>apps/apps_universal</name>
 			<type>2</type>
 			<locationURI>HAVROC_LOC/apps/apps_universal</locationURI>
 		</link>
 		<link>
-			<name>communications</name>
+			<name>modules/actuation</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/libs/havroc/actuation</locationURI>
+		</link>
+		<link>
+			<name>modules/communications</name>
 			<type>2</type>
 			<locationURI>HAVROC_LOC/libs/havroc/communications</locationURI>
 		</link>
 		<link>
-			<name>tracking</name>
+			<name>modules/tracking</name>
 			<type>2</type>
 			<locationURI>HAVROC_LOC/libs/havroc/tracking</locationURI>
 		</link>

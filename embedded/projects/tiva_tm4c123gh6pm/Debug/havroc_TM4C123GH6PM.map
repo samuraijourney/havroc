@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v5.2.0                      
 ******************************************************************************
->> Linked Thu Jan 15 10:25:16 2015
+>> Linked Fri Jan 16 07:46:28 2015
 
 OUTPUT FILE NAME:   <havroc_TM4C123GH6PM.out>
 ENTRY POINT SYMBOL: "_c_int00"  address: 0000548d
@@ -48,8 +48,8 @@ section   page    origin      length       input sections
 .vecs      0    20000000    00000360     UNINITIALIZED
                   20000000    00000360     app_pem4f.oem4f (.vecs)
 
-xdc.meta   0    00000000    000000f7     COPY SECTION
-                  00000000    000000f7     app_pem4f.oem4f (xdc.meta)
+xdc.meta   0    00000000    00000100     COPY SECTION
+                  00000000    00000100     app_pem4f.oem4f (xdc.meta)
 
 .text      0    00000040    00006eca     
                   00000040    00000430     sysbios.aem4f : BIOS.obj (.text:ti_sysbios_family_arm_m3_Hwi_excDumpRegs__I)
@@ -803,12 +803,12 @@ UNDEFED   SHT$$INIT_ARRAY$$Limit
 200044e4  TSK_idle                                                          
 00000000  __ASM__                                                           
 20002d00  __CIOBUF_                                                         
-00000075  __ISA__                                                           
-00000088  __PLAT__                                                          
+0000007e  __ISA__                                                           
+00000091  __PLAT__                                                          
 200040b0  __STACK_END                                                       
 00001000  __STACK_SIZE                                                      
 200031b0  __STACK_TOP                                                       
-000000a9  __TARG__                                                          
+000000b2  __TARG__                                                          
 00009ab0  __TI_CINIT_Base                                                   
 00009ac8  __TI_CINIT_Limit                                                  
 00009a90  __TI_Handler_Table_Base                                           
@@ -822,7 +822,7 @@ UNDEFED   SHT$$INIT_ARRAY$$Limit
 00000000  __TI_static_base__                                                
 00004f9d  __TI_writemsg                                                     
 00006d6d  __TI_zero_init                                                    
-000000cf  __TRDR__                                                          
+000000d8  __TRDR__                                                          
 00004c15  __aeabi_memclr                                                    
 00004c15  __aeabi_memclr4                                                   
 00004c15  __aeabi_memclr8                                                   
@@ -1488,10 +1488,10 @@ address   name
 00000001  xdc_runtime_Startup__EXECFXN__C                                   
 00000001  xdc_runtime_Startup__RESETFXN__C                                  
 00000041  ti_sysbios_family_arm_m3_Hwi_excDumpRegs__I                       
-00000075  __ISA__                                                           
-00000088  __PLAT__                                                          
-000000a9  __TARG__                                                          
-000000cf  __TRDR__                                                          
+0000007e  __ISA__                                                           
+00000091  __PLAT__                                                          
+000000b2  __TARG__                                                          
+000000d8  __TRDR__                                                          
 00000471  xdc_runtime_System_doPrint__I                                     
 000007ad  I2CMasterControl                                                  
 000007b1  ti_sysbios_knl_Semaphore_pend__E                                  

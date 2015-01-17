@@ -224,21 +224,21 @@ int get_shoulder_imu( float* s_yaw,
 			          float* s_pitch,
 			          float* s_roll )
 {
-	return get_imu(SHOULDER_IMU_ID,s_yaw,s_pitch,s_roll);
+	return get_imu(R_SHOULDER_IMU_ID,s_yaw,s_pitch,s_roll);
 }
 
 int get_elbow_imu( float* e_yaw,
 		           float* e_pitch,
 			       float* e_roll )
 {
-	return get_imu(ELBOW_IMU_ID,e_yaw,e_pitch,e_roll);
+	return get_imu(R_ELBOW_IMU_ID,e_yaw,e_pitch,e_roll);
 }
 
 int get_wrist_imu( float* w_yaw,
 		           float* w_pitch,
 			       float* w_roll )
 {
-	return get_imu(WRIST_IMU_ID,w_yaw,w_pitch,w_roll);
+	return get_imu(R_WRIST_IMU_ID,w_yaw,w_pitch,w_roll);
 }
 
 void signal( int error )

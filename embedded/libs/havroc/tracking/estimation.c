@@ -1,5 +1,19 @@
+#include <stdint.h>
+
 #include <tracking/estimation.h>
 #include <math.h>
+#include <error.h>
+#include <id.h>
+
+static typedef struct _IMU
+{
+    int id;
+    float q[4];
+    float eInt[3];
+    uint32_t lastUpdate;
+} IMU;
+
+static IMU* IMU_array[6];
 
 // Implementation of Sebastian Madgwick's "...efficient orientation filter for... inertial/magnetic sensor arrays"
 // (see http://www.x-io.co.uk/category/open-source/ for examples and more details)
@@ -7,7 +21,7 @@
 // device orientation -- which can be converted to yaw, pitch, and roll. Useful for stabilizing quadcopters, etc.
 // The performance of the orientation filter is at least as good as conventional Kalman-based filtering algorithms
 // but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
-void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat)
+static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat)
 {
     float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
     float norm;
@@ -100,7 +114,7 @@ void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, 
 
 // Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
 // measured ones. 
-void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat)
+static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat)
 {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
   float norm;
@@ -189,4 +203,81 @@ void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, fl
   q[1] = q2 * norm;
   q[2] = q3 * norm;
   q[3] = q4 * norm;
+}
+
+int startIMU()
+{
+  int result = 0; 
+  int i = 0;
+  for(i = L_SHOULDER_IMU_ID; i <= R_WRIST_IMU_ID; i++)
+  {
+    IMU_array[i] = (struct _IMU*) malloc(sizeof(IMU));
+    IMU_array[i]->id = i;
+    IMU_array[i]->q = {1.0f, 0.0f, 0.0f, 0.0f};
+    IMU_array[i]->eInt = {0.0f, 0.0f, 0.0f};
+    IMU_array[i]->lastUpdate = 0;
+    
+    result = initMPU(i);
+
+    if(result > 0)
+    {
+      return result;
+    }
+    
+    result = initCompass(i);
+
+    if(result > 0)
+    {
+      return result;
+    }
+
+    return IMU_START_SUCCESS;
+  }
+}
+
+int returnEstimate(int id, float * yaw, float * pitch, float * roll)
+{
+  float gyroX = 0;
+  float gyroY = 0;
+  float gyroZ = 0;
+  float accelX = 0;
+  float accelY = 0;
+  float accelZ = 0;
+  float magX = 0;
+  float magY = 0;
+  float magZ = 0;
+  uint32_t now = 0;
+  uint32_t delt_t = 0;
+
+  if(readMPUData(id, &accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ))
+  {
+    return IMU_MPU_ERROR;
+  }
+
+  if(readCompassData(id, &magX,&magY,&magZ))
+  {
+    return IMU_COMPASS_ERROR;
+  }
+
+  now = micros();
+  deltat = ((now - IMU_array[i]->lastUpdate)/1000000.0f);
+  IMU_array[i]->lastUpdate = now;
+
+  MadgwickQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[i]->q[0], deltat);
+
+  // Convert quaternion orientation to euler angles in aircraft orientation.
+  // Positive z-axis is down toward Earth. 
+  // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
+  // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
+  // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
+  // The correct order which for this configuration is yaw, pitch, and then roll.
+
+  *yaw   = atan2(2.0f * (IMU_array[i]->q[1] * IMU_array[i]->q[2] + IMU_array[i]->q[0] * IMU_array[i]->q[3]), IMU_array[i]->q[0] * IMU_array[i]->q[0] + IMU_array[i]->q[1] * IMU_array[i]->q[1] - IMU_array[i]->q[2] * IMU_array[i]->q[2] - IMU_array[i]->q[3] * IMU_array[i]->q[3]);   
+  *pitch = -asin(2.0f * (IMU_array[i]->q[1] * IMU_array[i]->q[3] - IMU_array[i]->q[0] * IMU_array[i]->q[2]));
+  *roll  = atan2(2.0f * (IMU_array[i]->q[0] * IMU_array[i]->q[1] + IMU_array[i]->q[2] * IMU_array[i]->q[3]), IMU_array[i]->q[0] * IMU_array[i]->q[0] - IMU_array[i]->q[1] * IMU_array[i]->q[1] - IMU_array[i]->q[2] * IMU_array[i]->q[2] + IMU_array[i]->q[3] * IMU_array[i]->q[3]);
+  *pitch *= 180.0f / PI;
+  *yaw   *= 180.0f / PI;// + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
+  *roll  *= 180.0f / PI;
+
+  return IMU_READ_SUCCESS;
 }

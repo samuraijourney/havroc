@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#include <CC3200_LP.h>
+#include "CC3200_LP.h"
 
 #define Board_initDMA                CC3200_LP_initDMA
 #define Board_initGeneral            CC3200_LP_initGeneral

@@ -53,8 +53,8 @@
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP.1249286788" name="Wrap diagnostic messages (--diag_wrap)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.DIAG_WRAP.off" valueType="enumerated"/>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH.236690435" name="Add dir to #include search path (--include_path, -I)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_5.2.compilerID.INCLUDE_PATH" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${CG_TOOL_ROOT}/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_UNIVERSAL}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_TIVA_C}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_COMMON_UNIVERSAL}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL_COMMON_TIVA_C}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${HAVROC_INCL}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${COM_TI_RTSC_TIRTOSTIVAC_INSTALL_DIR}/products/TivaWare_C_Series-2.1.0.12573c&quot;"/>
 								</option>

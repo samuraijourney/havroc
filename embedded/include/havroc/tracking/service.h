@@ -5,8 +5,8 @@
 	#include <ti/sysbios/knl/Task.h>
 #endif
 
-#include <error.h>
-#include <id.h>
+#include <havroc/error.h>
+#include <havroc/id.h>
 
 int start_service();
 

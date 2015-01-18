@@ -8,9 +8,8 @@
 	#include <ti/sysbios/knl/Mailbox.h>
 #endif
 
-#include <tracking/service.h>
-#include <tracking/estimation.h>
-#include <communications/radio/radio_comm.h>
+#include <havroc/tracking/service.h>
+#include <havroc/tracking/estimation.h>
 
 #define MAX_ATTEMPTS 100
 

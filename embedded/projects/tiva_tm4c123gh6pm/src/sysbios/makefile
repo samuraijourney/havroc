@@ -16,7 +16,7 @@ BIOS_INC  = -I"C:/ti/tirtos_tivac_2_10_01_38/products/bios_6_41_00_26/packages/"
 
 TARGET_INC = -I"C:/ti/tirtos_tivac_2_10_01_38/products/bios_6_41_00_26/packages/"
 
-INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/include" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/include/apps_universal" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/include/apps_tiva_c" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/include/havroc" --include_path="c:/ti/tirtos_tivac_2_10_01_38/products/TivaWare_C_Series-2.1.0.12573c" 
+INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/include" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/apps/universal/common_universal" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/apps/tiva_c/common_tiva_c" --include_path="H:/Users/Akram/Programs/GitHub/havroc/embedded/include" --include_path="c:/ti/tirtos_tivac_2_10_01_38/products/TivaWare_C_Series-2.1.0.12573c" 
 
 CC = c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/bin/armcl -c $(CCOPTS) -I c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/include
 ASM = c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/bin/armcl -c $(CCOPTS) -I c:/ti/ccsv6/tools/compiler/ti-cgt-arm_5.2.0/include

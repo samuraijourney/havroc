@@ -32,6 +32,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>common</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>modules</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>
@@ -39,12 +44,22 @@
 		<link>
 			<name>apps/apps_tiva_c</name>
 			<type>2</type>
-			<locationURI>HAVROC_LOC/apps/apps_tiva_c</locationURI>
+			<locationURI>HAVROC_LOC/apps/tiva_c/apps_tiva_c</locationURI>
 		</link>
 		<link>
 			<name>apps/apps_universal</name>
 			<type>2</type>
-			<locationURI>HAVROC_LOC/apps/apps_universal</locationURI>
+			<locationURI>HAVROC_LOC/apps/universal/apps_universal</locationURI>
+		</link>
+		<link>
+			<name>common/common_tiva_c</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/apps/tiva_c/common_tiva_c</locationURI>
+		</link>
+		<link>
+			<name>common/common_universal</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/apps/universal/common_universal</locationURI>
 		</link>
 		<link>
 			<name>modules/actuation</name>
@@ -65,15 +80,15 @@
 	<variableList>
 		<variable>
 			<name>HAVROC_INCL</name>
-			<value>$%7BHAVROC_LOC%7D/include/havroc</value>
+			<value>$%7BHAVROC_LOC%7D/include</value>
 		</variable>
 		<variable>
-			<name>HAVROC_INCL_TIVA_C</name>
-			<value>$%7BHAVROC_LOC%7D/include/apps_tiva_c</value>
+			<name>HAVROC_INCL_COMMON_TIVA_C</name>
+			<value>$%7BHAVROC_LOC%7D/apps/tiva_c/common_tiva_c</value>
 		</variable>
 		<variable>
-			<name>HAVROC_INCL_UNIVERSAL</name>
-			<value>$%7BHAVROC_LOC%7D/include/apps_universal</value>
+			<name>HAVROC_INCL_COMMON_UNIVERSAL</name>
+			<value>$%7BHAVROC_LOC%7D/apps/universal/common_universal</value>
 		</variable>
 		<variable>
 			<name>HAVROC_LOC</name>

@@ -1,7 +1,7 @@
 #include <xdc/runtime/System.h>
 #include <ti/drivers/I2C.h>
 
-#include <communications/suit/suit_i2c.h>
+#include <havroc/communications/suit/suit_i2c.h>
 
 void suit_i2c_transfer( uint32_t i2cIndex,
 					    uint8_t addr,

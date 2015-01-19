@@ -6,3 +6,5 @@
 /subdir_rules.mk
 /subdir_vars.mk
 /common
+/havroc_CC3200.map
+/havroc_CC3200_linkInfo.xml

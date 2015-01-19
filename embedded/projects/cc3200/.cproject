@@ -102,8 +102,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="apps/apps_cc3200|apps/apps_universal|modules/tracking/imu_driver.c|modules/tracking/estimation.c|empty.c|apps/apps_universal/service_test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="apps/apps_cc3200/empty_example"/>
+						<entry excluding="apps/apps_universal|modules/tracking/imu_driver.c|modules/tracking/estimation.c|empty.c|apps/apps_universal/service_test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

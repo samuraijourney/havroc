@@ -6,10 +6,10 @@
  */
 
 //#include "TCPNetwork.h"
+#include <havroc/communications/TCPNetwork.h>
+
 namespace havroc
 {
-
-#include <havroc/communications/TCPNetwork.h>
 
 void TCPNetwork::end_service()
 {
@@ -28,6 +28,8 @@ int TCPNetwork::send(std::string msg)
 			boost::asio::placeholders::error,
 		    boost::asio::placeholders::bytes_transferred));
 	}
+
+	return 0;
 }
 
 void TCPNetwork::handle_send(boost::shared_ptr<std::string> msg/*message*/,

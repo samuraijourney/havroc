@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\modules">
+      <UniqueIdentifier>{2516428e-b030-444f-b8bc-f346530d0f4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\apps">
+      <UniqueIdentifier>{559ee2d8-44f2-4117-8156-9fa2635226d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\modules\communications">
+      <UniqueIdentifier>{aca6aad8-5109-486d-bb97-8f0bc5998bc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\apps\core">
+      <UniqueIdentifier>{50ce6de6-6866-476d-8461-3f5c8c94f682}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\apps\udp_test">
+      <UniqueIdentifier>{36f9098f-7701-4ce5-98ef-5b8396beaeaf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\apps\tcp_test">
+      <UniqueIdentifier>{6788591e-b64a-4594-9d90-c03204c82e25}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\havroc\communications\UDPNetwork.cpp">
+      <Filter>Source Files\modules\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\havroc\communications\TCPNetwork.cpp">
+      <Filter>Source Files\modules\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\havroc\communications\Network.cpp">
+      <Filter>Source Files\modules\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\apps\udp_test\udp_server.cpp">
+      <Filter>Source Files\apps\udp_test</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

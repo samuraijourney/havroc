@@ -25,6 +25,8 @@ int UDPNetwork::start_service()
 	on_start();
 
 	receive();
+
+	return 0;
 }
 
 void UDPNetwork::end_service()
@@ -47,6 +49,8 @@ int UDPNetwork::send(std::string msg)
 			boost::asio::placeholders::error,
 		    boost::asio::placeholders::bytes_transferred));
 	}
+
+	return 0;
 }
 
 void UDPNetwork::handle_send(boost::shared_ptr<std::string> msg/*message*/,

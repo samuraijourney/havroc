@@ -25,27 +25,11 @@ namespace havroc
 		UDPNetwork(boost::asio::io_service& service, int port);
 		virtual ~UDPNetwork(){}
 
-		int  broadcast(std::string msg);
-
-		int  start_service();
-		void end_service();
+		virtual int  start_service();
+		virtual void end_service();
 
 	protected:
 		udp::socket m_socket;
-
-	private:
-		void receive();
-		void handle_receive(const boost::system::error_code& error,
-						    std::size_t bytes);
-
-		int  send(std::string msg);
-		void handle_send(boost::shared_ptr<std::string>,
-						 const boost::system::error_code&,
-						 std::size_t);
-
-		udp::endpoint m_broadcast_endpoint;
-
-		boost::array<char,256> m_buffer;
 	};
 
 	class UDPNetworkClient : public UDPNetwork
@@ -53,16 +37,36 @@ namespace havroc
 	public:
 		UDPNetworkClient(boost::asio::io_service& service) : UDPNetwork(service, UDP_PORT){}
 		virtual ~UDPNetworkClient(){}
+
+		int  start_service();
+
+	private:
+		void receive();
+		void handle_receive(const boost::system::error_code& error,
+							std::size_t bytes);
+
+		boost::array<char, 256> m_buffer;
 	};
 
 	class UDPNetworkServer : public UDPNetwork
 	{
 	public:
-		UDPNetworkServer(boost::asio::io_service& service) : UDPNetwork(service,0)
+		UDPNetworkServer(boost::asio::io_service& service) : UDPNetwork(service, 0)
 		{
 			m_socket.set_option(boost::asio::socket_base::broadcast(true));
+			m_broadcast_endpoint = udp::endpoint(boost::asio::ip::address_v4::broadcast(), UDP_PORT);
 		}
 		virtual ~UDPNetworkServer() {}
+
+		int broadcast(std::string msg) { return send(msg); }
+
+	private:
+		int  send(std::string msg);
+		void handle_send(boost::shared_ptr<std::string>,
+						 const boost::system::error_code&,
+						 std::size_t);
+
+		udp::endpoint m_broadcast_endpoint;
 	};
 } /* namespace havroc */
 

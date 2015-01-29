@@ -56,7 +56,13 @@
     <ClCompile Include="..\..\libs\havroc\communications\Network.cpp">
       <Filter>Source Files\modules\communications</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\apps\udp_test\udp_server.cpp">
+    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkClient.cpp">
+      <Filter>Source Files\modules\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkServer.cpp">
+      <Filter>Source Files\modules\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\apps\udp_test\udp_client.cpp">
       <Filter>Source Files\apps\udp_test</Filter>
     </ClCompile>
   </ItemGroup>

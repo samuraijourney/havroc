@@ -5,7 +5,6 @@
  *      Author: Akram
  */
 
-//#include "Network.h"
 #include <havroc/communications/Network.h>
 
 namespace havroc

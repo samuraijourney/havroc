@@ -1,34 +1,21 @@
 #include <iostream>
 
-#include <ctime>
 #include <boost/thread/thread.hpp>
 #include <havroc/communications/UDPNetwork.h>
 
-std::string make_daytime_string()
-{
-  using namespace std; // For time_t, time and ctime;
-  time_t now = time(0);
-  return ctime(&now);
-}
-
 void receive_handler(std::string msg)
 {
-	std::cout << "Client receiving: " << msg << std::endl;
-}
-
-void sent_handler(std::string msg)
-{
-	std::cout << "Client sending: " << msg << std::endl;
+	std::cout << "UDP Client receiving: " << msg;
 }
 
 void stop_handler()
 {
-	std::cout << "Client stopped" << std::endl;
+	std::cout << "UDP Client stopped" << std::endl;
 }
 
 void start_handler()
 {
-	std::cout << "Client started" << std::endl;
+	std::cout << "UDP Client started" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -39,7 +26,6 @@ int main(int argc, char* argv[])
     havroc::UDPNetworkClient* udp = new havroc::UDPNetworkClient(io_service);
 
     udp->get_receive_event().connect(&receive_handler);
-    udp->get_sent_event().connect(&sent_handler);
     udp->get_start_event().connect(&start_handler);
     udp->get_stop_event().connect(&stop_handler);
 
@@ -47,8 +33,6 @@ int main(int argc, char* argv[])
 
     while(true)
     {
-    	udp->broadcast(make_daytime_string());
-
     	boost::this_thread::sleep(boost::posix_time::milliseconds(500));
     }
 

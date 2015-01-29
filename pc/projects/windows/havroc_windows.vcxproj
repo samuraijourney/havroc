@@ -41,13 +41,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildProjectDirectory)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(MSBuildProjectDirectory)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)\..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectFileName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -95,10 +97,12 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\apps\udp_test\udp_server.cpp" />
+    <ClCompile Include="..\..\apps\udp_test\udp_client.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\Network.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\TCPNetwork.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\UDPNetwork.cpp" />
+    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkClient.cpp" />
+    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkServer.cpp" />
     <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -5,7 +5,6 @@
  *      Author: Akram
  */
 
-//#include "TCPNetwork.h"
 #include <havroc/communications/TCPNetwork.h>
 
 namespace havroc

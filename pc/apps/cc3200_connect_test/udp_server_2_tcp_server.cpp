@@ -54,6 +54,13 @@ void tcp_start_handler()
 
 int main(int argc, char* argv[])
 {
+	std::string ip = "127.0.0.1";
+
+	if (argc == 2)
+	{
+		ip = std::string(argv[1]);
+	}
+
 	try
 	{
 		boost::asio::io_service io_service;
@@ -76,7 +83,7 @@ int main(int argc, char* argv[])
 
 		while (!_tcp_connected)
 		{
-			udp.broadcast("127.0.0.1");
+			udp.broadcast(ip);
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 		}

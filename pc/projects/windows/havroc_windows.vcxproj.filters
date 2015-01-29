@@ -50,7 +50,7 @@
     <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkServer.cpp">
       <Filter>Source Files\modules\communications</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\apps\cc3200_connect_test\udp_client_2_tcp_client.cpp">
+    <ClCompile Include="..\..\apps\cc3200_connect_test\udp_server_2_tcp_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

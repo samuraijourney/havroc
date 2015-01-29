@@ -97,7 +97,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\apps\cc3200_connect_test\udp_client_2_tcp_client.cpp" />
+    <ClCompile Include="..\..\apps\cc3200_connect_test\udp_server_2_tcp_server.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\Network.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\TCPNetwork.cpp" />
     <ClCompile Include="..\..\libs\havroc\communications\UDPNetwork.cpp" />

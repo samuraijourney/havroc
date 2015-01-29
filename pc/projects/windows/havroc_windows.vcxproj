@@ -41,13 +41,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Boost_1_57_0;$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Boost_1_57_0\binaries\x32\msvc;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Boost_1_57_0;$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Boost_1_57_0\binaries\x32\msvc;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(MSBuildProjectDirectory)\..\..\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(MSBuildProjectDirectory)\..\..\libs\boost;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

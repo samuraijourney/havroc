@@ -57,10 +57,14 @@ namespace havroc {
 		{
 		    m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
 
-		    m_socket.get_io_service().run();
+			m_socket.get_io_service().reset();
 
 		    m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,
-		    		boost::asio::placeholders::error));
+		    	boost::asio::placeholders::error));
+
+			m_socket.get_io_service().run_one();
+
+			return 0;
 		}
 
 	private:
@@ -76,11 +80,15 @@ namespace havroc {
 
 		int start_service()
 		{
-			m_socket.get_io_service().run();
+			m_socket.get_io_service().reset();
 
 			m_acceptor.async_accept(m_socket,
 				boost::bind(&TCPNetworkServer::handle_accept, this,
 				boost::asio::placeholders::error));
+
+			m_socket.get_io_service().run_one();
+
+			return 0;
 		}
 
 	private:

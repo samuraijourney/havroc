@@ -53,24 +53,36 @@ void TCPNetwork::receive()
 void TCPNetwork::handle_receive(const boost::system::error_code& error,
 							    std::size_t bytes)
 {
-  if (!error || error == boost::asio::error::message_size)
-  {
-	  std::string msg(m_buffer.begin(), m_buffer.end());
-	  on_receive(msg);
+	if (m_active)
+	{
+		if (!error || error == boost::asio::error::message_size)
+		{
+			std::string msg(m_buffer.begin(), m_buffer.begin() + bytes);
+			on_receive(msg);
 
-	  receive();
-  }
-  else
-  {
-	  m_active = false;
-  }
+			receive();
+		}
+		else
+		{
+			m_active = false;
+		}
+	}
 }
 
 void TCPNetwork::handle_accept(const boost::system::error_code& ec)
 {
-	on_start();
+	if (ec)
+	{
+		std::cerr << ec.message() << ". Trying again." << std::endl;
 
-	receive();
+		start_service();
+	}
+	else
+	{
+		on_start();
+
+		receive();
+	}
 }
 
 } /* namespace havroc */

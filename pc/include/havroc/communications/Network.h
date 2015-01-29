@@ -40,7 +40,7 @@ namespace havroc
 	{
 	public:
 		Network(boost::asio::io_service& service);
-		virtual ~Network(){}
+		virtual ~Network(){ m_service.stop(); m_service.reset(); }
 
 		boost::signals2::signal<void(std::string)>& get_sent_event()    { return m_sent_event; }
 		boost::signals2::signal<void(std::string)>& get_receive_event() { return m_receive_event; }

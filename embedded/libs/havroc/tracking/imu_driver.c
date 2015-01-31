@@ -1,5 +1,6 @@
 #include <havroc/tracking/imu_driver.h>
-#include <I2C.h>
+#include <havroc/communications/suit/suit_i2c.h>
+#include <havroc/error.h>
 
 float mAdj_X = 0;
 float mAdj_Y = 0;
@@ -7,293 +8,312 @@ float mAdj_Z = 0;
 float mUserX = 0;
 float mUserY = 0;
 float mUserZ = 0;
-float aRes = 2.0/32768.0;
-float gRes = 250.0/32768.0;
-float mRes = 10.*4219./32760.;
+float aRes = 2.0 / 32768.0;
+float gRes = 250.0 / 32768.0;
+float mRes = 10. * 4219. / 32760.;
 float gyroOffsetX = 0;
 float gyroOffsetY = 0;
 float gyroOffsetZ = 0;
-int data_I2C = 0;
-int result_I2C = 0;
 
 //Initialize gyro and accelerometer, check if device id is valid
-void initMPU()
+int initMPU(uint32_t imu_index)
 {
-  //Check IMU and Compass device IDs
-  result_I2C = I2c.read(MPU_ADDRESS, WHO_AM_I_MPU9250, 1);
-  data_I2C = I2c.receive();
+	uint8_t rxBuff[1];
+	uint8_t txBuff[1];
 
-  if (data_I2C != MPU_WHOAMI)
-  {
-    //Alert user using LED
-    while(1)
-    {
-      digitalWrite(13, HIGH);
-      delay(1000);
-      digitalWrite(13, LOW);
-    }
-  }
+	//Check IMU and Compass device IDs
+	suit_i2c_read(imu_index, MPU_ADDRESS, WHO_AM_I_MPU9250, rxBuff, 1);
 
-  //Reset device
-  I2c.write(MPU_ADDRESS, PWR_MGMT_1, 0x80);
-  delay(100);
+	if (rxBuff[0] != MPU_WHOAMI)
+	{
+		return IMU_MPU_START_ERROR;
+	}
 
-  //Wake up device
-  I2c.write(MPU_ADDRESS, PWR_MGMT_1, 0x00);
-  delay(100);
+	//Reset device
+	txBuff[0] = 0x80;
+	suit_i2c_write(imu_index, MPU_ADDRESS, PWR_MGMT_1, txBuff, 1);
+	delay(100);
 
-  //Get stable time source - PLL gyroscope reference if ready, else use internal oscillator
-  I2c.write(MPU_ADDRESS, PWR_MGMT_1, 0x01);
+	//Wake up device
+	txBuff[0] = 0x00;
+	suit_i2c_write(imu_index, MPU_ADDRESS, PWR_MGMT_1, txBuff, 1);
+	delay(100);
 
-  //Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz
-  I2c.write(MPU_ADDRESS, CONFIG, 0x03);
+	//Get stable time source - PLL gyroscope reference if ready, else use internal oscillator
+	txBuff[0] = 0x01;
+	suit_i2c_write(imu_index, MPU_ADDRESS, PWR_MGMT_1, txBuff, 1);
 
-  //Set sensor output rate to 200 kHz, remaining consistent with filter update rate
-  I2c.write(MPU_ADDRESS, SMPLRT_DIV, 0x04);
+	//Disable FSYNC and set thermometer and gyro bandwidth to 41 and 42 Hz
+	txBuff[0] = 0x03;
+	suit_i2c_write(imu_index, MPU_ADDRESS, CONFIG, txBuff, 1);
 
-  //Get gyro config register contents
-  result_I2C = I2c.read(MPU_ADDRESS, GYRO_CONFIG, 1);
-  data_I2C = I2c.receive();
+	//Set sensor output rate to 200 kHz, remaining consistent with filter update rate
+	txBuff[0] = 0x04;
+	suit_i2c_write(imu_index, MPU_ADDRESS, SMPLRT_DIV, txBuff, 1);
 
-  //Clear Fchoice and full scale bits
-  I2c.write(MPU_ADDRESS, GYRO_CONFIG, result_I2C & 0xE4);
+	//Get gyro config register contents
+	suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_CONFIG, rxBuff, 1);
 
-  //Set full scale range for the gyro
-  I2c.write(MPU_ADDRESS, GYRO_CONFIG, result_I2C | GFS_250DPS << 3);
+	//Clear Fchoice and full scale bits
+	txBuff[0] = rxBuff[0] & 0xE4;
+	suit_i2c_write(imu_index, MPU_ADDRESS, GYRO_CONFIG, txBuff, 1);
 
-  //Get accelerometer config register contents
-  result_I2C = I2c.read(MPU_ADDRESS, ACCEL_CONFIG, 1);
-  data_I2C = I2c.receive();
+	//Set full scale range for the gyro
+	txBuff[0] = rxBuff[0] | GFS_250DPS << 3;
+	suit_i2c_write(imu_index, MPU_ADDRESS, GYRO_CONFIG, txBuff, 1);
 
-  //Clear full scale bits
-  I2c.write(MPU_ADDRESS, ACCEL_CONFIG, result_I2C & 0xE7);
+	//Get accelerometer config register contents
+	suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_CONFIG, rxBuff, 1);
 
-  //Set full scale range for the accelerometer
-  I2c.write(MPU_ADDRESS, ACCEL_CONFIG, result_I2C | AFS_2G << 3);
+	//Clear full scale bits
+	txBuff[0] = rxBuff[0] & 0xE7;
+	suit_i2c_write(imu_index, MPU_ADDRESS, ACCEL_CONFIG, txBuff, 1);
 
-  //Get accelerometer config2 register contents
-  result_I2C = I2c.read(MPU_ADDRESS, ACCEL_CONFIG2, 1);
-  data_I2C = I2c.receive();
+	//Set full scale range for the accelerometer
+	txBuff[0] = rxBuff[0] | AFS_2G << 3;
+	suit_i2c_write(imu_index, MPU_ADDRESS, ACCEL_CONFIG, txBuff, 1);
 
-  //Clear Fchoice and data_I2C rate bits
-  I2c.write(MPU_ADDRESS, ACCEL_CONFIG2, result_I2C & ~0xF);
+	//Get accelerometer config2 register contents
+	suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_CONFIG2, rxBuff, 1);
 
-  //Set accelerometer bandwidth to 41 Hz
-  I2c.write(MPU_ADDRESS, ACCEL_CONFIG2, result_I2C | 0x3);
+	//Clear Fchoice and data_I2C rate bits
+	txBuff[0] = rxBuff[0] & ~0xF;
+	suit_i2c_write(imu_index, MPU_ADDRESS, ACCEL_CONFIG2, txBuff, 1);
 
-  //Enable Bypass mode so compass is on I2C bus
-  I2c.write(MPU_ADDRESS,INT_PIN_CFG,0x12);
+	//Set accelerometer bandwidth to 41 Hz
+	txBuff[0] = rxBuff[0] | 0x3;
+	suit_i2c_write(imu_index, MPU_ADDRESS, ACCEL_CONFIG2, txBuff, 1);
 
-  //Enable data_I2C ready interrupt
-  I2c.write(MPU_ADDRESS, INT_ENABLE, 0x01);
+	//Enable Bypass mode so compass is on I2C bus
+	txBuff[0] = 0x12;
+	suit_i2c_write(imu_index, MPU_ADDRESS, INT_PIN_CFG, txBuff, 1);
 
-  //Run calibration for sensors
-  getGyroOffsets(&gyroOffsetX,&gyroOffsetY,&gyroOffsetZ);
+	//Enable data_I2C ready interrupt
+	txBuff[0] = 0x01;
+	suit_i2c_write(imu_index, MPU_ADDRESS, INT_ENABLE, txBuff, 1);
+
+	//Run calibration for sensors
+	getGyroOffsets(&gyroOffsetX, &gyroOffsetY, &gyroOffsetZ, imu_index);
+
+	return IMU_MPU_START_SUCCESS;
 }
 
 //Initialize compass, check if device id is valid, get factory calibrated sensitivity values
-void initCompass()
+int initCompass(uint32_t imu_index)
 {
-  result_I2C = I2c.read(AK8963_ADDRESS, WHO_AM_I_AK8963, 1);
-  data_I2C = I2c.receive();
+	uint8_t rxBuff[1];
+	uint8_t txBuff[1];
 
-  if (data_I2C != AKM_WHOAMI)
-  {
-    //Alert user using LED
-    while(1)
-    {
-      digitalWrite(13, HIGH);
-      delay(1000);
-      digitalWrite(13, LOW);
-    }
-  }
+	suit_i2c_read(imu_index, AK8963_ADDRESS, WHO_AM_I_AK8963, rxBuff, 1);
 
-  //Shutdown compass
-  I2c.write(AK8963_ADDRESS, AK8963_CNTL, 0x00);
-  delay(10);
+	if (rxBuff[0] != AKM_WHOAMI)
+	{
+		return IMU_COMPASS_START_ERROR;
+	}
 
-  //Enter Fuse ROM access mode
-  I2c.write(AK8963_ADDRESS, AK8963_CNTL, 0x0F);
-  delay(10);
+	//Shutdown compass
+	txBuff[0] = 0x00;
+	suit_i2c_write(imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	delay(10);
 
-  //Get sensitivity adjustment values
-  result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ASAX, 1);
-  mAdj_X = (float)(I2c.receive()-128)/256. + 1.;
+	//Enter Fuse ROM access mode
+	txBuff[0] = 0x0F;
+	suit_i2c_write(imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	delay(10);
 
-  result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ASAY, 1);
-  mAdj_Y = (float)(I2c.receive()-128)/256. + 1.;
+	//Get sensitivity adjustment values
+	suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ASAX, rxBuff, 1);
+	mAdj_X = (float) (rxBuff[0] - 128) / 256. + 1.;
 
-  result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ASAZ, 1);
-  mAdj_Z = (float)(I2c.receive()-128)/256. + 1.;
+	suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ASAY, rxBuff, 1);
+	mAdj_Y = (float) (rxBuff[0] - 128) / 256. + 1.;
 
-  //Set compass to 8 Hz continuous read mode and to 16 bit resolution
-  I2c.write(AK8963_ADDRESS, AK8963_CNTL, 0x12);
-  delay(10);
+	suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ASAZ, rxBuff, 1);
+	mAdj_Z = (float) (rxBuff[0] - 128) / 256. + 1.;
+
+	//Set compass to 8 Hz continuous read mode and to 16 bit resolution
+	txBuff[0] = 0x12;
+	suit_i2c_write(imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	delay(10);
+
+	return IMU_COMPASS_START_SUCCESS;
 }
 
-int readMPUData(float * accel_X, float * accel_Y, float * accel_Z, float * gyro_X, float * gyro_Y, float * gyro_Z)
-{
-  float x = 0;
-  float y = 0;
-  float z = 0;
-  result_I2C = 0;
-  
-  result_I2C = I2c.read(MPU_ADDRESS, INT_STATUS, 1);
-  data_I2C = I2c.receive();
+int readMPUData(float * accel_X, float * accel_Y, float * accel_Z,
+		float * gyro_X, float * gyro_Y, float * gyro_Z, uint32_t imu_index) {
+	float x = 0;
+	float y = 0;
+	float z = 0;
+	uint8_t rxBuff[1];
+	int i2c_data = 0;
 
-  if(data_I2C == 0x01)
-  {
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_XOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+	suit_i2c_read(imu_index, MPU_ADDRESS, INT_STATUS, rxBuff, 1);
 
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_XOUT_L, 1);
-    data_I2C |= I2c.receive();
+	if (rxBuff[0] == 0x01)
+	{
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_XOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    x = (float)data_I2C*aRes;
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_XOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_YOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		x = (float) i2c_data * aRes;
 
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_YOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_YOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    y = (float)data_I2C*aRes;
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_YOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_ZOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		y = (float) i2c_data * aRes;
 
-    result_I2C = I2c.read(MPU_ADDRESS, ACCEL_ZOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_ZOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    z = (float)data_I2C*aRes;
+		suit_i2c_read(imu_index, MPU_ADDRESS, ACCEL_ZOUT_H, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    *accel_X = x;
-    *accel_Y = y;
-    *accel_Z = z;
+		z = (float) i2c_data * aRes;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_XOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		*accel_X = x;
+		*accel_Y = y;
+		*accel_Z = z;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_XOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_XOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    x = (float)data_I2C*gRes - gyroOffsetX;
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_XOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_YOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		x = (float) i2c_data * gRes - gyroOffsetX;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_YOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_YOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    y = (float)data_I2C*gRes - gyroOffsetY;
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_YOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_ZOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		y = (float) i2c_data * gRes - gyroOffsetY;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_ZOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_ZOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    z = (float)data_I2C*gRes - gyroOffsetZ;
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_ZOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    *gyro_X = x;
-    *gyro_Y = y;
-    *gyro_Z = z;
-    result_I2C = 1;
-  }
+		z = (float) i2c_data * gRes - gyroOffsetZ;
 
-  return result_I2C;
+		*gyro_X = x;
+		*gyro_Y = y;
+		*gyro_Z = z;
+		return IMU_READ_SUCCESS;
+	}
+
+	return IMU_READ_FAIL;
 }
 
 //Get x,y,z readings from compass
-int readCompassData(float * mag_X, float * mag_Y, float * mag_Z)
-{
-  float x = 0;
-  float y = 0;
-  float z = 0;
-  result_I2C = 0;
+int readCompassData(float * mag_X, float * mag_Y, float * mag_Z, uint32_t imu_index) {
+	float x = 0;
+	float y = 0;
+	float z = 0;
+	uint8_t rxBuff[1];
+	int i2c_data = 0;
 
-  //Check compass status for new data_I2C
-  result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ST1, 1);
-  data_I2C = I2c.receive();
+	//Check compass status for new data_I2C
+	suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ST1, rxBuff, 1);
 
-  //If new data_I2C is present, print out new data_I2C
-  if(data_I2C & 0x01)
-  {
-    //Read compass data_I2C then convert to milliGauss
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_XOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+	//If new data_I2C is present, print out new data_I2C
+	if (rxBuff[0] & 0x01)
+	{
+		//Read compass data_I2C then convert to milliGauss
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_XOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_XOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_XOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    x = (float)data_I2C*mRes*mAdj_X + mUserX;
+		x = (float) i2c_data * mRes * mAdj_X + mUserX;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_YOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_YOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_YOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_YOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    y = (float)data_I2C*mRes*mAdj_Y + mUserY;
+		y = (float) i2c_data * mRes * mAdj_Y + mUserY;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ZOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ZOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ZOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ZOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    z = (float)data_I2C*mRes*mAdj_Z + mUserZ;
+		z = (float) i2c_data * mRes * mAdj_Z + mUserZ;
 
-    result_I2C = I2c.read(AK8963_ADDRESS, AK8963_ST2, 1);
-    data_I2C = I2c.receive();
+		suit_i2c_read(imu_index, AK8963_ADDRESS, AK8963_ST2, rxBuff, 1);
 
-    //Check if magnetic sensor overflow set, if not then report data_I2C
-    if(!(data_I2C & 0x08)) 
-    { 
-      *mag_X = x;
-      *mag_Y = y;
-      *mag_Z = z;
-      result_I2C = 1;
-    }
-  }
+		//Check if magnetic sensor overflow set, if not then report data_I2C
+		if (!(rxBuff[0] & 0x08))
+		{
+			*mag_X = x;
+			*mag_Y = y;
+			*mag_Z = z;
+			return IMU_READ_SUCCESS;
+		}
+	}
 
-  return result_I2C;
+	return IMU_READ_FAIL;
 }
 
-void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY, float * gyro_OffsetZ)
-{
-  float sumX = 0;
-  float sumY = 0;
-  float sumZ = 0;
+void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY,
+		float * gyro_OffsetZ, int imu_index) {
+	float sumX = 0;
+	float sumY = 0;
+	float sumZ = 0;
+	int i;
+	uint8_t rxBuff[1];
+	int i2c_data = 0;
 
-  for (int i = 0; i < 100; i++)
-  {
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_XOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+	for (i = 0; i < 100; i++) {
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_XOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_XOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_XOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    sumX += (float)data_I2C*gRes;
+		sumX += (float) i2c_data * gRes;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_YOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_YOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_YOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_YOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    sumY += (float)data_I2C*gRes;
+		sumY += (float) i2c_data * gRes;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_ZOUT_H, 1);
-    data_I2C = I2c.receive() << 8;
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_ZOUT_H, rxBuff, 1);
+		i2c_data = rxBuff[0];
+		i2c_data <<= 8;
 
-    result_I2C = I2c.read(MPU_ADDRESS, GYRO_ZOUT_L, 1);
-    data_I2C |= I2c.receive();
+		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_ZOUT_L, rxBuff, 1);
+		i2c_data |= rxBuff[0];
 
-    sumZ += (float)data_I2C*gRes;
-  }
+		sumZ += (float) i2c_data * gRes;
+	}
 
-  *gyro_OffsetX = sumX/100.;
-  *gyro_OffsetY = sumY/100.;
-  *gyro_OffsetZ = sumZ/100.;
+	*gyro_OffsetX = sumX / 100.;
+	*gyro_OffsetY = sumY / 100.;
+	*gyro_OffsetZ = sumZ / 100.;
 }

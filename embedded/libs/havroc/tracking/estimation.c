@@ -2,10 +2,11 @@
 #include <math.h>
 
 #include <havroc/tracking/estimation.h>
+#include <havroc/tracking/imu_driver.h>
 #include <havroc/error.h>
 #include <havroc/id.h>
 
-static typedef struct _IMU
+typedef struct _IMU
 {
     int id;
     float q[4];
@@ -13,7 +14,7 @@ static typedef struct _IMU
     uint32_t lastUpdate;
 } IMU;
 
-static IMU* IMU_array[6];
+static IMU IMU_array[6];
 
 // Implementation of Sebastian Madgwick's "...efficient orientation filter for... inertial/magnetic sensor arrays"
 // (see http://www.x-io.co.uk/category/open-source/ for examples and more details)
@@ -207,32 +208,34 @@ static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float
 
 int startIMU()
 {
-  int result = 0; 
   int i = 0;
+  int j = 0;
+
   for(i = L_SHOULDER_IMU_ID; i <= R_WRIST_IMU_ID; i++)
   {
-    IMU_array[i] = (struct _IMU*) malloc(sizeof(IMU));
-    IMU_array[i]->id = i;
-    IMU_array[i]->q = {1.0f, 0.0f, 0.0f, 0.0f};
-    IMU_array[i]->eInt = {0.0f, 0.0f, 0.0f};
-    IMU_array[i]->lastUpdate = 0;
-    
-    result = initMPU(i);
+	IMU_array[i].q[0] = 1.0f;
 
-    if(result > 0)
-    {
-      return result;
-    }
-    
-    result = initCompass(i);
+	for(j = 0; j < 3; j++)
+	{
+	  IMU_array[i].q[j+1] = 0.0f;
+	  IMU_array[i].eInt[j] = 0.0f;
+	}
 
-    if(result > 0)
+    IMU_array[i].id = i;
+    IMU_array[i].lastUpdate = 0;
+
+    if(initMPU(0) == IMU_MPU_START_ERROR)
     {
-      return result;
+      return IMU_MPU_START_ERROR;
     }
 
-    return IMU_START_SUCCESS;
+    if(initCompass(0) == IMU_COMPASS_START_ERROR)
+    {
+      return IMU_COMPASS_START_ERROR;
+    }
   }
+
+  return IMU_START_SUCCESS;
 }
 
 int returnEstimate(int id, float * yaw, float * pitch, float * roll)
@@ -249,21 +252,21 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   uint32_t now = 0;
   uint32_t delt_t = 0;
 
-  if(readMPUData(id, &accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ))
+  if(readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, id) == IMU_READ_FAIL)
   {
     return IMU_MPU_ERROR;
   }
 
-  if(readCompassData(id, &magX,&magY,&magZ))
+  if(readCompassData(&magX,&magY,&magZ, id) == IMU_READ_FAIL)
   {
     return IMU_COMPASS_ERROR;
   }
 
-  now = micros();
-  deltat = ((now - IMU_array[i]->lastUpdate)/1000000.0f);
-  IMU_array[i]->lastUpdate = now;
+  //now = micros();
+  delt_t = ((now - IMU_array[id].lastUpdate)/1000000.0f);
+  IMU_array[id].lastUpdate = now;
 
-  MadgwickQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[i]->q[0], deltat);
+  MadgwickQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[id].q[0], delt_t);
 
   // Convert quaternion orientation to euler angles in aircraft orientation.
   // Positive z-axis is down toward Earth. 
@@ -272,9 +275,9 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
   // The correct order which for this configuration is yaw, pitch, and then roll.
 
-  *yaw   = atan2(2.0f * (IMU_array[i]->q[1] * IMU_array[i]->q[2] + IMU_array[i]->q[0] * IMU_array[i]->q[3]), IMU_array[i]->q[0] * IMU_array[i]->q[0] + IMU_array[i]->q[1] * IMU_array[i]->q[1] - IMU_array[i]->q[2] * IMU_array[i]->q[2] - IMU_array[i]->q[3] * IMU_array[i]->q[3]);   
-  *pitch = -asin(2.0f * (IMU_array[i]->q[1] * IMU_array[i]->q[3] - IMU_array[i]->q[0] * IMU_array[i]->q[2]));
-  *roll  = atan2(2.0f * (IMU_array[i]->q[0] * IMU_array[i]->q[1] + IMU_array[i]->q[2] * IMU_array[i]->q[3]), IMU_array[i]->q[0] * IMU_array[i]->q[0] - IMU_array[i]->q[1] * IMU_array[i]->q[1] - IMU_array[i]->q[2] * IMU_array[i]->q[2] + IMU_array[i]->q[3] * IMU_array[i]->q[3]);
+  *yaw   = atan2(2.0f * (IMU_array[id].q[1] * IMU_array[id].q[2] + IMU_array[id].q[0] * IMU_array[id].q[3]), IMU_array[id].q[0] * IMU_array[id].q[0] + IMU_array[id].q[1] * IMU_array[id].q[1] - IMU_array[id].q[2] * IMU_array[id].q[2] - IMU_array[id].q[3] * IMU_array[id].q[3]);
+  *pitch = -asin(2.0f * (IMU_array[id].q[1] * IMU_array[id].q[3] - IMU_array[id].q[0] * IMU_array[id].q[2]));
+  *roll  = atan2(2.0f * (IMU_array[id].q[0] * IMU_array[id].q[1] + IMU_array[id].q[2] * IMU_array[id].q[3]), IMU_array[id].q[0] * IMU_array[id].q[0] - IMU_array[id].q[1] * IMU_array[id].q[1] - IMU_array[id].q[2] * IMU_array[id].q[2] + IMU_array[id].q[3] * IMU_array[id].q[3]);
   *pitch *= 180.0f / PI;
   *yaw   *= 180.0f / PI;// + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
   *roll  *= 180.0f / PI;

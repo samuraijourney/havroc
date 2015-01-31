@@ -6,24 +6,17 @@
  */
 
 #include <havroc/communications/TCPNetwork.h>
+#include <havroc/communications/CommandBuilder.h>
 
 namespace havroc
 {
 
-void TCPNetwork::end_service()
+int TCPNetwork::send(char* msg, size_t size)
 {
-	m_socket.close();
-
-	on_stop();
-}
-
-int TCPNetwork::send(std::string msg)
-{
-	if(m_active)
+	if(is_active())
 	{
-		boost::shared_ptr<std::string> message(new std::string(msg));
-		m_socket.async_send(boost::asio::buffer(*message),
-			boost::bind(&TCPNetwork::handle_send, this, message,
+		m_socket.async_send(boost::asio::buffer(msg,size),
+			boost::bind(&TCPNetwork::handle_send, this, msg, size,
 			boost::asio::placeholders::error,
 		    boost::asio::placeholders::bytes_transferred));
 	}
@@ -31,16 +24,17 @@ int TCPNetwork::send(std::string msg)
 	return 0;
 }
 
-void TCPNetwork::handle_send(boost::shared_ptr<std::string> msg/*message*/,
+void TCPNetwork::handle_send(char* msg /*message*/,
+							 size_t size /*message size*/,
 							 const boost::system::error_code& /*error*/,
-							 std::size_t /*bytes_transferred*/)
+							 std::size_t bytes /*bytes_transferred*/)
 {
-	on_sent(*msg);
+	on_sent(msg, size);
 }
 
 void TCPNetwork::receive()
 {
-	if(m_active)
+	if (is_active())
 	{
 		m_socket.async_receive(
 			boost::asio::buffer(m_buffer, m_buffer.size()),
@@ -53,18 +47,43 @@ void TCPNetwork::receive()
 void TCPNetwork::handle_receive(const boost::system::error_code& error,
 							    std::size_t bytes)
 {
-	if (m_active)
+	if (is_active())
 	{
 		if (!error || error == boost::asio::error::message_size)
 		{
-			std::string msg(m_buffer.begin(), m_buffer.begin() + bytes);
-			on_receive(msg);
+			char* start = 0;
+			size_t size = 0;
+
+			for (int i = 0; i < (int)bytes; i++)
+			{
+				if (m_buffer[i] == (char)START_SYNC)
+				{
+					if (size > 0)
+					{
+						on_receive(start, size);
+						size = 0;
+					}
+
+					start = &m_buffer.c_array()[i];
+				}
+
+				if (start)
+				{
+					size++;
+				}
+			}
+			
+			if (size > 0)
+			{
+				on_receive(start, size);
+				size = 0;
+			}
 
 			receive();
 		}
 		else
 		{
-			m_active = false;
+			end_service();
 		}
 	}
 }
@@ -74,12 +93,10 @@ void TCPNetwork::handle_accept(const boost::system::error_code& ec)
 	if (ec)
 	{
 		std::cerr << ec.message() << ". Trying again." << std::endl;
-
-		start_service();
 	}
 	else
 	{
-		on_start();
+		on_connect();
 
 		receive();
 	}

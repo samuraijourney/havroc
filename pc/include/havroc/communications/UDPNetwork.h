@@ -25,11 +25,17 @@ namespace havroc
 		UDPNetwork(boost::asio::io_service& service, int port);
 		virtual ~UDPNetwork(){}
 
-		virtual int  start_service();
-		virtual void end_service();
+		virtual int start_service();
 
 	protected:
 		udp::socket m_socket;
+
+	private:
+		void kill_socket()
+		{
+			m_socket.shutdown(boost::asio::ip::udp::socket::shutdown_both);
+			m_socket.close();
+		}
 	};
 
 	class UDPNetworkClient : public UDPNetwork
@@ -58,11 +64,12 @@ namespace havroc
 		}
 		virtual ~UDPNetworkServer() {}
 
-		int broadcast(std::string msg) { return send(msg); }
+		int broadcast(char* msg, size_t size) { return send(msg, size); }
 
 	private:
-		int  send(std::string msg);
-		void handle_send(boost::shared_ptr<std::string>,
+		int  send(char* msg, size_t size);
+		void handle_send(char*,
+						 size_t,
 						 const boost::system::error_code&,
 						 std::size_t);
 

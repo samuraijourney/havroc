@@ -10,6 +10,7 @@
 
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
 
 #include "Network.h"
 
@@ -25,10 +26,9 @@ namespace havroc {
 		TCPNetwork(boost::asio::io_service& service) : Network(service), m_socket(service){}
 		virtual ~TCPNetwork(){}
 
-		int  send(std::string msg);
+		int	 send(char* msg, size_t size);
 
 		virtual int start_service() = 0;
-		void end_service();
 
 	protected:
 		void handle_accept(const boost::system::error_code& ec);
@@ -40,9 +40,15 @@ namespace havroc {
 		void receive();
 		void handle_receive(const boost::system::error_code& error,
 							std::size_t bytes);
-		void handle_send(boost::shared_ptr<std::string>,
+		void handle_send(char*,
+						 size_t,
 						 const boost::system::error_code&,
 						 std::size_t);
+		void kill_socket()
+		{
+			m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+			m_socket.close();
+		}
 
 		boost::array<char,256> m_buffer;
 	};
@@ -50,19 +56,29 @@ namespace havroc {
 	class TCPNetworkClient : public TCPNetwork
 	{
 	public:
-		TCPNetworkClient(boost::asio::io_service& service, std::string ip) : TCPNetwork(service), m_ip(ip){}
+		TCPNetworkClient(boost::asio::io_service& service, std::string ip) : TCPNetwork(service), m_ip(ip)
+		{
+			m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+		}
 		virtual ~TCPNetworkClient(){}
 
 		int start_service()
 		{
-		    m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+			int handles = 1;
 
 			m_socket.get_io_service().reset();
 
-		    m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,
-		    	boost::asio::placeholders::error));
+			while (!is_active())
+			{
+				if (handles == 1)
+				{
+					m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,
+						boost::asio::placeholders::error));
+				}
 
-			m_socket.get_io_service().run_one();
+				handles = m_socket.get_io_service().poll();
+				boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+			}
 
 			return 0;
 		}
@@ -80,13 +96,22 @@ namespace havroc {
 
 		int start_service()
 		{
+			int handles = 1;
+
 			m_socket.get_io_service().reset();
 
-			m_acceptor.async_accept(m_socket,
-				boost::bind(&TCPNetworkServer::handle_accept, this,
-				boost::asio::placeholders::error));
+			while (!is_active())
+			{
+				if (handles == 1)
+				{
+					m_acceptor.async_accept(m_socket,
+						boost::bind(&TCPNetworkServer::handle_accept, this,
+						boost::asio::placeholders::error));
+				}
 
-			m_socket.get_io_service().run_one();
+				handles = m_socket.get_io_service().poll();
+				boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+			}
 
 			return 0;
 		}

@@ -12,13 +12,12 @@
 namespace havroc
 {
 
-int UDPNetworkServer::send(std::string msg)
+int UDPNetworkServer::send(char* msg, size_t size)
 {
-	if (m_active)
+	if (is_active())
 	{
-		boost::shared_ptr<std::string> message(new std::string(msg));
-		m_socket.async_send_to(boost::asio::buffer(*message), m_broadcast_endpoint,
-			boost::bind(&UDPNetworkServer::handle_send, this, message,
+		m_socket.async_send_to(boost::asio::buffer(msg,size), m_broadcast_endpoint,
+			boost::bind(&UDPNetworkServer::handle_send, this, msg, size,
 			boost::asio::placeholders::error,
 			boost::asio::placeholders::bytes_transferred));
 	}
@@ -26,11 +25,12 @@ int UDPNetworkServer::send(std::string msg)
 	return 0;
 }
 
-void UDPNetworkServer::handle_send(boost::shared_ptr<std::string> msg/*message*/,
-	const boost::system::error_code& /*error*/,
-	std::size_t /*bytes_transferred*/)
+void UDPNetworkServer::handle_send(char* msg /*message*/,
+								   size_t size /*message size*/,
+								   const boost::system::error_code& /*error*/,
+								   std::size_t /*bytes_transferred*/)
 {
-	on_sent(*msg);
+	on_sent(msg, size);
 }
 
 } /* namespace havroc */

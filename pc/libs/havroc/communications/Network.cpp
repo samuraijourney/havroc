@@ -12,13 +12,26 @@ namespace havroc
 
 Network::Network(boost::asio::io_service& service)
 : m_service(service),
-  m_active(false)
+  m_active(false),
+  m_reconnect(false)
 {
-	m_start_event.connect(boost::bind(&Network::start_service, this));
-	m_stop_event.connect(boost::bind(&Network::end_service, this));
+	m_connect_event.connect(boost::bind(&Network::init_loop, this));
 }
 
-void Network::start_service()
+void Network::end_service()
+{
+	if (m_active)
+	{
+		m_active = false;
+		m_service.stop();
+
+		kill_socket();
+
+		on_disconnect();
+	}
+}
+
+void Network::init_loop()
 {
 	m_active = true;
 
@@ -31,6 +44,13 @@ void Network::loop()
 	{
 		m_service.poll();
 		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+	}
+
+	//boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+	m_service.stop();
+	if (m_reconnect)
+	{
+		start_service();
 	}
 }
 

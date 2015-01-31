@@ -2,18 +2,28 @@
 
 #include <boost/thread/thread.hpp>
 #include <havroc/communications/UDPNetwork.h>
+#include <havroc/communications/CommandBuilder.h>
 
-void receive_handler(std::string msg)
+void receive_handler(char* msg, size_t size)
 {
-	std::cout << "UDP Client receiving: " << msg;
+	if (havroc::CommandBuilder::is_command(msg, size))
+	{
+		std::cout << "UDP Client receiving packet" << std::endl;
+		havroc::CommandBuilder::print_command(msg, size, 1);
+	}
+	else
+	{
+		std::string str_msg(msg);
+		std::cout << "UDP Client receiving message: " << str_msg << std::endl;
+	}
 }
 
-void stop_handler()
+void disconnect_handler()
 {
 	std::cout << "UDP Client stopped" << std::endl;
 }
 
-void start_handler()
+void connect_handler()
 {
 	std::cout << "UDP Client started" << std::endl;
 }
@@ -23,22 +33,20 @@ int main(int argc, char* argv[])
   try
   {
     boost::asio::io_service io_service;
-    havroc::UDPNetworkClient* udp = new havroc::UDPNetworkClient(io_service);
+    havroc::UDPNetworkClient udp(io_service);
 
-    udp->get_receive_event().connect(&receive_handler);
-    udp->get_start_event().connect(&start_handler);
-    udp->get_stop_event().connect(&stop_handler);
+    udp.get_receive_event().connect(&receive_handler);
+	udp.get_connect_event().connect(&connect_handler);
+	udp.get_disconnect_event().connect(&disconnect_handler);
 
-    udp->start_service();
+    udp.start_service();
 
     while(true)
     {
     	boost::this_thread::sleep(boost::posix_time::milliseconds(500));
     }
 
-    udp->end_service();
-
-    delete udp;
+    udp.end_service();
   }
   catch (std::exception& e)
   {

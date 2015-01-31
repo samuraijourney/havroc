@@ -30,6 +30,9 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CommandBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -50,7 +53,7 @@
     <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkServer.cpp">
       <Filter>Source Files\modules\communications</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\apps\cc3200_connect_test\udp_server_2_tcp_server.cpp">
+    <ClCompile Include="..\..\apps\tcp_test\tcp_client.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

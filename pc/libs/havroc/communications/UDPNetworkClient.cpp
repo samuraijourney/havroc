@@ -5,7 +5,7 @@ namespace havroc
 
 int UDPNetworkClient::start_service()
 {
-	on_start();
+	on_connect();
 
 	receive();
 
@@ -14,7 +14,7 @@ int UDPNetworkClient::start_service()
 
 void UDPNetworkClient::receive()
 {
-	if (m_active)
+	if (is_active())
 	{
 		udp::endpoint sender_endpoint;
 
@@ -27,20 +27,19 @@ void UDPNetworkClient::receive()
 }
 
 void UDPNetworkClient::handle_receive(const boost::system::error_code& error,
-	std::size_t bytes)
+									  std::size_t bytes)
 {
-	if (m_active)
+	if (is_active())
 	{
 		if (!error || error == boost::asio::error::message_size)
 		{
-			std::string msg(m_buffer.begin(), m_buffer.begin() + bytes);
-			on_receive(msg);
+			on_receive(m_buffer.c_array(), bytes);
 
 			receive();
 		}
 		else
 		{
-			m_active = false;
+			end_service();
 		}
 	}
 }

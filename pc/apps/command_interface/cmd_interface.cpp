@@ -6,7 +6,7 @@
 #include <havroc/communications/TCPNetwork.h>
 #include <havroc/communications/CommandBuilder.h>
 
-#define NUM_MOTORS 24
+#define NUM_MOTORS 90
 
 std::string make_daytime_string()
 {
@@ -17,6 +17,7 @@ std::string make_daytime_string()
 
 void sent_handler(char* msg, size_t size)
 {
+	
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
 		std::cout << "TCP Client sent packet" << std::endl;
@@ -55,34 +56,23 @@ void connect_handler()
 
 int main(int argc, char* argv[])
 {
-	char* ip = "127.0.0.1";
-	size_t size = 9;
-
-	if (argc == 3)
-	{
-		ip = argv[1];
-		size = atoi(argv[2]);
-	}
-
 	try
 	{
 		boost::asio::io_service io_service;
-		//havroc::TCPNetworkClient tcp(io_service, CC3200_IP);
-		std::string ip_str(ip);
-		havroc::TCPNetworkClient tcp(io_service, ip_str);
+		//havroc::TCPNetworkClient* tcp = new havroc::TCPNetworkClient(io_service, CC3200_IP);
+		havroc::TCPNetworkClient* tcp = new havroc::TCPNetworkClient(io_service, "127.0.0.1");
 
-		tcp.get_sent_event().connect(&sent_handler);
-		tcp.get_receive_event().connect(&receive_handler);
-		tcp.get_connect_event().connect(&connect_handler);
-		tcp.get_disconnect_event().connect(&disconnect_handler);
+		tcp->get_sent_event().connect(&sent_handler);
+		tcp->get_receive_event().connect(&receive_handler);
+		tcp->get_connect_event().connect(&connect_handler);
+		tcp->get_disconnect_event().connect(&disconnect_handler);
 
-		tcp.start_service();
-		tcp.set_reconnect(true);
+		tcp->start_service();
 
 		char indices[NUM_MOTORS];
 		char intensities[NUM_MOTORS];
-
-		while (tcp.is_active())
+		
+		while (true)
 		{
 			for (int i = 0; i < NUM_MOTORS; i++)
 			{
@@ -94,16 +84,20 @@ int main(int argc, char* argv[])
 			size_t size;
 
 			havroc::CommandBuilder::build_tracking_command(msg, size, true);
-			tcp.send(msg, size);
+			tcp->send(msg, size);
 
 			havroc::CommandBuilder::build_kill_system_command(msg, size);
-			tcp.send(msg, size);
+			tcp->send(msg, size);
 
 			havroc::CommandBuilder::build_motor_command(msg, size, indices, intensities, NUM_MOTORS);
-			tcp.send(msg, size);
+			tcp->send(msg, size);
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 		}
+
+		tcp->end_service();
+
+		delete tcp;
 	}
 	catch (std::exception& e)
 	{

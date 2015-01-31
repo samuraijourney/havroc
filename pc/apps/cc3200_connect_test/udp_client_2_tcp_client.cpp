@@ -5,6 +5,9 @@
 
 #include <havroc/communications/UDPNetwork.h>
 #include <havroc/communications/TCPNetwork.h>
+#include <havroc/communications/CommandBuilder.h>
+
+#define NUM_MOTORS 12
 
 bool _ip_received = false;
 std::string _remote_ip = "";
@@ -16,40 +19,68 @@ std::string make_daytime_string()
 	return ctime(&now);
 }
 
-void udp_receive_handler(std::string msg)
+void udp_receive_handler(char* msg, size_t size)
 {
-	std::cout << "UDP Client receiving: " << msg << std::endl;
+	if (havroc::CommandBuilder::is_command(msg, size))
+	{
+		std::cout << "UDP Client receiving packet" << std::endl;
+		havroc::CommandBuilder::print_command(msg, size, 1);
+	}
+	else
+	{
+		std::string str_msg(msg);
+		std::cout << "UDP Client receiving message: " << str_msg << std::endl;
+	}
 
 	_remote_ip = msg;
 	_ip_received = true;
 }
 
-void udp_stop_handler()
+void udp_disconnect_handler()
 {
 	std::cout << "UDP Client stopped" << std::endl;
 }
 
-void udp_start_handler()
+void udp_connect_handler()
 {
 	std::cout << "UDP Client started" << std::endl;
 }
 
-void tcp_sent_handler(std::string msg)
+void tcp_sent_handler(char* msg, size_t size)
 {
-	std::cout << "TCP Client sent: " << msg;
+
+	if (havroc::CommandBuilder::is_command(msg, size))
+	{
+		std::cout << "TCP Client sent packet" << std::endl;
+		havroc::CommandBuilder::print_command(msg, size, 1);
+	}
+	else
+	{
+		std::string str_msg(msg);
+		std::cout << "TCP Client sent message: " << str_msg << std::endl;
+	}
 }
 
-void tcp_receive_handler(std::string msg)
+void tcp_receive_handler(char* msg, size_t size)
 {
-	std::cout << "TCP Client receiving: " << msg;
+	if (havroc::CommandBuilder::is_command(msg, size))
+	{
+		std::cout << "TCP Client receiving packet" << std::endl;
+		havroc::CommandBuilder::print_command(msg, size, 1);
+	}
+	else
+	{
+		std::string str_msg(msg);
+		std::cout << "TCP Client receiving message: " << str_msg << std::endl;
+	}
 }
 
-void tcp_stop_handler()
+void tcp_disconnect_handler()
 {
 	std::cout << "TCP Client stopped" << std::endl;
 }
 
-void tcp_start_handler()
+void tcp_connect_handler()
 {
 	std::cout << "TCP Client started" << std::endl;
 }
@@ -62,8 +93,8 @@ int main(int argc, char* argv[])
 		havroc::UDPNetworkClient udp(io_service);
 
 		udp.get_receive_event().connect(&udp_receive_handler);
-		udp.get_start_event().connect(&udp_start_handler);
-		udp.get_stop_event().connect(&udp_stop_handler);
+		udp.get_connect_event().connect(&udp_connect_handler);
+		udp.get_disconnect_event().connect(&udp_disconnect_handler);
 
 		udp.start_service();
 
@@ -78,14 +109,33 @@ int main(int argc, char* argv[])
 
 		tcp.get_sent_event().connect(&tcp_sent_handler);
 		tcp.get_receive_event().connect(&tcp_receive_handler);
-		tcp.get_start_event().connect(&tcp_start_handler);
-		tcp.get_stop_event().connect(&tcp_stop_handler);
+		tcp.get_connect_event().connect(&tcp_connect_handler);
+		tcp.get_disconnect_event().connect(&tcp_disconnect_handler);
 
 		tcp.start_service();
 
+		char indices[NUM_MOTORS];
+		char intensities[NUM_MOTORS];
+
 		while (true)
 		{
-			tcp.send(make_daytime_string());
+			for (int i = 0; i < NUM_MOTORS; i++)
+			{
+				indices[i] = i;
+				intensities[i] = rand() % 100 + 1;
+			}
+
+			char* msg;
+			size_t size;
+
+			havroc::CommandBuilder::build_tracking_command(msg, size, true);
+			tcp.send(msg, size);
+
+			havroc::CommandBuilder::build_kill_system_command(msg, size);
+			tcp.send(msg, size);
+
+			havroc::CommandBuilder::build_motor_command(msg, size, indices, intensities, NUM_MOTORS);
+			tcp.send(msg, size);
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 		}

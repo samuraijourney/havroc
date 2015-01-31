@@ -6,6 +6,9 @@
 #include <havroc/error.h>
 #include <havroc/id.h>
 
+#define MAGDWICK
+//#define MAHONY
+
 typedef struct _IMU
 {
     int id;
@@ -22,6 +25,8 @@ static IMU IMU_array[6];
 // device orientation -- which can be converted to yaw, pitch, and roll. Useful for stabilizing quadcopters, etc.
 // The performance of the orientation filter is at least as good as conventional Kalman-based filtering algorithms
 // but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
+
+#ifdef MAGDWICK
 static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat)
 {
     float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
@@ -112,9 +117,11 @@ static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, flo
     q[2] = q3 * norm;
     q[3] = q4 * norm;
 }
+#endif
 
 // Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
 // measured ones. 
+#ifdef MAHONY
 static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat)
 {
   float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
@@ -205,7 +212,7 @@ static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float
   q[2] = q3 * norm;
   q[3] = q4 * norm;
 }
-
+#endif
 int startIMU()
 {
   int i = 0;
@@ -266,8 +273,13 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   delt_t = ((now - IMU_array[id].lastUpdate)/1000000.0f);
   IMU_array[id].lastUpdate = now;
 
+#ifdef MAGDWICK
   MadgwickQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[id].q[0], delt_t);
+#endif
 
+#ifdef MAHONY
+  MahonyQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[id].q[0], &IMU_array[id].eInt[0], delt_t);
+#endif
   // Convert quaternion orientation to euler angles in aircraft orientation.
   // Positive z-axis is down toward Earth. 
   // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.

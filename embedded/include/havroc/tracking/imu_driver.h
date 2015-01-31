@@ -48,7 +48,7 @@
 //Device modes
 #define GFS_250DPS       0
 #define AFS_2G           0
-#define delay(ms) UtilsDelay((80000/5)*ms)
+#define delay(ms) 		 UtilsDelay((80000/5)*ms)
 
 
 

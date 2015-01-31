@@ -46,30 +46,28 @@ void TCPNetwork::handle_receive(const boost::system::error_code& error,
 		{
 			char* start = 0;
 			size_t size = 0;
+			uint16_t data_size = 0;
 
-			for (int i = 0; i < (int)bytes; i++)
+			int i = 0;
+
+			while (i < (int)bytes)
 			{
 				if (m_buffer[i] == (char)START_SYNC)
 				{
-					if (size > 0)
-					{
-						on_receive(start, size);
-						size = 0;
-					}
-
+					data_size = ((((uint16_t)m_buffer[i+2]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i+3]) & 0x00FF);
+					size = data_size + 4;
 					start = &m_buffer.c_array()[i];
-				}
 
-				if (start)
-				{
-					size++;
+					on_receive(start, size);
+
+					i += size;
 				}
-			}
-			
-			if (size > 0)
-			{
-				on_receive(start, size);
-				size = 0;
+				else
+				{
+					i++;
+					std::cout << "START_SYNC byte located out of expected sequence, synchronization lost. ";
+					std::cout << "Checking next byte." << std::endl;
+				}
 			}
 
 			receive();

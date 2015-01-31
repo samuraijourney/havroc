@@ -85,13 +85,41 @@ void tcp_connect_handler()
 
 int main(int argc, char* argv[])
 {
-	char* ip = "127.0.0.1";
-	size_t size = 9;
+	char* ip = (char*)malloc(sizeof(char) * 30);
+	size_t size = 0;
 
-	if (argc == 3)
+	int choice;
+	printf("Broadcast IP:\t1) Local\n\t\t2) CC3200\n\t\t3) Custom IP\nChoice: ");
+
+	std::cin >> choice;
+
+	switch (choice)
 	{
-		ip = argv[1];
-		size = atoi(argv[2]);
+		case(1) :
+		{
+			ip = "127.0.0.1";
+			size = 9;
+			break;
+		}
+		case(2) :
+		{
+			ip = CC3200_IP;
+			size = 13;
+			break;
+		}
+		case(3) :
+		{
+			printf("Enter IP: ");
+			std::cin >> ip;
+			printf("Enter character length of IP: ");
+			std::cin >> size;
+			break;
+		}
+		default:
+		{
+			printf("Invalid entry. Killing application.");
+			return 0;
+		}
 	}
 
 	try

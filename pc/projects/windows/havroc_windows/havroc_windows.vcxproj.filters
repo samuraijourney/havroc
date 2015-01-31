@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\modules">
-      <UniqueIdentifier>{2516428e-b030-444f-b8bc-f346530d0f4b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\modules\communications">
-      <UniqueIdentifier>{aca6aad8-5109-486d-bb97-8f0bc5998bc2}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -30,30 +24,12 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libs\havroc\communications\UDPNetwork.cpp">
-      <Filter>Source Files\modules\communications</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libs\havroc\communications\TCPNetwork.cpp">
-      <Filter>Source Files\modules\communications</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libs\havroc\communications\Network.cpp">
-      <Filter>Source Files\modules\communications</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkClient.cpp">
-      <Filter>Source Files\modules\communications</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libs\havroc\communications\UDPNetworkServer.cpp">
-      <Filter>Source Files\modules\communications</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\apps\tcp_test\tcp_client.cpp">
+    <ClCompile Include="..\..\..\apps\core\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

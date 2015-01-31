@@ -55,21 +55,41 @@ void connect_handler()
 
 int main(int argc, char* argv[])
 {
-	char* ip = "127.0.0.1";
-	size_t size = 9;
+	std::string ip = "127.0.0.1";
 
-	if (argc == 3)
+	int choice;
+	printf("Target:\t1) Local\n\t2) CC3200\n\t3) Custom IP\nChoice: ");
+
+	std::cin >> choice;
+
+	switch (choice)
 	{
-		ip = argv[1];
-		size = atoi(argv[2]);
+		case(1):
+		{
+			break;
+		}
+		case(2):
+		{
+			ip = CC3200_IP;
+			break;
+		}
+		case(3):
+		{
+			printf("Enter IP: ");
+			std::cin >> ip;
+			break;
+		}
+		default:
+		{
+			printf("Invalid entry. Killing application.");
+			return 0;
+		}
 	}
 
 	try
 	{
 		boost::asio::io_service io_service;
-		//havroc::TCPNetworkClient tcp(io_service, CC3200_IP);
-		std::string ip_str(ip);
-		havroc::TCPNetworkClient tcp(io_service, ip_str);
+		havroc::TCPNetworkClient tcp(io_service, ip);
 
 		tcp.get_sent_event().connect(&sent_handler);
 		tcp.get_receive_event().connect(&receive_handler);

@@ -1,10 +1,3 @@
-/*
- * TCPNetwork.cpp
- *
- *  Created on: Jan 26, 2015
- *      Author: Akram
- */
-
 #include <havroc/communications/TCPNetwork.h>
 #include <havroc/communications/CommandBuilder.h>
 

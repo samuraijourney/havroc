@@ -1,10 +1,3 @@
-/*
- * UDPNetwork.cpp
- *
- *  Created on: Jan 26, 2015
- *      Author: Akram
- */
-
 #include <iostream>
 
 #include <havroc/communications/UDPNetwork.h>

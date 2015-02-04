@@ -65,9 +65,8 @@ void TCPNetwork::handle_receive(const boost::system::error_code& error,
 				}
 				else
 				{
-					i++;
-					std::cout << "START_SYNC byte located out of expected sequence, synchronization lost. ";
-					std::cout << "Checking next byte." << std::endl;
+					on_receive(m_buffer.c_array(), bytes);
+					break;
 				}
 			}
 

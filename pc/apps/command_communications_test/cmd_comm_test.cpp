@@ -99,7 +99,7 @@ int main()
 
 	TestTCPClientCallback* tcp_client = new TestTCPClientCallback();
 
-	manager->set_desired_connections(TCP_CLIENT);
+	manager->set_connections(TCP_CLIENT);
 	manager->register_connect_callback<TestTCPClientCallback>(&TestTCPClientCallback::connect_callback, tcp_client);
 	manager->register_disconnect_callback<TestTCPClientCallback>(&TestTCPClientCallback::disconnect_callback, tcp_client);
 	manager->register_sent_callback<TestTCPClientCallback>(&TestTCPClientCallback::sent_callback, tcp_client);
@@ -107,11 +107,13 @@ int main()
 
 	TestTCPServerCallback* tcp_server = new TestTCPServerCallback();
 
-	manager->set_desired_connections(TCP_SERVER);
+	manager->set_connections(TCP_SERVER);
 	manager->register_connect_callback<TestTCPServerCallback>(&TestTCPServerCallback::connect_callback, tcp_server);
 	manager->register_disconnect_callback<TestTCPServerCallback>(&TestTCPServerCallback::disconnect_callback, tcp_server);
 	manager->register_sent_callback<TestTCPServerCallback>(&TestTCPServerCallback::sent_callback, tcp_server);
 	manager->register_receive_callback<TestTCPServerCallback>(&TestTCPServerCallback::receive_callback, tcp_server);
+
+	manager->set_connections(TCP_SERVER | TCP_CLIENT);
 
 	manager->start_tcp_server();
 

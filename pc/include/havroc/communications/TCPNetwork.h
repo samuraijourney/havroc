@@ -63,7 +63,8 @@ namespace havroc {
 		{
 			set_ip(ip);
 		}
-		TCPNetworkClient(boost::asio::io_service& service) : TCPNetwork(service)
+		TCPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
+			: TCPNetwork(service, signals_pack)
 		{
 			set_ip(CC3200_IP);
 		}
@@ -82,6 +83,7 @@ namespace havroc {
 
 		int start_service()
 		{
+			printf("\n\nTCP Client waiting for connection...\n\n");
 			int handles = 1;
 
 			m_socket.get_io_service().reset();
@@ -114,6 +116,8 @@ namespace havroc {
 
 		int start_service()
 		{
+			printf("\n\nTCP Server waiting for connection...\n\n");
+
 			int handles = 1;
 
 			m_socket.get_io_service().reset();

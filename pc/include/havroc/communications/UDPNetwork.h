@@ -22,7 +22,7 @@ namespace havroc
 	class UDPNetwork : public Network
 	{
 	public:
-		UDPNetwork(boost::asio::io_service& service, int port);
+		UDPNetwork(boost::asio::io_service& service, int port, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~UDPNetwork(){}
 
 		virtual int start_service();
@@ -41,7 +41,8 @@ namespace havroc
 	class UDPNetworkClient : public UDPNetwork
 	{
 	public:
-		UDPNetworkClient(boost::asio::io_service& service) : UDPNetwork(service, UDP_PORT){}
+		UDPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
+			: UDPNetwork(service, UDP_PORT, signals_pack){}
 		virtual ~UDPNetworkClient(){}
 
 		int  start_service();
@@ -57,19 +58,21 @@ namespace havroc
 	class UDPNetworkServer : public UDPNetwork
 	{
 	public:
-		UDPNetworkServer(boost::asio::io_service& service) : UDPNetwork(service, 0)
+		UDPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
+			: UDPNetwork(service, 0, signals_pack)
 		{
 			m_socket.set_option(boost::asio::socket_base::broadcast(true));
 			m_broadcast_endpoint = udp::endpoint(boost::asio::ip::address_v4::broadcast(), UDP_PORT);
 		}
 		virtual ~UDPNetworkServer() {}
 
-		int broadcast(char* msg, size_t size) { return send(msg, size); }
+		int broadcast(char* msg, size_t size, bool free_mem = false) { return send(msg, size, free_mem); }
 
 	private:
-		int  send(char* msg, size_t size);
+		int  send(char* msg, size_t size, bool free_mem = false);
 		void handle_send(char*,
 						 size_t,
+						 bool,
 						 const boost::system::error_code&,
 						 std::size_t);
 

@@ -4,12 +4,12 @@
 namespace havroc
 {
 
-int TCPNetwork::send(char* msg, size_t size)
+int TCPNetwork::send(char* msg, size_t size, bool free_mem)
 {
 	if(is_active())
 	{
 		m_socket.async_send(boost::asio::buffer(msg,size),
-			boost::bind(&TCPNetwork::handle_send, this, msg, size,
+			boost::bind(&TCPNetwork::handle_send, this, msg, size, free_mem,
 			boost::asio::placeholders::error,
 		    boost::asio::placeholders::bytes_transferred));
 	}
@@ -19,10 +19,11 @@ int TCPNetwork::send(char* msg, size_t size)
 
 void TCPNetwork::handle_send(char* msg /*message*/,
 							 size_t size /*message size*/,
+							 bool free_mem /*ownership*/,
 							 const boost::system::error_code& /*error*/,
 							 std::size_t bytes /*bytes_transferred*/)
 {
-	on_sent(msg, size);
+	on_sent(msg, size, free_mem);
 }
 
 void TCPNetwork::receive()

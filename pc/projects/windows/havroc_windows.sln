@@ -19,6 +19,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_udp_client_2_tcp_cli
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_udp_server_2_tcp_server", "havroc_udp_server_2_tcp_server\havroc_udp_server_2_tcp_server.vcxproj", "{98DD2993-4FB0-451D-A61A-88CF77E7CAB4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_command_communications", "havroc_command_communications\havroc_command_communications.vcxproj", "{EE325FF0-6ACA-48F6-A3AE-645DBBDBA712}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -57,6 +59,10 @@ Global
 		{98DD2993-4FB0-451D-A61A-88CF77E7CAB4}.Debug|Win32.Build.0 = Debug|Win32
 		{98DD2993-4FB0-451D-A61A-88CF77E7CAB4}.Release|Win32.ActiveCfg = Release|Win32
 		{98DD2993-4FB0-451D-A61A-88CF77E7CAB4}.Release|Win32.Build.0 = Release|Win32
+		{EE325FF0-6ACA-48F6-A3AE-645DBBDBA712}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EE325FF0-6ACA-48F6-A3AE-645DBBDBA712}.Debug|Win32.Build.0 = Debug|Win32
+		{EE325FF0-6ACA-48F6-A3AE-645DBBDBA712}.Release|Win32.ActiveCfg = Release|Win32
+		{EE325FF0-6ACA-48F6-A3AE-645DBBDBA712}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

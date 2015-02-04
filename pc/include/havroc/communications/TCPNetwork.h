@@ -23,10 +23,11 @@ namespace havroc {
 	class TCPNetwork : public Network
 	{
 	public:
-		TCPNetwork(boost::asio::io_service& service) : Network(service), m_socket(service){}
+		TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
+			: Network(service, signals_pack), m_socket(service){}
 		virtual ~TCPNetwork(){}
 
-		int	 send(char* msg, size_t size);
+		int	 send(char* msg, size_t size, bool free_mem = false);
 
 		virtual int start_service() = 0;
 
@@ -42,6 +43,7 @@ namespace havroc {
 							std::size_t bytes);
 		void handle_send(char*,
 						 size_t,
+						 bool,
 						 const boost::system::error_code&,
 						 std::size_t);
 		void kill_socket()
@@ -56,11 +58,27 @@ namespace havroc {
 	class TCPNetworkClient : public TCPNetwork
 	{
 	public:
-		TCPNetworkClient(boost::asio::io_service& service, std::string ip) : TCPNetwork(service), m_ip(ip)
+		TCPNetworkClient(boost::asio::io_service& service, std::string ip, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
+			: TCPNetwork(service, signals_pack)
 		{
-			m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+			set_ip(ip);
+		}
+		TCPNetworkClient(boost::asio::io_service& service) : TCPNetwork(service)
+		{
+			set_ip(CC3200_IP);
 		}
 		virtual ~TCPNetworkClient(){}
+
+		void set_ip(std::string ip)
+		{
+			if (!is_active())
+			{
+				m_ip = ip;
+				m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+			}
+		}
+
+		std::string get_ip() { return m_ip; }
 
 		int start_service()
 		{
@@ -90,8 +108,8 @@ namespace havroc {
 	class TCPNetworkServer : public TCPNetwork
 	{
 	public:
-		TCPNetworkServer(boost::asio::io_service& service)
-		: TCPNetwork(service), m_acceptor(service, tcp::endpoint(tcp::v4(), TCP_PORT)){}
+		TCPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0)
+			: TCPNetwork(service, signals_pack), m_acceptor(service, tcp::endpoint(tcp::v4(), TCP_PORT)){}
 		virtual ~TCPNetworkServer(){}
 
 		int start_service()

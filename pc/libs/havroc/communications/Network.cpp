@@ -3,12 +3,19 @@
 namespace havroc
 {
 
-Network::Network(boost::asio::io_service& service)
+Network::Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
 : m_service(service),
   m_active(false),
   m_reconnect(false)
 {
-	m_connect_event.connect(boost::bind(&Network::init_loop, this));
+	if (signals_pack == 0)
+	{
+		signals_pack = boost::shared_ptr<comm_signals_pack>(new comm_signals_pack());
+	}
+
+	m_signals_pack = signals_pack;
+
+	m_signals_pack->connect_event.connect(boost::bind(&Network::init_loop, this));
 }
 
 void Network::end_service()
@@ -37,13 +44,6 @@ void Network::loop()
 	{
 		m_service.poll();
 		boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-	}
-
-	//boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
-	m_service.stop();
-	if (m_reconnect)
-	{
-		start_service();
 	}
 }
 

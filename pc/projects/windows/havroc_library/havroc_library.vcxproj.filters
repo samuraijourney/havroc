@@ -16,6 +16,9 @@
     <Filter Include="Source Files\communications">
       <UniqueIdentifier>{f9cbfb75-1c3b-47c9-8c36-cd6ec3dbd9b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\common">
+      <UniqueIdentifier>{3149729c-ca0e-40b5-9b67-6bf0ab09cdb3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -34,6 +37,9 @@
       <Filter>Source Files\communications</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\libs\havroc\communications\TCPNetwork.cpp">
+      <Filter>Source Files\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\communications\NetworkManager.cpp">
       <Filter>Source Files\communications</Filter>
     </ClCompile>
   </ItemGroup>

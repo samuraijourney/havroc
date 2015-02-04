@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     boost::asio::io_service io_service;
     havroc::UDPNetworkServer udp(io_service);
 
-    udp.get_sent_event().connect(&sent_handler);
+	udp.get_sent_event().connect(&sent_handler);
 	udp.get_connect_event().connect(&connect_handler);
 	udp.get_disconnect_event().connect(&disconnect_handler);
 
@@ -67,13 +67,13 @@ int main(int argc, char* argv[])
 		size_t size;
 
 		havroc::CommandBuilder::build_tracking_command(msg, size, true);
-		udp.broadcast(msg, size);
+		udp.broadcast(msg, size, true);
 
 		havroc::CommandBuilder::build_kill_system_command(msg, size);
-		udp.broadcast(msg, size);
+		udp.broadcast(msg, size, true);
 
 		havroc::CommandBuilder::build_motor_command(msg, size, indices, intensities, NUM_MOTORS);
-		udp.broadcast(msg, size);
+		udp.broadcast(msg, size, true);
 
 		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 	}

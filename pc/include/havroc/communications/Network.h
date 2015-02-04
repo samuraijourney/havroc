@@ -19,16 +19,26 @@
 
 namespace havroc
 {
+	typedef struct _comm_signals_pack
+	{
+		boost::signals2::signal<void(char*, size_t)> sent_event;
+		boost::signals2::signal<void(char*, size_t)> receive_event;
+		boost::signals2::signal<void()>				 connect_event;
+		boost::signals2::signal<void()>				 disconnect_event;
+	} comm_signals_pack;
+
 	class Network
 	{
 	public:
-		Network(boost::asio::io_service& service);
-		virtual ~Network(){ m_service.stop(); m_service.reset(); }
+		Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		virtual ~Network(){}
 
-		boost::signals2::signal<void(char*, size_t)>& get_sent_event()	     { return m_sent_event; }
-		boost::signals2::signal<void(char*, size_t)>& get_receive_event()	 { return m_receive_event; }
-		boost::signals2::signal<void()>&  			  get_connect_event()	 { return m_connect_event; }
-		boost::signals2::signal<void()>& 			  get_disconnect_event() { return m_disconnect_event; }
+		boost::signals2::signal<void(char*, size_t)>& get_sent_event()	     { return m_signals_pack->sent_event; }
+		boost::signals2::signal<void(char*, size_t)>& get_receive_event()	 { return m_signals_pack->receive_event; }
+		boost::signals2::signal<void()>&  			  get_connect_event()	 { return m_signals_pack->connect_event; }
+		boost::signals2::signal<void()>& 			  get_disconnect_event() { return m_signals_pack->disconnect_event; }
+
+		boost::shared_ptr<comm_signals_pack> get_comm_signals_pack() { return m_signals_pack; }
 
 		void set_reconnect(bool flag) { m_reconnect = flag; }
 
@@ -38,10 +48,10 @@ namespace havroc
 		virtual int start_service() = 0;
 
 	protected:
-		void on_sent(char*& msg, size_t size)   { m_sent_event(msg, size); free(msg); }
-		void on_receive(char* msg, size_t size) { m_receive_event(msg, size); }
-		void on_connect() 						{ m_connect_event(); }
-		void on_disconnect() 					{ m_disconnect_event(); }
+		void on_sent(char*& msg, size_t size, bool free_mem = false) { (m_signals_pack->sent_event)(msg, size); if (free_mem) { free(msg); } }
+		void on_receive(char* msg, size_t size)						 { (m_signals_pack->receive_event)(msg, size); }
+		void on_connect() 											 { (m_signals_pack->connect_event)(); }
+		void on_disconnect() 										 { (m_signals_pack->disconnect_event)(); }
 
 		virtual void kill_socket() = 0;
 
@@ -49,10 +59,7 @@ namespace havroc
 		void init_loop();
 		void loop();
 
-		boost::signals2::signal<void(char*, size_t)> m_sent_event;
-		boost::signals2::signal<void(char*, size_t)> m_receive_event;
-		boost::signals2::signal<void()>				 m_connect_event;
-		boost::signals2::signal<void()> 			 m_disconnect_event;
+		boost::shared_ptr<comm_signals_pack> m_signals_pack;
 
 		boost::asio::io_service& m_service;
 		boost::thread m_poll_thread;

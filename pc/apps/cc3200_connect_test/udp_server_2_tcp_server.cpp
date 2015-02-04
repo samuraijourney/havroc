@@ -85,7 +85,8 @@ void tcp_connect_handler()
 
 int main(int argc, char* argv[])
 {
-	char* ip = (char*)malloc(sizeof(char) * 30);
+	char* ip = (char*)malloc(sizeof(char)*30);
+	bool free_mem = false;
 	size_t size = 0;
 
 	int choice;
@@ -97,12 +98,14 @@ int main(int argc, char* argv[])
 	{
 		case(1) :
 		{
+			free(ip);
 			ip = "127.0.0.1";
 			size = 9;
 			break;
 		}
 		case(2) :
 		{
+			free(ip);
 			ip = CC3200_IP;
 			size = 13;
 			break;
@@ -113,6 +116,7 @@ int main(int argc, char* argv[])
 			std::cin >> ip;
 			printf("Enter character length of IP: ");
 			std::cin >> size;
+			free_mem = true;
 			break;
 		}
 		default:
@@ -150,6 +154,11 @@ int main(int argc, char* argv[])
 		}
 
 		udp.end_service();
+
+		if (free_mem)
+		{
+			free(ip);
+		}
 
 		char indices[NUM_MOTORS];
 		char intensities[NUM_MOTORS];

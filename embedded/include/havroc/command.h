@@ -8,12 +8,14 @@
 #ifndef COMMAND_H_
 #define COMMAND_H_
 
+#define CMD_BASE 0
 
 enum
 {
-	TRACKING_CMD,
+	TRACKING_CMD = 0,
 	SYSTEM_CMD,
-	MOTOR_CMD
+	MOTOR_CMD,
+	CMD_MAX
 };
 
 

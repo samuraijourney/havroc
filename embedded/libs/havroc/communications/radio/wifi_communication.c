@@ -1,5 +1,8 @@
 
 #include "havroc/communications/radio/wifi_communication.h"
+#include "stdint.h"
+#include "havroc/eventmgr/eventmgr.h"
+
 
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- Start
@@ -16,9 +19,9 @@ char  		  		  TCP_SendBuffer[BUFF_SIZE];
 static char  		  TCP_ReceiveBuffer[BUFF_SIZE];
 static long			  connected_SockID = 0;
 static long			  iSockID = 0;
-extern event		  eventBuff[BUFF_SIZE];
-extern int		      eventIndex;
-
+event				  eventBuff[EVENT_BUFF_SIZE];
+int				      eventIndex;
+int 				  eventCount;
 
 //*****************************************************************************
 // SimpleLink Asynchronous Event Handlers -- Start
@@ -521,20 +524,18 @@ int Setup_Socket(unsigned short usPort)
 
 int TCP_Receive()
 {
-    int             iStatus;
-    int				data_index = 0;
-    int				buff_index = 0;
+    int iStatus;
+    int	buff_index = 0;
 
     while (1)
     {
         iStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
-        if( iStatus <= 0 )
-        {
-          // error
-          ASSERT_ON_ERROR( sl_Close(connected_SockID));
-          ASSERT_ON_ERROR(sl_Close(iSockID));
-          ASSERT_ON_ERROR(TCP_SERVER_FAILED);
-        }
+        while( iStatus <= 0 )
+		{
+			// error
+        	WlanOff();
+			iStatus = WlanStartup();
+		}
 
         buff_index = 0;
 
@@ -542,26 +543,15 @@ int TCP_Receive()
         {
         	if(TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
         	{
-        		eventBuff[eventIndex].data_buff = malloc(sizeof(uint8_t)*BUFF_SIZE);
-        		data_index = 0;
-        		eventBuff[eventIndex].command = TCP_ReceiveBuffer[buff_index++];
-        		eventBuff[eventIndex].data_len = TCP_ReceiveBuffer[buff_index++];
-        		eventBuff[eventIndex].data_len <<= 8;
-        		eventBuff[eventIndex].data_len |= TCP_ReceiveBuffer[buff_index++];
-
-        		while(buff_index < eventBuff[eventIndex].data_len)
-        		{
-        			eventBuff[eventIndex].data_buff[data_index++] = TCP_ReceiveBuffer[buff_index++];
-        		}
+        		buff_index += EventMgr_EnQ(&TCP_ReceiveBuffer[buff_index]);
         	}
-
-        	Report("TCP received command: %i, size: %l\n\r", eventBuff[eventIndex].command, eventBuff[eventIndex].data_len);
-        	eventIndex++;
         }
+
+        EventMgr_Task();
 
 //        TCP_SendBuffer[0] = 0xFF;
 //        TCP_SendBuffer[1] = 0x00;
-//        TCP_SendBuffer[2] =	0x00;
+//        TCP_SendBuffer[2] = 0x00;
 //        TCP_SendBuffer[3] = 0x01;
 //        TCP_SendBuffer[4] = 0x01;
 //
@@ -584,12 +574,16 @@ int TCP_Send()
 		// sending packet
 
 		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, TCP_BufferSize, 0 );
-		if( iStatus <= 0 )
+		while( iStatus <= 0 )
 		{
 			// error
-			ASSERT_ON_ERROR(sl_Close(connected_SockID));
-			ASSERT_ON_ERROR(sl_Close(iSockID));
-			ASSERT_ON_ERROR(TCP_SERVER_FAILED);
+			WlanOff();
+			iStatus = WlanStartup();
+
+			if(iStatus > 0)
+			{
+				lLoopCount--;
+			}
 		}
 
 		lLoopCount++;
@@ -613,51 +607,51 @@ int TCP_Send()
 //! \return    0 on success, -1 on Error.
 //
 //****************************************************************************
-int UDP_Broadcast(unsigned short usPort)
-{
-    SlSockAddrIn_t  sAddr;
-    int             iAddrSize;
-    int             iSockID;
-    int             iStatus;
-    long            lLoopCount = 0;
-
-    //filling the UDP server socket address
-    sAddr.sin_family = SL_AF_INET;
-    sAddr.sin_port = sl_Htons((unsigned short)usPort);
-    sAddr.sin_addr.s_addr = sl_Htonl((unsigned int)0);
-
-    iAddrSize = sizeof(SlSockAddrIn_t);
-
-    // creating a UDP socket
-    iSockID = sl_Socket(SL_AF_INET,SL_SOCK_DGRAM, 0);
-    if( iSockID < 0 )
-    {
-        // error
-        ASSERT_ON_ERROR(UDP_CLIENT_FAILED);
-    }
-
-    // sending 1000 packets to the UDP server
-    while (lLoopCount < UDP_PACKET_COUNT)
-    {
-        // sending packet
-        iStatus = sl_SendTo(iSockID, UDP_Buffer, UDP_BufferSize, 0,
-                                (SlSockAddr_t *)&sAddr, iAddrSize);
-        if( iStatus <= 0 )
-        {
-            // error
-            sl_Close(iSockID);
-            ASSERT_ON_ERROR(UDP_CLIENT_FAILED);
-        }
-        lLoopCount++;
-    }
-
-    UART_PRINT("UDP broadcast successful\n\r");
-
-    //closing the socket after sending 1000 packets
-    sl_Close(iSockID);
-
-    return SUCCESS;
-}
+//int UDP_Broadcast(unsigned short usPort)
+//{
+//    SlSockAddrIn_t  sAddr;
+//    int             iAddrSize;
+//    int             iSockID;
+//    int             iStatus;
+//    long            lLoopCount = 0;
+//
+//    //filling the UDP server socket address
+//    sAddr.sin_family = SL_AF_INET;
+//    sAddr.sin_port = sl_Htons((unsigned short)usPort);
+//    sAddr.sin_addr.s_addr = sl_Htonl((unsigned int)0);
+//
+//    iAddrSize = sizeof(SlSockAddrIn_t);
+//
+//    // creating a UDP socket
+//    iSockID = sl_Socket(SL_AF_INET,SL_SOCK_DGRAM, 0);
+//    if( iSockID < 0 )
+//    {
+//        // error
+//        ASSERT_ON_ERROR(UDP_CLIENT_FAILED);
+//    }
+//
+//    // sending 1000 packets to the UDP server
+//    while (lLoopCount < UDP_PACKET_COUNT)
+//    {
+//        // sending packet
+//        iStatus = sl_SendTo(iSockID, UDP_Buffer, UDP_BufferSize, 0,
+//                                (SlSockAddr_t *)&sAddr, iAddrSize);
+//        if( iStatus <= 0 )
+//        {
+//            // error
+//            sl_Close(iSockID);
+//            ASSERT_ON_ERROR(UDP_CLIENT_FAILED);
+//        }
+//        lLoopCount++;
+//    }
+//
+//    UART_PRINT("UDP broadcast successful\n\r");
+//
+//    //closing the socket after sending 1000 packets
+//    sl_Close(iSockID);
+//
+//    return SUCCESS;
+//}
 
 //****************************************************************************
 //
@@ -693,6 +687,38 @@ long WlanConnect()
     return SUCCESS;
 }
 
+int WlanStartup()
+{
+	// Init Wifi for UDP operation
+	WlanInit();
+
+	UART_PRINT("Connecting to AP: %s ...\r\n",SSID_NAME);
+
+	// Connecting to WLAN AP
+	if(WlanConnect() < 0)
+	{
+		UART_PRINT("Failed to establish connection w/ an AP \n\r");
+		LOOP_FOREVER();
+	}
+
+	UART_PRINT("Connected to AP: %s \n\r",SSID_NAME);
+
+	UART_PRINT("Device IP: %d.%d.%d.%d\n\r\n\r",
+					  SL_IPV4_BYTE(IP_Address,3),
+					  SL_IPV4_BYTE(IP_Address,2),
+					  SL_IPV4_BYTE(IP_Address,1),
+					  SL_IPV4_BYTE(IP_Address,0));
+
+
+	if(Setup_Socket(PORT_NUM_TCP) < 0)
+	{
+		UART_PRINT("TCP socket setup failed\n\r");
+		LOOP_FOREVER();
+	}
+
+	return 1;
+}
+
 int WlanOff()
 {
 	// close the connected socket after receiving from connected TCP client
@@ -703,7 +729,7 @@ int WlanOff()
 
 	Report("TCP Sockets closed\n\r");
 
-	UART_PRINT("Exiting Application ...\n\r");
+	sl_WlanDisconnect();
 
 	// power off the network processor
 	sl_Stop(SL_STOP_TIMEOUT);

@@ -17,7 +17,6 @@
 /* Board Header file */
 #include <Board.h>
 
-#include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/tracking/imu_driver.h"
 #include "havroc/tracking/estimation.h"
 
@@ -27,8 +26,20 @@
 Void testFxn(UArg arg0, UArg arg1)
 {
 	float yaw, pitch, roll;
+	int count = 0;
+
 	int result = startIMU();
-	result = returnEstimate(0, &yaw, &pitch, &roll);
+
+//	while(1)
+//	{
+		result = returnEstimate(0, &yaw, &pitch, &roll);
+//		if(count%100==0)
+//		{
+//			System_printf("Yaw: %i, Pitch: %i, Roll: %i\n", yaw, pitch, roll);
+//			System_flush();
+//		}
+//		count++;
+//	}
 }
 
 /*
@@ -40,7 +51,8 @@ int main(void)
 
 	task0 = Task_create((Task_FuncPtr)testFxn, NULL, NULL);
 	if (task0 == NULL) {
-		System_printf("Task create failed.");
+		System_printf("Task create failed.\n");
+		System_flush();
 	}
 
     /* Call board init functions */

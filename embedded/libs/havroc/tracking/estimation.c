@@ -1,5 +1,8 @@
 #include <stdint.h>
 #include <math.h>
+#include <xdc/runtime/System.h>
+#include <xdc/runtime/Timestamp.h>
+#include <xdc/runtime/Types.h>
 
 #include <havroc/tracking/estimation.h>
 #include <havroc/tracking/imu_driver.h>
@@ -14,7 +17,7 @@ typedef struct _IMU
     int id;
     float q[4];
     float eInt[3];
-    uint32_t lastUpdate;
+    UInt32 lastUpdate;
 } IMU;
 
 static IMU IMU_array[6];
@@ -256,8 +259,11 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   float magX = 0;
   float magY = 0;
   float magZ = 0;
-  uint32_t now = 0;
-  uint32_t delt_t = 0;
+  UInt32 now = 0;
+  float delt_t = 0;
+  Types_FreqHz freq;
+
+  Timestamp_getFreq(&freq);
 
   if(readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, id) == IMU_READ_FAIL)
   {
@@ -269,8 +275,8 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
     return IMU_COMPASS_ERROR;
   }
 
-  //now = micros();
-  delt_t = ((now - IMU_array[id].lastUpdate)/1000000.0f);
+  now = Timestamp_get32();
+  delt_t = (now - IMU_array[id].lastUpdate)/(1.0*freq.lo);
   IMU_array[id].lastUpdate = now;
 
 #ifdef MAGDWICK

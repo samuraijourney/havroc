@@ -11,7 +11,6 @@
 // Standard includes
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 
 // simplelink includes
 #include "simplelink.h"
@@ -37,7 +36,7 @@
 #endif
 
 #include "havroc/command.h"
-#include "havroc/events.h"
+#include "pin_mux_config.h"
 
 #define IP_ADDR           			0xc0a8006E /* 192.168.0.110 */
 #define PORT_NUM_UDP        		8888
@@ -66,7 +65,8 @@ int TCP_Send();
 int Setup_Socket(unsigned short usPort);
 void WlanInit();
 int  WlanOff();
-long WlanConnect();
+long  WlanConnect();
+int  WlanStartup();
 static void BoardInit();
 static void InitializeAppVariables();
 static long ConfigureSimpleLinkToDefaultState();

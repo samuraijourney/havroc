@@ -1,10 +1,3 @@
-/*
- * Network.h
- *
- *  Created on: Jan 26, 2015
- *      Author: Akram
- */
-
 #ifndef NETWORK_H_
 #define NETWORK_H_
 
@@ -31,7 +24,7 @@ namespace havroc
 	{
 	public:
 		Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
-		virtual ~Network(){}
+		virtual ~Network();
 
 		boost::signals2::signal<void(char*, size_t)>& get_sent_event()	     { return m_signals_pack->sent_event; }
 		boost::signals2::signal<void(char*, size_t)>& get_receive_event()	 { return m_signals_pack->receive_event; }

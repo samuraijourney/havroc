@@ -1,10 +1,3 @@
-/*
- * TCPNetwork.h
- *
- *  Created on: Jan 26, 2015
- *      Author: Akram
- */
-
 #ifndef TCPNETWORK_H_
 #define TCPNETWORK_H_
 
@@ -23,9 +16,8 @@ namespace havroc {
 	class TCPNetwork : public Network
 	{
 	public:
-		TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
-			: Network(service, signals_pack), m_socket(service){}
-		virtual ~TCPNetwork(){}
+		TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		virtual ~TCPNetwork();
 
 		int	 send(char* msg, size_t size, bool free_mem = false);
 
@@ -39,18 +31,9 @@ namespace havroc {
 
 	private:
 		void receive();
-		void handle_receive(const boost::system::error_code& error,
-							std::size_t bytes);
-		void handle_send(char*,
-						 size_t,
-						 bool,
-						 const boost::system::error_code&,
-						 std::size_t);
-		void kill_socket()
-		{
-			m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-			m_socket.close();
-		}
+		void handle_receive(const boost::system::error_code& error, std::size_t bytes);
+		void handle_send(char*, size_t, bool, const boost::system::error_code&, std::size_t);
+		void kill_socket();
 
 		boost::array<char,256> m_buffer;
 	};
@@ -58,55 +41,14 @@ namespace havroc {
 	class TCPNetworkClient : public TCPNetwork
 	{
 	public:
-		TCPNetworkClient(boost::asio::io_service& service, std::string ip, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
-			: TCPNetwork(service, signals_pack)
-		{
-			set_ip(ip);
-		}
-		TCPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0) 
-			: TCPNetwork(service, signals_pack)
-		{
-			set_ip(CC3200_IP);
-		}
-		virtual ~TCPNetworkClient(){}
+		TCPNetworkClient(boost::asio::io_service& service, std::string ip, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		TCPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		virtual ~TCPNetworkClient();
 
-		void set_ip(std::string ip)
-		{
-			if (!is_active())
-			{
-				m_ip = ip;
-				m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
-			}
-		}
-
+		void		set_ip(std::string ip);
 		std::string get_ip() { return m_ip; }
 
-		int start_service()
-		{
-			if (is_active())
-			{
-				return -1;
-			}
-
-			printf("\n\nTCP Client waiting for connection...\n\n");
-			int handles = 1;
-
-			m_socket.get_io_service().reset();
-
-			while (!is_active())
-			{
-				if (handles == 1)
-				{
-					m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,
-						boost::asio::placeholders::error));
-				}
-
-				handles = m_socket.get_io_service().poll();
-				boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-			}
-
-			return 0;
-		}
+		int start_service();
 
 	private:
 		std::string m_ip;
@@ -115,44 +57,10 @@ namespace havroc {
 	class TCPNetworkServer : public TCPNetwork
 	{
 	public:
-		TCPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0)
-			: TCPNetwork(service, signals_pack), m_acceptor(service){}
-		virtual ~TCPNetworkServer(){}
+		TCPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		virtual ~TCPNetworkServer();
 
-		int start_service()
-		{
-			if (is_active())
-			{
-				return -1;
-			}
-
-			tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), TCP_PORT);
-
-			m_acceptor.open(endpoint.protocol());
-			m_acceptor.bind(endpoint);
-			m_acceptor.listen();
-
-			printf("\n\nTCP Server waiting for connection...\n\n");
-
-			int handles = 1;
-
-			m_socket.get_io_service().reset();
-
-			while (!is_active())
-			{
-				if (handles == 1)
-				{
-					m_acceptor.async_accept(m_socket,
-						boost::bind(&TCPNetworkServer::handle_accept, this,
-						boost::asio::placeholders::error));
-				}
-
-				handles = m_socket.get_io_service().poll();
-				boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-			}
-
-			return 0;
-		}
+		int start_service();
 
 	private:
 		tcp::acceptor m_acceptor;

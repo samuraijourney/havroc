@@ -45,5 +45,14 @@
     <ClCompile Include="..\..\..\libs\havroc\common\CommandManager.cpp">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\communications\TCPNetworkClient.cpp">
+      <Filter>Source Files\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\communications\TCPNetworkServer.cpp">
+      <Filter>Source Files\communications</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\common\CommandBuilder.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

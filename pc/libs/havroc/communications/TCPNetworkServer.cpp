@@ -1,0 +1,46 @@
+#include <havroc/communications/TCPNetwork.h>
+
+namespace havroc
+{
+
+	TCPNetworkServer::TCPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
+		: TCPNetwork(service, signals_pack), m_acceptor(service){}
+
+	TCPNetworkServer::~TCPNetworkServer(){}
+
+	int TCPNetworkServer::start_service()
+	{
+		if (is_active())
+		{
+			return -1;
+		}
+
+		tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), TCP_PORT);
+
+		m_acceptor.open(endpoint.protocol());
+		m_acceptor.bind(endpoint);
+		m_acceptor.listen();
+
+		printf("\n\nTCP Server waiting for connection...\n\n");
+
+		int handles = 1;
+
+		m_socket.get_io_service().reset();
+
+		while (!is_active())
+		{
+			if (handles == 1)
+			{
+				m_acceptor.async_accept(m_socket,
+					boost::bind(&TCPNetworkServer::handle_accept, this,
+					boost::asio::placeholders::error));
+			}
+
+			handles = m_socket.get_io_service().poll();
+			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+		}
+
+		return 0;
+	}
+
+} /* namespace havroc */

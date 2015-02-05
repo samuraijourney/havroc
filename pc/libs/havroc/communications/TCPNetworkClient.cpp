@@ -1,0 +1,56 @@
+#include <havroc/communications/TCPNetwork.h>
+
+namespace havroc
+{
+
+	TCPNetworkClient::TCPNetworkClient(boost::asio::io_service& service, std::string ip, boost::shared_ptr<comm_signals_pack> signals_pack)
+		: TCPNetwork(service, signals_pack) 
+	{
+		set_ip(ip);
+	}
+
+	TCPNetworkClient::TCPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
+		: TCPNetwork(service, signals_pack) 
+	{
+		set_ip(CC3200_IP);
+	}
+
+	TCPNetworkClient::~TCPNetworkClient(){}
+
+	void TCPNetworkClient::set_ip(std::string ip)
+	{
+		if (!is_active())
+		{
+			m_ip = ip;
+			m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+		}
+	}
+
+	int TCPNetworkClient::start_service()
+	{
+		if (is_active())
+		{
+			return -1;
+		}
+
+		printf("\n\nTCP Client waiting for connection...\n\n");
+		int handles = 1;
+
+		m_socket.get_io_service().reset();
+
+		while (!is_active())
+		{
+			if (handles == 1)
+			{
+				m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,
+					boost::asio::placeholders::error));
+			}
+
+			handles = m_socket.get_io_service().poll();
+			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+		}
+
+		return 0;
+	}
+
+} /* namespace havroc */

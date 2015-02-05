@@ -64,44 +64,32 @@ namespace havroc
 		return m_udp_client->start_service();
 	}
 
-	void NetworkManager::stop_tcp_server()
+	int NetworkManager::stop_tcp_server()
 	{
-		if (m_tcp_server->is_active())
-		{
-			m_tcp_server->end_service();
-		}
-
 		m_stop = true;
+
+		return m_tcp_server->end_service();
 	}
 
-	void NetworkManager::stop_tcp_client()
+	int NetworkManager::stop_tcp_client()
 	{
-		if (m_tcp_client->is_active())
-		{
-			m_tcp_client->end_service();
-		}
-
 		m_stop = true;
+
+		return m_tcp_client->end_service();
 	}
 
-	void NetworkManager::stop_udp_server()
+	int NetworkManager::stop_udp_server()
 	{
-		if (m_udp_server->is_active())
-		{
-			m_udp_server->end_service();
-		}
-
 		m_stop = true;
+
+		return m_udp_server->end_service();
 	}
 
-	void NetworkManager::stop_udp_client()
+	int NetworkManager::stop_udp_client()
 	{
-		if (m_udp_client->is_active())
-		{
-			m_udp_client->end_service();
-		}
-
 		m_stop = true;
+
+		return m_udp_client->end_service();
 	}
 
 	int NetworkManager::send(std::string msg)
@@ -128,15 +116,15 @@ namespace havroc
 
 		if (types & TCP_SERVER)
 		{
-			failures += m_tcp_server->send(msg, size, free_mem) == 0 ? 0 : 1;
+			failures += m_tcp_server->send(msg, size, free_mem) == SUCCESS ? 0 : 1;
 		}
 		if (types & TCP_CLIENT)
 		{
-			failures += m_tcp_client->send(msg, size, free_mem) == 0 ? 0 : 1;
+			failures += m_tcp_client->send(msg, size, free_mem) == SUCCESS ? 0 : 1;
 		}
 		if (types & UDP_SERVER)
 		{
-			failures += m_udp_server->broadcast(msg, size, free_mem) == 0 ? 0 : 1;
+			failures += m_udp_server->broadcast(msg, size, free_mem) == SUCCESS ? 0 : 1;
 		}
 
 		return failures;

@@ -24,7 +24,7 @@ namespace havroc
 		udp::socket m_socket;
 
 	private:
-		void kill_socket();
+		int kill_socket();
 	};
 
 	class UDPNetworkClient : public UDPNetwork

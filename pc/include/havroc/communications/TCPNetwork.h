@@ -5,7 +5,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
 
-#include "Network.h"
+#include <havroc/communications/Network.h>
 
 #define TCP_PORT 13
 
@@ -33,7 +33,7 @@ namespace havroc {
 		void receive();
 		void handle_receive(const boost::system::error_code& error, std::size_t bytes);
 		void handle_send(char*, size_t, bool, const boost::system::error_code&, std::size_t);
-		void kill_socket();
+		int  kill_socket();
 
 		boost::array<char,256> m_buffer;
 	};
@@ -45,7 +45,7 @@ namespace havroc {
 		TCPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~TCPNetworkClient();
 
-		void		set_ip(std::string ip);
+		int			set_ip(std::string ip);
 		std::string get_ip() { return m_ip; }
 
 		int start_service();

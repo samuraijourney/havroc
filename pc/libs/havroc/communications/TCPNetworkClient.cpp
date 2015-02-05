@@ -17,20 +17,26 @@ namespace havroc
 
 	TCPNetworkClient::~TCPNetworkClient(){}
 
-	void TCPNetworkClient::set_ip(std::string ip)
+	int TCPNetworkClient::set_ip(std::string ip)
 	{
 		if (!is_active())
 		{
 			m_ip = ip;
 			m_endpoint = tcp::endpoint(boost::asio::ip::address::from_string(m_ip), TCP_PORT);
+
+			return SUCCESS;
 		}
+
+		return NETWORK_IS_ACTIVE;
 	}
 
 	int TCPNetworkClient::start_service()
 	{
+		boost::system::error_code error;
+
 		if (is_active())
 		{
-			return -1;
+			return NETWORK_IS_ACTIVE;
 		}
 
 		printf("\n\nTCP Client waiting for connection...\n\n");
@@ -46,7 +52,12 @@ namespace havroc
 					boost::asio::placeholders::error));
 			}
 
-			handles = m_socket.get_io_service().poll();
+			handles = m_socket.get_io_service().poll(error);
+			if (error)
+			{
+				return NETWORK_CONNECTION_START_FAILED;
+			}
+
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
 

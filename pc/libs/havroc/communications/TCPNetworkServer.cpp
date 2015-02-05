@@ -10,15 +10,25 @@ namespace havroc
 
 	int TCPNetworkServer::start_service()
 	{
+		boost::system::error_code error;
+
 		if (is_active())
 		{
-			return -1;
+			return NETWORK_IS_ACTIVE;
 		}
 
 		tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), TCP_PORT);
 
-		m_acceptor.open(endpoint.protocol());
+		m_acceptor.open(endpoint.protocol(), error);
+		if (error)
+		{
+			return NETWORK_CONNECTION_START_FAILED;
+		}
 		m_acceptor.bind(endpoint);
+		if (error)
+		{
+			return NETWORK_CONNECTION_START_FAILED;
+		}
 		m_acceptor.listen();
 
 		printf("\n\nTCP Server waiting for connection...\n\n");
@@ -36,11 +46,16 @@ namespace havroc
 					boost::asio::placeholders::error));
 			}
 
-			handles = m_socket.get_io_service().poll();
+			handles = m_socket.get_io_service().poll(error);
+			if (error)
+			{
+				return NETWORK_CONNECTION_START_FAILED;
+			}
+
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
 
-		return 0;
+		return SUCCESS;
 	}
 
 } /* namespace havroc */

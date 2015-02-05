@@ -17,9 +17,11 @@ namespace havroc
 				boost::bind(&TCPNetwork::handle_send, this, msg, size, free_mem,
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::bytes_transferred));
+
+			return SUCCESS;
 		}
 
-		return 0;
+		return NETWORK_IS_INACTIVE;
 	}
 
 	void TCPNetwork::handle_send(char* msg /*message*/,
@@ -79,7 +81,7 @@ namespace havroc
 			}
 			else
 			{
-				end_service();
+				end_service(NETWORK_DATA_RECEIVE_FAILURE);
 			}
 		}
 	}
@@ -98,10 +100,23 @@ namespace havroc
 		}
 	}
 
-	void TCPNetwork::kill_socket()
+	int TCPNetwork::kill_socket()
 	{
-		m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-		m_socket.close();
+		boost::system::error_code error;
+
+		m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
+		if (error)
+		{
+			return NETWORK_CONNECTION_END_FAILED;
+		}
+
+		m_socket.close(error);
+		if (error)
+		{
+			return NETWORK_CONNECTION_END_FAILED;
+		}
+
+		return SUCCESS;
 	}
 
 } /* namespace havroc */

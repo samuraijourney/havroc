@@ -25,6 +25,8 @@ namespace havroc
 		boost::thread(boost::bind(&CommandManager::event_loop, this));
 	}
 
+	CommandManager::~CommandManager(){}
+
 	void CommandManager::event_loop()
 	{
 		while (true)

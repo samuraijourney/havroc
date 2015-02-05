@@ -24,10 +24,10 @@ namespace havroc
 		int start_udp_server();
 		int start_udp_client();
 
-		void stop_tcp_server();
-		void stop_tcp_client();
-		void stop_udp_server();
-		void stop_udp_client();
+		int stop_tcp_server();
+		int stop_tcp_client();
+		int stop_udp_server();
+		int stop_udp_client();
 
 		bool is_tcp_server_active() { return m_tcp_server->is_active(); }
 		bool is_tcp_client_active() { return m_tcp_client->is_active(); }
@@ -43,8 +43,11 @@ namespace havroc
 		int send(char* msg, size_t size, bool free_mem = false);
 		int send(char* msg, size_t size, uint8_t types, bool free_mem = false);
 
-		void set_connections(uint8_t connections) { m_desired_connections = connections; }
-		void set_reconnect(bool reconnect) { m_reconnect = reconnect; }
+		void	set_connections(uint8_t connections) { m_desired_connections = connections; }
+		void	set_reconnect(bool reconnect)		 { m_reconnect = reconnect; }
+
+		uint8_t get_connections()					 { return m_desired_connections; }
+		bool	get_reconnect()						 { return m_reconnect; }
 
 		template<class T>
 		void register_sent_callback(void(T::*sent_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)

@@ -13,14 +13,14 @@ namespace havroc
 	{
 		if (is_active())
 		{
-			return -1;
+			return NETWORK_IS_ACTIVE;
 		}
 
 		on_connect();
 
 		receive();
 
-		return 0;
+		return SUCCESS;
 	}
 
 	void UDPNetworkClient::receive()
@@ -73,7 +73,7 @@ namespace havroc
 			}
 			else
 			{
-				end_service();
+				end_service(NETWORK_DATA_RECEIVE_FAILURE);
 			}
 		}
 	}

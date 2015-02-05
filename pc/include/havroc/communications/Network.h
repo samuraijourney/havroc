@@ -8,6 +8,8 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/asio.hpp>
 
+#include <havroc/common/Errors.h>
+
 #define CC3200_IP "192.168.43.24"
 
 namespace havroc
@@ -35,7 +37,7 @@ namespace havroc
 
 		bool is_active() { return m_active; }
 
-		void end_service();
+		int end_service(int error = SUCCESS);
 		virtual int start_service() = 0;
 
 	protected:
@@ -44,7 +46,7 @@ namespace havroc
 		void on_connect() 											 { (m_signals_pack->connect_event)(); }
 		void on_disconnect() 										 { (m_signals_pack->disconnect_event)(); }
 
-		virtual void kill_socket() = 0;
+		virtual int kill_socket() = 0;
 
 	private:
 		void init_loop();

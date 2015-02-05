@@ -93,6 +93,9 @@ public:
 	}
 };
 
+void connect_example_callback_with_no_class(){} // Do nothing
+void tracking_example_callback_with_no_class(havroc::command_pkg* pkg){} // Do nothing
+
 int main()
 {
 	havroc::NetworkManager* n_manager = havroc::NetworkManager::get();
@@ -109,16 +112,26 @@ int main()
 	n_manager->register_sent_callback<TestTCPClientCallback>(&TestTCPClientCallback::sent_callback, tcp);
 	n_manager->register_receive_callback<TestTCPClientCallback>(&TestTCPClientCallback::receive_callback, tcp);
 
+	n_manager->register_connect_callback(&connect_example_callback_with_no_class);
+
 	c_manager->register_tracking_callback<TestCommandCallback>(&TestCommandCallback::tracking_callback, cmd);
 	c_manager->register_system_callback<TestCommandCallback>(&TestCommandCallback::system_callback, cmd);
 	c_manager->register_motor_callback<TestCommandCallback>(&TestCommandCallback::motor_callback, cmd);
 
-	n_manager->start_tcp_client("127.0.0.1");
+	c_manager->register_tracking_callback(&tracking_example_callback_with_no_class);
+
+	if(int error = n_manager->start_tcp_client("127.0.0.1"))
+	{
+		printf("TCP Client failed to start with error code: %d\n", error);
+		printf("Terminating program\n");
+		
+		return -1;
+	}
 
 	char indices[NUM_MOTORS];
 	char intensities[NUM_MOTORS];
 
-	while (true)
+	while (n_manager->get_reconnect() || n_manager->is_active())
 	{
 		for (int i = 0; i < NUM_MOTORS; i++)
 		{
@@ -130,16 +143,28 @@ int main()
 		size_t size;
 
 		havroc::CommandBuilder::build_tracking_command(msg, size, true);
-		n_manager->send(msg, size, true);
+		if(int failures = n_manager->send(msg, size, true))
+		{
+			printf("Failed to send to %d connection(s)\n", failures);
+		}
 
 		havroc::CommandBuilder::build_kill_system_command(msg, size);
-		n_manager->send(msg, size, true);
+		if(int failures = n_manager->send(msg, size, true))
+		{
+			printf("Failed to send to %d connection(s)\n", failures);
+		}
 
 		havroc::CommandBuilder::build_motor_command(msg, size, indices, intensities, NUM_MOTORS);
-		n_manager->send(msg, size, true);
+		if(int failures = n_manager->send(msg, size, true))
+		{
+			printf("Failed to send to connection(s)\n", failures);
+		}
 
 		boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 	}
+
+	delete tcp;
+	delete cmd;
 
 	return 0;
 }

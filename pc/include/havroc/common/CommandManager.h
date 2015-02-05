@@ -12,7 +12,7 @@ namespace havroc
 	class CommandManager
 	{
 	public:
-		~CommandManager(){}
+		~CommandManager();
 
 		static CommandManager* get();
 

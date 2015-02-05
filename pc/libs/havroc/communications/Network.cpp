@@ -19,17 +19,29 @@ namespace havroc
 
 	Network::~Network(){}
 
-	void Network::end_service()
+	int Network::end_service(int error)
 	{
 		if (m_active)
 		{
 			m_active = false;
 			m_service.stop();
 
-			kill_socket();
+			if (int kill_error = kill_socket())
+			{
+				error = kill_error;
+			}
+
+			if (error != SUCCESS)
+			{
+				printf("Irregular termination of network service has occurred with error code: %d\n", error);
+			}
 
 			on_disconnect();
+
+			return error;
 		}
+
+		return NETWORK_IS_INACTIVE;
 	}
 
 	void Network::init_loop()
@@ -43,7 +55,13 @@ namespace havroc
 	{
 		while(m_active)
 		{
-			m_service.poll();
+			boost::system::error_code error;
+
+			m_service.poll(error);
+			if (error)
+			{
+				end_service(NETWORK_UNEXPECTED_EVENT_LOOP_FAILURE);
+			}
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
 	}

@@ -20,9 +20,11 @@ namespace havroc
 				boost::bind(&UDPNetworkServer::handle_send, this, msg, size, free_mem,
 				boost::asio::placeholders::error,
 				boost::asio::placeholders::bytes_transferred));
+			
+			return SUCCESS;
 		}
 
-		return 0;
+		return NETWORK_IS_INACTIVE;
 	}
 
 	void UDPNetworkServer::handle_send(char* msg /*message*/,

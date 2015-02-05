@@ -61,7 +61,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>libboost_thread-vc120-mt-gd-1_57.lib;libboost_system-vc120-mt-gd-1_57.lib;libboost_regex-vc120-mt-gd-1_57.lib</AdditionalDependencies>
+      <AdditionalDependencies>libboost_thread-vc120-mt-gd-1_57.lib;libboost_system-vc120-mt-gd-1_57.lib</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

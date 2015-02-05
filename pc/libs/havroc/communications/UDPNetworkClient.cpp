@@ -1,10 +1,16 @@
 #include <havroc/communications/UDPNetwork.h>
+#include <havroc/common/CommandBuilder.h>
 
 namespace havroc
 {
 
 int UDPNetworkClient::start_service()
 {
+	if (is_active())
+	{
+		return -1;
+	}
+
 	on_connect();
 
 	receive();
@@ -33,7 +39,30 @@ void UDPNetworkClient::handle_receive(const boost::system::error_code& error,
 	{
 		if (!error || error == boost::asio::error::message_size)
 		{
-			on_receive(m_buffer.c_array(), bytes);
+			char* start = 0;
+			size_t size = 0;
+			uint16_t data_size = 0;
+
+			int i = 0;
+
+			while (i < (int)bytes)
+			{
+				if (m_buffer[i] == (char)START_SYNC)
+				{
+					data_size = ((((uint16_t)m_buffer[i + 2]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i + 3]) & 0x00FF);
+					size = data_size + 4;
+					start = &m_buffer.c_array()[i];
+
+					on_receive(start, size);
+
+					i += size;
+				}
+				else
+				{
+					on_receive(m_buffer.c_array(), bytes);
+					break;
+				}
+			}
 
 			receive();
 		}

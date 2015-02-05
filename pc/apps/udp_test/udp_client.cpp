@@ -2,7 +2,7 @@
 
 #include <boost/thread/thread.hpp>
 #include <havroc/communications/UDPNetwork.h>
-#include <havroc/communications/CommandBuilder.h>
+#include <havroc/common/CommandBuilder.h>
 
 void receive_handler(char* msg, size_t size)
 {
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 
     udp.start_service();
 
-    while(true)
+    while(udp.is_active())
     {
     	boost::this_thread::sleep(boost::posix_time::milliseconds(500));
     }

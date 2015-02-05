@@ -11,6 +11,11 @@ UDPNetwork::UDPNetwork(boost::asio::io_service& service, int port, boost::shared
 
 int UDPNetwork::start_service()
 {
+	if (is_active())
+	{
+		return -1;
+	}
+
 	on_connect();
 
 	return 0;

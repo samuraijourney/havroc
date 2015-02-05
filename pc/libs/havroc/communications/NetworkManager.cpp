@@ -20,7 +20,9 @@ NetworkManager* NetworkManager::get()
 	return m_instance;
 }
 
-NetworkManager::NetworkManager()
+NetworkManager::NetworkManager() 
+	: m_reconnect(false),
+	  m_stop(false)
 {
 	m_tcp_server = boost::shared_ptr<TCPNetworkServer>(new TCPNetworkServer(_io_service_tcp_server));
 	m_tcp_client = boost::shared_ptr<TCPNetworkClient>(new TCPNetworkClient(_io_service_tcp_client));
@@ -35,23 +37,71 @@ NetworkManager::NetworkManager()
 
 int NetworkManager::start_tcp_server()
 {
+	m_stop = false;
+
 	return m_tcp_server->start_service();
 }
 
 int NetworkManager::start_tcp_client(char* ip)
 {
+	m_stop = false;
+
 	m_tcp_client->set_ip(ip);
 	return m_tcp_client->start_service();
 }
 
 int NetworkManager::start_udp_server()
 {
+	m_stop = false;
+
 	return m_udp_server->start_service();
 }
 
 int NetworkManager::start_udp_client()
 {
+	m_stop = false;
+
 	return m_udp_client->start_service();
+}
+
+void NetworkManager::stop_tcp_server()
+{
+	if (m_tcp_server->is_active())
+	{
+		m_tcp_server->end_service();
+	}
+
+	m_stop = true;
+}
+
+void NetworkManager::stop_tcp_client()
+{
+	if (m_tcp_client->is_active())
+	{
+		m_tcp_client->end_service();
+	}
+
+	m_stop = true;
+}
+
+void NetworkManager::stop_udp_server()
+{
+	if (m_udp_server->is_active())
+	{
+		m_udp_server->end_service();
+	}
+
+	m_stop = true;
+}
+
+void NetworkManager::stop_udp_client()
+{
+	if (m_udp_client->is_active())
+	{
+		m_udp_client->end_service();
+	}
+
+	m_stop = true;
 }
 
 int NetworkManager::send(std::string msg)
@@ -102,7 +152,10 @@ void NetworkManager::network_disconnect_tcp_server()
 	m_tcp_server.reset();
 	m_tcp_server = boost::shared_ptr<TCPNetworkServer>(new TCPNetworkServer(_io_service_tcp_server, signals_pack));
 
-	boost::thread(boost::bind(&TCPNetworkServer::start_service, m_tcp_server));
+	if (m_reconnect && !m_stop)
+	{
+		boost::thread(boost::bind(&TCPNetworkServer::start_service, m_tcp_server));
+	}
 }
 
 void NetworkManager::network_disconnect_tcp_client()
@@ -117,7 +170,10 @@ void NetworkManager::network_disconnect_tcp_client()
 	m_tcp_client.reset();
 	m_tcp_client = boost::shared_ptr<TCPNetworkClient>(new TCPNetworkClient(_io_service_tcp_client, ip, signals_pack));
 
-	m_tcp_client->start_service();
+	if (m_reconnect && !m_stop)
+	{
+		boost::thread(boost::bind(&TCPNetworkClient::start_service, m_tcp_client));
+	}
 }
 
 void NetworkManager::network_disconnect_udp_server()
@@ -130,7 +186,10 @@ void NetworkManager::network_disconnect_udp_server()
 	m_udp_server.reset();
 	m_udp_server = boost::shared_ptr<UDPNetworkServer>(new UDPNetworkServer(_io_service_udp_server, signals_pack));
 
-	m_udp_server->start_service();
+	if (m_reconnect && !m_stop)
+	{
+		boost::thread(boost::bind(&UDPNetworkServer::start_service, m_udp_server));
+	}
 }
 
 void NetworkManager::network_disconnect_udp_client()
@@ -143,7 +202,10 @@ void NetworkManager::network_disconnect_udp_client()
 	m_udp_client.reset();
 	m_udp_client = boost::shared_ptr<UDPNetworkClient>(new UDPNetworkClient(_io_service_udp_client, signals_pack));
 		
-	m_udp_client->start_service();
+	if (m_reconnect && !m_stop)
+	{
+		boost::thread(boost::bind(&UDPNetworkClient::start_service, m_udp_client));
+	}
 }
 
 }

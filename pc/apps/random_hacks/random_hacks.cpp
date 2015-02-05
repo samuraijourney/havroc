@@ -3,17 +3,11 @@
 #include <ctime>
 #include <boost/thread/thread.hpp>
 
+#include <havroc/communications/NetworkManager.h>
 #include <havroc/communications/TCPNetwork.h>
 #include <havroc/common/CommandBuilder.h>
 
 #define NUM_MOTORS 24
-
-std::string make_daytime_string()
-{
-	using namespace std;
-	time_t now = time(0);
-	return ctime(&now);
-}
 
 void sent_handler(char* msg, size_t size)
 {
@@ -64,44 +58,48 @@ int main(int argc, char* argv[])
 
 	switch (choice)
 	{
-		case(1):
-		{
-			break;
-		}
-		case(2):
-		{
-			ip = CC3200_IP;
-			break;
-		}
-		case(3):
-		{
-			printf("Enter IP: ");
-			std::cin >> ip;
-			break;
-		}
-		default:
-		{
-			printf("Invalid entry. Killing application.");
-			return 0;
-		}
+	case(1) :
+	{
+		break;
+	}
+	case(2) :
+	{
+		ip = CC3200_IP;
+		break;
+	}
+	case(3) :
+	{
+		printf("Enter IP: ");
+		std::cin >> ip;
+		break;
+	}
+	default:
+	{
+		printf("Invalid entry. Killing application.");
+		return 0;
+	}
 	}
 
 	try
 	{
-		boost::asio::io_service io_service;
-		havroc::TCPNetworkClient tcp(io_service, ip);
+		havroc::NetworkManager* manager = havroc::NetworkManager::get();
+		manager->set_reconnect(true);
 
-		tcp.get_sent_event().connect(&sent_handler);
-		tcp.get_receive_event().connect(&receive_handler);
-		tcp.get_connect_event().connect(&connect_handler);
-		tcp.get_disconnect_event().connect(&disconnect_handler);
+		manager->set_connections(TCP_CLIENT);
+		manager->register_connect_callback(&connect_handler);
+		manager->register_disconnect_callback(&disconnect_handler);
+		manager->register_sent_callback(&sent_handler);
+		manager->register_receive_callback(&receive_handler);
 
-		tcp.start_service();
+		char* c_ip = (char*)malloc(sizeof(char)*(ip.length() + 1));
+		strcpy(c_ip, ip.c_str());
+
+		manager->start_tcp_client(c_ip);
 
 		char indices[NUM_MOTORS];
 		char intensities[NUM_MOTORS];
 
-		while (tcp.is_active())
+		while (true)
 		{
 			for (int i = 0; i < NUM_MOTORS; i++)
 			{
@@ -112,17 +110,28 @@ int main(int argc, char* argv[])
 			char* msg;
 			size_t size;
 
+			std::cout << "Press enter to send command" << std::endl;
+			std::cin.get();
+
 			havroc::CommandBuilder::build_tracking_command(msg, size, true);
-			tcp.send(msg, size);
+			manager->send(msg, size, true);
+
+			std::cout << "Press enter to send command" << std::endl;
+			std::cin.get();
 
 			havroc::CommandBuilder::build_kill_system_command(msg, size);
-			tcp.send(msg, size);
+			manager->send(msg, size, true);
+
+			std::cout << "Press enter to send command" << std::endl;
+			std::cin.get();
 
 			havroc::CommandBuilder::build_motor_command(msg, size, indices, intensities, NUM_MOTORS);
-			tcp.send(msg, size);
+			manager->send(msg, size, true);
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
 		}
+
+		free(c_ip);
 	}
 	catch (std::exception& e)
 	{

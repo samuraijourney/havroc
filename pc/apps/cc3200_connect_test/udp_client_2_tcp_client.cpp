@@ -5,7 +5,7 @@
 
 #include <havroc/communications/UDPNetwork.h>
 #include <havroc/communications/TCPNetwork.h>
-#include <havroc/communications/CommandBuilder.h>
+#include <havroc/common/CommandBuilder.h>
 
 #define NUM_MOTORS 12
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 		char indices[NUM_MOTORS];
 		char intensities[NUM_MOTORS];
 
-		while (true)
+		while (tcp.is_active())
 		{
 			for (int i = 0; i < NUM_MOTORS; i++)
 			{

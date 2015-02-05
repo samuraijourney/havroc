@@ -1,11 +1,6 @@
 #ifndef COMMANDBUILDER_H_
 #define COMMANDBUILDER_H_
 
-#include <string>
-#include <math.h>
-
-#include <boost/lexical_cast.hpp>
-
 #define START_SYNC 0xFF
 #define DIV_SYNC   0xF0
 
@@ -15,13 +10,20 @@
 
 namespace havroc
 {
-
+	typedef struct _command_pkg
+	{
+		uint8_t  command;
+		uint16_t length;
+		char*	 data;
+	} command_pkg;
+	
 	class CommandBuilder
 	{
 	public:
 		CommandBuilder();
 		~CommandBuilder();
 
+		// Populate packet byte pointer and size from tracking command parameters
 		static void build_tracking_command(char*& packet, size_t& size, bool on)
 		{
 			size = 5;
@@ -34,6 +36,7 @@ namespace havroc
 			packet[4] = (char)on;				// Data
 		}
 
+		// Populate packet byte pointer and size from system command parameters
 		static void build_kill_system_command(char*& packet, size_t& size)
 		{
 			size = 4;
@@ -45,6 +48,7 @@ namespace havroc
 			packet[3] = (char)0;
 		}
 
+		// Populate packet byte pointer and size from motor command parameters
 		static void build_motor_command(char*& packet, size_t& size, char* index, char* intensity, int length)
 		{
 			uint16_t data_size = sizeof(char) * 2 * length + length;
@@ -65,6 +69,48 @@ namespace havroc
 			}
 		}
 
+		// Populate command_pkg struct with data from a byte representation of a command packet and its size
+		static void parse_command(command_pkg*& pkg, char*& packet, size_t size)
+		{
+			pkg->command = packet[1];
+			pkg->length = ((((uint16_t)packet[2]) << 8) & 0xFF00) | (((uint16_t)packet[3]) & 0x00FF);
+			pkg->data = (char*)malloc(sizeof(char)*(size - 4));
+
+			for (int i = 0; i < (int)(size - 4); i++)
+			{
+				pkg->data[i] = packet[i + 4];
+			}
+		}
+
+		// Populate packet command and size from command_pkg struct data for byte representation of command
+		static void build_command(char*& packet, size_t& size, command_pkg*& pkg)
+		{
+			size = pkg->length + 4;
+			packet = (char*)malloc(sizeof(char) * size);
+
+			packet[0] = (char)START_SYNC;
+			packet[1] = (char)pkg->command;
+			packet[2] = (char)((pkg->length >> 8) & 0x00FF);
+			packet[3] = (char)(pkg->length & 0x00FF);
+
+			for (int i = 0; i < pkg->length; i++)
+			{
+				packet[i + 4] = pkg->data[i];
+			}
+		}
+
+		// Validation function to verify that packet is a valid command
+		static bool is_command(char*& packet, size_t size)
+		{
+			bool valid_start_sync   = packet[0] == (char)START_SYNC;
+			bool valid_command_type = packet[1] == TRACKING_CMD ||
+									  packet[1] == SYSTEM_CMD   ||
+									  packet[1] == MOTOR_CMD;
+
+			return valid_start_sync && valid_command_type;
+		}
+
+		// Print a nicely formatted command from packet*& for easy reading with controllable tab indents
 		static void print_command(char*& packet, size_t size, int tabs = 0)
 		{
 			if (!is_command(packet, size))
@@ -136,6 +182,7 @@ namespace havroc
 			printf("Packet end =============================================\n\n");
 		}
 
+		// Print nicely formatted raw data from packet*& with controllable tab indents
 		static void print_raw_bytes(char*& packet, size_t size, int offset, int tabs = 0)
 		{
 			if (size - offset > 0)
@@ -169,16 +216,6 @@ namespace havroc
 			{
 				printf("\n");
 			}
-		}
-
-		static bool is_command(char*& packet, size_t size)
-		{
-			bool valid_start_sync   = packet[0] == (char)START_SYNC;
-			bool valid_command_type = packet[1] == TRACKING_CMD || 
-								      packet[1] == SYSTEM_CMD   || 
-									  packet[1] == MOTOR_CMD;
-
-			return valid_start_sync && valid_command_type;
 		}
 	};
 

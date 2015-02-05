@@ -1,5 +1,5 @@
 #include <havroc/communications/TCPNetwork.h>
-#include <havroc/communications/CommandBuilder.h>
+#include <havroc/common/CommandBuilder.h>
 
 namespace havroc
 {

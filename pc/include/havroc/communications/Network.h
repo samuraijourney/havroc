@@ -40,8 +40,6 @@ namespace havroc
 
 		boost::shared_ptr<comm_signals_pack> get_comm_signals_pack() { return m_signals_pack; }
 
-		void set_reconnect(bool flag) { m_reconnect = flag; }
-
 		bool is_active() { return m_active; }
 
 		void end_service();
@@ -65,7 +63,6 @@ namespace havroc
 		boost::thread m_poll_thread;
 
 		bool m_active;
-		bool m_reconnect;
 	};
 } /* namespace havroc */
 

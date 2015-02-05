@@ -83,6 +83,11 @@ namespace havroc {
 
 		int start_service()
 		{
+			if (is_active())
+			{
+				return -1;
+			}
+
 			printf("\n\nTCP Client waiting for connection...\n\n");
 			int handles = 1;
 
@@ -111,11 +116,22 @@ namespace havroc {
 	{
 	public:
 		TCPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0)
-			: TCPNetwork(service, signals_pack), m_acceptor(service, tcp::endpoint(tcp::v4(), TCP_PORT)){}
+			: TCPNetwork(service, signals_pack), m_acceptor(service){}
 		virtual ~TCPNetworkServer(){}
 
 		int start_service()
 		{
+			if (is_active())
+			{
+				return -1;
+			}
+
+			tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), TCP_PORT);
+
+			m_acceptor.open(endpoint.protocol());
+			m_acceptor.bind(endpoint);
+			m_acceptor.listen();
+
 			printf("\n\nTCP Server waiting for connection...\n\n");
 
 			int handles = 1;

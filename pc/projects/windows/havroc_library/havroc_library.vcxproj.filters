@@ -42,5 +42,8 @@
     <ClCompile Include="..\..\..\libs\havroc\communications\NetworkManager.cpp">
       <Filter>Source Files\communications</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\common\CommandManager.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

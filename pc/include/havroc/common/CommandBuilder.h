@@ -8,9 +8,10 @@
 #define START_SYNC 0xFF
 #define DIV_SYNC   0xF0
 
-#define TRACKING_CMD 0
-#define SYSTEM_CMD	 1
-#define MOTOR_CMD	 2
+#define TRACKING_CMD 1
+#define SYSTEM_CMD	 2
+#define MOTOR_CMD	 3
+#define ERROR_CMD	 4
 
 namespace havroc
 {
@@ -35,6 +36,9 @@ namespace havroc
 
 		// Populate packet byte pointer and size from motor command parameters
 		static void build_motor_command(char*& packet, size_t& size, char* index, char* intensity, int length);
+
+		// Populate packet byte pointer and size from error command parameter
+		static void build_error_command(char*& packet, size_t& size, uint8_t error);
 
 		// Populate command_pkg struct with data from a byte representation of a command packet and its size
 		static void parse_command(command_pkg*& pkg, char*& packet, size_t size);

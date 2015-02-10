@@ -52,6 +52,11 @@ namespace havroc
 						m_motor_event(pkg);
 						break;
 					}
+					case(ERROR_CMD) :
+					{
+						m_error_event(pkg);
+						break;
+					}
 					default:
 					{
 						printf("Invalid event received, ignoring command event\n");

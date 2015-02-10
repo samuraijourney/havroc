@@ -96,6 +96,12 @@ public:
 void connect_example_callback_with_no_class(){} // Do nothing
 void tracking_example_callback_with_no_class(havroc::command_pkg* pkg){} // Do nothing
 
+void error_callback(havroc::command_pkg* pkg)
+{
+	int error = (int)pkg->data[0];
+	std::cout << "Unexpected error has occurred on device with code: " << error << std::endl;
+}
+
 int main()
 {
 	havroc::NetworkManager* n_manager = havroc::NetworkManager::get();
@@ -119,6 +125,7 @@ int main()
 	c_manager->register_motor_callback<TestCommandCallback>(&TestCommandCallback::motor_callback, cmd);
 
 	c_manager->register_tracking_callback(&tracking_example_callback_with_no_class);
+	c_manager->register_error_callback(&error_callback);
 
 	if(int error = n_manager->start_tcp_client("127.0.0.1"))
 	{

@@ -50,6 +50,17 @@ namespace havroc
 		}
 
 		template<class T>
+		void register_error_callback(void(T::*error_callback)(command_pkg* pkg), T* obj)
+		{
+			m_error_event.connect(boost::bind(error_callback, obj, _1));
+		}
+
+		void register_error_callback(void(*error_callback)(command_pkg* pkg))
+		{
+			m_error_event.connect(error_callback);
+		}
+
+		template<class T>
 		void unregister_tracking_callback(void(T::*tracking_callback)(command_pkg* pkg), T* obj)
 		{
 			m_tracking_event.disconnect(boost::bind(tracking_callback, obj, _1));
@@ -82,6 +93,17 @@ namespace havroc
 			m_motor_event.disconnect(motor_callback);
 		}
 
+		template<class T>
+		void unregister_error_callback(void(T::*error_callback)(command_pkg* pkg), T* obj)
+		{
+			m_error_event.disconnect(boost::bind(error_callback, obj, _1));
+		}
+
+		void unregister_error_callback(void(*error_callback)(command_pkg* pkg))
+		{
+			m_error_event.disconnect(error_callback);
+		}
+
 	private:
 		CommandManager();
 
@@ -91,6 +113,7 @@ namespace havroc
 		boost::signals2::signal<void(command_pkg*)> m_tracking_event;
 		boost::signals2::signal<void(command_pkg*)> m_system_event;
 		boost::signals2::signal<void(command_pkg*)> m_motor_event;
+		boost::signals2::signal<void(command_pkg*)> m_error_event;
 
 		std::vector<command_pkg*> m_pkgs;
 		std::mutex m_pkg_buffer_lock;

@@ -46,6 +46,18 @@ namespace havroc
 		}
 	}
 
+	void CommandBuilder::build_error_command(char*& packet, size_t& size, uint8_t error)
+	{
+		size = 5;
+		packet = (char*)malloc(sizeof(char) * size);
+
+		packet[0] = (char)START_SYNC;	
+		packet[1] = (char)ERROR_CMD;
+		packet[2] = (char)0;
+		packet[3] = (char)sizeof(uint8_t);
+		packet[4] = (char)error;
+	}
+
 	void CommandBuilder::parse_command(command_pkg*& pkg, char*& packet, size_t size)
 	{
 		pkg->command = packet[1];
@@ -76,10 +88,11 @@ namespace havroc
 
 	bool CommandBuilder::is_command(char*& packet, size_t size)
 	{
-		bool valid_start_sync = packet[0] == (char)START_SYNC;
+		bool valid_start_sync	= packet[0] == (char)START_SYNC;
 		bool valid_command_type = packet[1] == TRACKING_CMD ||
-			packet[1] == SYSTEM_CMD ||
-			packet[1] == MOTOR_CMD;
+								  packet[1] == SYSTEM_CMD	||
+								  packet[1] == MOTOR_CMD	||
+								  packet[1] == ERROR_CMD;
 
 		return valid_start_sync && valid_command_type;
 	}
@@ -126,6 +139,11 @@ namespace havroc
 		case(MOTOR_CMD) :
 		{
 			printf("(Motor)");
+			break;
+		}
+		case(ERROR_CMD) :
+		{
+			printf("(Error)");
 			break;
 		}
 		}

@@ -112,7 +112,7 @@ int main()
 	TestTCPClientCallback* tcp = new TestTCPClientCallback();
 	TestCommandCallback* cmd = new TestCommandCallback();
 
-	n_manager->set_connections(TCP_CLIENT);
+	n_manager->set_connections(TCP_SERVER);
 	n_manager->register_connect_callback<TestTCPClientCallback>(&TestTCPClientCallback::connect_callback, tcp);
 	n_manager->register_disconnect_callback<TestTCPClientCallback>(&TestTCPClientCallback::disconnect_callback, tcp);
 	n_manager->register_sent_callback<TestTCPClientCallback>(&TestTCPClientCallback::sent_callback, tcp);
@@ -127,9 +127,9 @@ int main()
 	c_manager->register_tracking_callback(&tracking_example_callback_with_no_class);
 	c_manager->register_error_callback(&error_callback);
 
-	if(int error = n_manager->start_tcp_client("127.0.0.1"))
+	if(int error = n_manager->start_tcp_server())
 	{
-		printf("TCP Client failed to start with error code: %d\n", error);
+		printf("TCP Server failed to start with error code: %d\n", error);
 		printf("Terminating program\n");
 		
 		return -1;

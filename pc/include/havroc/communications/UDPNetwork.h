@@ -6,7 +6,7 @@
 
 #include <havroc/communications/Network.h>
 
-#define UDP_PORT 8888
+#define UDP_PORT 7999
 
 using boost::asio::ip::udp;
 

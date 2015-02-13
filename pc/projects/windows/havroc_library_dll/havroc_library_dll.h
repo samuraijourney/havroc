@@ -2,6 +2,7 @@
 #ifndef HAVROC_LIBRARY_DLL_H_
 #define HAVROC_LIBRARY_DLL_H_
 
+#define CALLBACK_CONV __cdecl	// Callback convention
 
 #ifdef HAVROC_LIBRARY_DLL_EXPORTS
 #define HAVROC_LIBRARY_DLL_API __declspec(dllexport) 

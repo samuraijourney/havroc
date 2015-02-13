@@ -61,7 +61,7 @@ namespace havroc
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
 
-		return 0;
+		return SUCCESS;
 	}
 
 } /* namespace havroc */

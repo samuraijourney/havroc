@@ -8,14 +8,7 @@
 
 #define NUM_MOTORS 32
 
-std::string make_daytime_string()
-{
-	using namespace std; // For time_t, time and ctime;
-	time_t now = time(0);
-	return ctime(&now);
-}
-
-void sent_handler(char* msg, size_t size)
+void sent_handler(BYTE* msg, size_t size)
 {
 
 	if (havroc::CommandBuilder::is_command(msg, size))
@@ -25,12 +18,12 @@ void sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Server sent message: " << str_msg << std::endl;
 	}
 }
 
-void receive_handler(char* msg, size_t size)
+void receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -39,7 +32,7 @@ void receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Server receiving message: " << str_msg << std::endl;
 	}
 }
@@ -69,8 +62,8 @@ int main(int argc, char* argv[])
 		std::cout << "Listening on port: " << TCP_PORT << std::endl;
 		tcp.start_service();
 
-		char indices[NUM_MOTORS];
-		char intensities[NUM_MOTORS];
+		BYTE indices[NUM_MOTORS];
+		BYTE intensities[NUM_MOTORS];
 
 		while (tcp.is_active())
 		{
@@ -80,7 +73,7 @@ int main(int argc, char* argv[])
 				intensities[i] = rand() % 100 + 1;
 			}
 
-			char* msg;
+			BYTE* msg;
 			size_t size;
 
 			havroc::CommandBuilder::build_tracking_command(msg, size, true);

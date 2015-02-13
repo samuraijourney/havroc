@@ -9,7 +9,7 @@
 
 #define NUM_MOTORS 24
 
-void sent_handler(char* msg, size_t size)
+void sent_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -18,12 +18,12 @@ void sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Client sent message: " << str_msg << std::endl;
 	}
 }
 
-void receive_handler(char* msg, size_t size)
+void receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -32,7 +32,7 @@ void receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Client receiving message: " << str_msg << std::endl;
 	}
 }
@@ -96,8 +96,8 @@ int main(int argc, char* argv[])
 
 		manager->start_tcp_client(c_ip);
 
-		char indices[NUM_MOTORS];
-		char intensities[NUM_MOTORS];
+		BYTE indices[NUM_MOTORS];
+		BYTE intensities[NUM_MOTORS];
 
 		while (true)
 		{
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 				intensities[i] = rand() % 100 + 1;
 			}
 
-			char* msg;
+			BYTE* msg;
 			size_t size;
 
 			std::cout << "Press enter to send command" << std::endl;

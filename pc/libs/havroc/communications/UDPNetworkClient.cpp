@@ -44,7 +44,7 @@ namespace havroc
 		{
 			if (!error || error == boost::asio::error::message_size)
 			{
-				char* start = 0;
+				BYTE* start = 0;
 				size_t size = 0;
 				uint16_t data_size = 0;
 
@@ -56,7 +56,7 @@ namespace havroc
 					{
 						data_size = ((((uint16_t)m_buffer[i + 2]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i + 3]) & 0x00FF);
 						size = data_size + 4;
-						start = &m_buffer.c_array()[i];
+						start = (BYTE*)&m_buffer.c_array()[i];
 
 						on_receive(start, size);
 
@@ -64,7 +64,7 @@ namespace havroc
 					}
 					else
 					{
-						on_receive(m_buffer.c_array(), bytes);
+						on_receive((BYTE*)m_buffer.c_array(), bytes);
 						break;
 					}
 				}

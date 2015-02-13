@@ -1,0 +1,5 @@
+#define RIGHT_ARM 1
+#define LEFT_ARM  2
+
+#define ANGLES_PER_IMU 3
+#define ANGLES_PER_ARM 3 * ANGLES_PER_IMU

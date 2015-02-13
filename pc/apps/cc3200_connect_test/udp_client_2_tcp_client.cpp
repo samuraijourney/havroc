@@ -12,14 +12,7 @@
 bool _ip_received = false;
 std::string _remote_ip = "";
 
-std::string make_daytime_string()
-{
-	using namespace std; // For time_t, time and ctime;
-	time_t now = time(0);
-	return ctime(&now);
-}
-
-void udp_receive_handler(char* msg, size_t size)
+void udp_receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -28,11 +21,11 @@ void udp_receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "UDP Client receiving message: " << str_msg << std::endl;
 	}
 
-	_remote_ip = msg;
+	_remote_ip = (char*) msg;
 	_ip_received = true;
 }
 
@@ -46,7 +39,7 @@ void udp_connect_handler()
 	std::cout << "UDP Client started" << std::endl;
 }
 
-void tcp_sent_handler(char* msg, size_t size)
+void tcp_sent_handler(BYTE* msg, size_t size)
 {
 
 	if (havroc::CommandBuilder::is_command(msg, size))
@@ -56,12 +49,12 @@ void tcp_sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Client sent message: " << str_msg << std::endl;
 	}
 }
 
-void tcp_receive_handler(char* msg, size_t size)
+void tcp_receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -70,7 +63,7 @@ void tcp_receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Client receiving message: " << str_msg << std::endl;
 	}
 }
@@ -114,8 +107,8 @@ int main(int argc, char* argv[])
 
 		tcp.start_service();
 
-		char indices[NUM_MOTORS];
-		char intensities[NUM_MOTORS];
+		BYTE indices[NUM_MOTORS];
+		BYTE intensities[NUM_MOTORS];
 
 		while (tcp.is_active())
 		{
@@ -125,7 +118,7 @@ int main(int argc, char* argv[])
 				intensities[i] = rand() % 100 + 1;
 			}
 
-			char* msg;
+			BYTE* msg;
 			size_t size;
 
 			havroc::CommandBuilder::build_tracking_command(msg, size, true);

@@ -82,7 +82,7 @@ namespace havroc
 		}
 	}
 
-	void CommandManager::receive_handler(char* msg, size_t size)
+	void CommandManager::receive_handler(BYTE* msg, size_t size)
 	{
 		if (!CommandBuilder::is_command(msg, size))
 		{

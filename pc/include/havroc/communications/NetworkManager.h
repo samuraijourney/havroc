@@ -40,8 +40,8 @@ namespace havroc
 
 		int send(std::string msg);
 		int send(std::string msg, uint8_t types);
-		int send(char* msg, size_t size, bool free_mem = false);
-		int send(char* msg, size_t size, uint8_t types, bool free_mem = false);
+		int send(BYTE* msg, size_t size, bool free_mem = false);
+		int send(BYTE* msg, size_t size, uint8_t types, bool free_mem = false);
 
 		void	set_connections(uint8_t connections) { m_desired_connections = connections; }
 		void	set_reconnect(bool reconnect)		 { m_reconnect = reconnect; }
@@ -50,7 +50,7 @@ namespace havroc
 		bool	get_reconnect()						 { return m_reconnect; }
 
 		template<class T>
-		void register_sent_callback(void(T::*sent_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void register_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -75,7 +75,7 @@ namespace havroc
 			}
 		}
 
-		void register_sent_callback(void(*sent_callback)(char* msg, size_t size), uint8_t types = 0)
+		void register_sent_callback(void(*sent_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -101,7 +101,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void register_receive_callback(void(T::*receive_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void register_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -126,7 +126,7 @@ namespace havroc
 			}
 		}
 
-		void register_receive_callback(void(*receive_callback)(char* msg, size_t size), uint8_t types = 0)
+		void register_receive_callback(void(*receive_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -254,7 +254,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void unregister_sent_callback(void(T::*sent_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void unregister_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -279,7 +279,7 @@ namespace havroc
 			}
 		}
 
-		void unregister_sent_callback(void(*sent_callback)(char* msg, size_t size), uint8_t types = 0)
+		void unregister_sent_callback(void(*sent_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -305,7 +305,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void unregister_receive_callback(void(T::*receive_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void unregister_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -330,7 +330,7 @@ namespace havroc
 			}
 		}
 
-		void unregister_receive_callback(void(*receive_callback)(char* msg, size_t size), uint8_t types = 0)
+		void unregister_receive_callback(void(*receive_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{

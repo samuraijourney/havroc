@@ -99,6 +99,7 @@
     <ClCompile Include="..\..\..\libs\havroc\communications\UDPNetwork.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\UDPNetworkClient.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\UDPNetworkServer.cpp" />
+    <ClCompile Include="..\..\..\libs\havroc\tracking\TrackingManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

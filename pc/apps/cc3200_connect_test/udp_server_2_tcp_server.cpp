@@ -11,14 +11,7 @@
 
 bool _tcp_connected = false;
 
-std::string make_daytime_string()
-{
-	using namespace std; // For time_t, time and ctime;
-	time_t now = time(0);
-	return ctime(&now);
-}
-
-void udp_sent_handler(char* msg, size_t size)
+void udp_sent_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -27,7 +20,7 @@ void udp_sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "UDP Server sent message: " << str_msg << std::endl;
 	}
 }
@@ -42,7 +35,7 @@ void udp_connect_handler()
 	std::cout << "UDP Server started" << std::endl;
 }
 
-void tcp_sent_handler(char* msg, size_t size)
+void tcp_sent_handler(BYTE* msg, size_t size)
 {
 
 	if (havroc::CommandBuilder::is_command(msg, size))
@@ -52,12 +45,12 @@ void tcp_sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Server sent message: " << str_msg << std::endl;
 	}
 }
 
-void tcp_receive_handler(char* msg, size_t size)
+void tcp_receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -66,7 +59,7 @@ void tcp_receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "TCP Server receiving message: " << str_msg << std::endl;
 	}
 }
@@ -85,7 +78,7 @@ void tcp_connect_handler()
 
 int main(int argc, char* argv[])
 {
-	char* ip = (char*)malloc(sizeof(char)*30);
+	BYTE* ip = (BYTE*)malloc(sizeof(BYTE) * 30);
 	bool free_mem = false;
 	size_t size = 0;
 
@@ -99,14 +92,14 @@ int main(int argc, char* argv[])
 		case(1) :
 		{
 			free(ip);
-			ip = "127.0.0.1";
+			ip = (BYTE*)"127.0.0.1";
 			size = 9;
 			break;
 		}
 		case(2) :
 		{
 			free(ip);
-			ip = CC3200_IP;
+			ip = (BYTE*)CC3200_IP;
 			size = 13;
 			break;
 		}
@@ -160,8 +153,8 @@ int main(int argc, char* argv[])
 			free(ip);
 		}
 
-		char indices[NUM_MOTORS];
-		char intensities[NUM_MOTORS];
+		BYTE indices[NUM_MOTORS];
+		BYTE intensities[NUM_MOTORS];
 
 		while (tcp.is_active())
 		{
@@ -171,7 +164,7 @@ int main(int argc, char* argv[])
 				intensities[i] = rand() % 100 + 1;
 			}
 
-			char* msg;
+			BYTE* msg;
 			size_t size;
 
 			havroc::CommandBuilder::build_tracking_command(msg, size, true);

@@ -99,18 +99,18 @@ namespace havroc
 
 	int NetworkManager::send(std::string msg, uint8_t types)
 	{
-		char* c_msg = (char*) malloc(sizeof(char)*(msg.length() + 1));
-		strcpy(c_msg, msg.c_str());
+		BYTE* c_msg = (BYTE*)malloc(sizeof(BYTE)*(msg.length() + 1));
+		strcpy((char*)c_msg, msg.c_str());
 
 		return send(c_msg, msg.length() + 1, types, true);
 	}
 
-	int NetworkManager::send(char* msg, size_t size, bool free_mem)
+	int NetworkManager::send(BYTE* msg, size_t size, bool free_mem)
 	{
 		return send(msg, size, m_desired_connections, free_mem);
 	}
 
-	int NetworkManager::send(char* msg, size_t size, uint8_t types, bool free_mem)
+	int NetworkManager::send(BYTE* msg, size_t size, uint8_t types, bool free_mem)
 	{
 		int failures = 0;
 
@@ -127,7 +127,7 @@ namespace havroc
 			failures += m_udp_server->broadcast(msg, size, free_mem) == SUCCESS ? 0 : 1;
 		}
 
-		return failures;
+		return types != 0 ? failures : NETWORK_CONNECTION_NOT_SET;
 	}
 
 	void NetworkManager::network_disconnect_tcp_server()

@@ -12,7 +12,7 @@ namespace havroc
 
 	UDPNetworkServer::~UDPNetworkServer(){}
 
-	int UDPNetworkServer::send(char* msg, size_t size, bool free_mem)
+	int UDPNetworkServer::send(BYTE* msg, size_t size, bool free_mem)
 	{
 		if (is_active())
 		{
@@ -27,7 +27,7 @@ namespace havroc
 		return NETWORK_IS_INACTIVE;
 	}
 
-	void UDPNetworkServer::handle_send(char* msg /*message*/,
+	void UDPNetworkServer::handle_send(BYTE* msg /*message*/,
 									   size_t size /*message size*/,
 									   bool free_mem /*ownership*/,
 									   const boost::system::error_code& /*error*/,

@@ -3,10 +3,9 @@
 #include <IMU_Driver.h>
 
 #define DATA_POINTS_PER_TEST   1000  // Number of data points to collect per action test
-#define WAIT_TIME              30    // Time to wait between action tests
-#define NUM_OF_ACTIONS         5     // Number of actions to be completed like arm up, arm down, arm lateral, arm punch, etc...
-#define NUM_OF_IMUS            6     // Number of available IMU's
-#define CLEAN_TIME             5     // Time required to clean IMU readings before gathering data in seconds
+#define WAIT_TIME              20    // Time to wait between action tests
+#define NUM_OF_ACTIONS         6     // Number of actions to be completed like arm up, arm down, arm lateral, arm punch, etc...
+#define NUM_OF_IMUS            3     // Number of available IMU's
 
 // Testing variables
 char* testQueries[NUM_OF_ACTIONS];
@@ -39,33 +38,19 @@ void setup()
   //Turn on LED to signal end of calibration
   digitalWrite(13, HIGH);
   
-  testQueries[0] = "Please place your arm forward, parallel to the ground and keep it straight";
+  testQueries[0] = "Place your arm forward, parallel to the ground and keep it straight";
   testQueries[1] = "Now bend your arm until your elbow has reached 90 degrees while your upper arm remains parallel to the ground";
   testQueries[2] = "Hold your arm in a natural boxing stance";
   testQueries[3] = "Hold your arm neutrally at your side";
   testQueries[4] = "Hold your arm laterally to the side";
+  testQueries[5] = "Punch your ass off, dog.";
   
-  imuQueries[0] = "Prepare to use the IMU on your right shoulder";
-  imuQueries[1] = "Prepare to use the IMU on your right elbow";
-  imuQueries[2] = "Prepare to use the IMU on your right wrist";
-  imuQueries[3] = "Prepare to use the IMU on your left shoulder";
-  imuQueries[4] = "Prepare to use the IMU on your left elbow";
-  imuQueries[5] = "Prepare to use the IMU on your left wrist";
-}
-
-void printCountdown(int timeInSeconds)
-{
-    Serial.print("Prepare to begin test in ");
-    
-    while(timeInSeconds > 0)
-    {
-      Serial.print(timeInSeconds);
-      Serial.print("...");
-      timeInSeconds--;
-      delay(1000);
-    }
-    
-    Serial.print("\n");
+  imuQueries[0] = "Prepare to use the IMU on your shoulder";
+  imuQueries[1] = "Prepare to use the IMU on your elbow";
+  imuQueries[2] = "Prepare to use the IMU on your wrist";
+  //imuQueries[3] = "Prepare to use the IMU on your left shoulder";
+  //imuQueries[4] = "Prepare to use the IMU on your left elbow";
+  //imuQueries[5] = "Prepare to use the IMU on your left wrist";
 }
 
 void grabIMUData(float* out_yaw, float* out_pitch, float* out_roll)
@@ -111,7 +96,7 @@ void grabIMUData(float* out_yaw, float* out_pitch, float* out_roll)
   pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
   roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
   pitch *= 180.0f / PI;
-  yaw   *= 180.0f / PI;// + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
+  yaw   *= 180.0f / PI; // + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
   roll  *= 180.0f / PI;
   
   *out_yaw = yaw;
@@ -119,18 +104,28 @@ void grabIMUData(float* out_yaw, float* out_pitch, float* out_roll)
   *out_roll = roll;
 }
 
-void cleanIMUData()
+void printCountdown(char* msg, int timeInSeconds)
 {
-  float yaw, pitch, roll;
-  
-  uint32_t now = 0;
-  uint32_t then = 0;
-  now = micros();
-  
-  while((then - now) < (CLEAN_TIME * 1000000.0))
-  {
-    grabIMUData(&yaw,&pitch,&roll);
-  }
+    float yaw, pitch, roll;
+    
+    Serial.print(msg);
+    
+    while(timeInSeconds > 0)
+    {
+      Serial.print(timeInSeconds);
+      Serial.print("...");
+      timeInSeconds--;
+      
+      uint32_t endTime = micros() + 1000000.0;
+      while(micros() < endTime)
+      {
+        grabIMUData(&yaw,&pitch,&roll); // Don't stop querying data from the IMU so that update can stabilize properly as you position yourself during countdown
+        
+        delay(17);
+      }
+    }
+    
+    Serial.print("\n");
 }
 
 void loop()
@@ -147,6 +142,7 @@ void loop()
     Serial.print("Beginning tests for IMU: ");
     Serial.println(imus_completed + 1); 
     Serial.println(imuQueries[imus_completed]);
+    printCountdown("Tests for new IMU configuration will continue in ", WAIT_TIME); 
     Serial.println("-----------------------------------------------------");
     Serial.print("\n\n\n\n\n");
     
@@ -158,11 +154,9 @@ void loop()
       
       Serial.println(testQueries[actions_completed]);
       
-      printCountdown(WAIT_TIME); 
+      printCountdown("Prepare to begin test in ", WAIT_TIME); 
       
       uint32_t samples_remaining = DATA_POINTS_PER_TEST;
-      
-      cleanIMUData();  // Filters out garbage data
             
       while(samples_remaining > 0)
       {

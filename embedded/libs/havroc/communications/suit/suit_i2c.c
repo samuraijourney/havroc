@@ -13,6 +13,8 @@ void suit_i2c_transfer( uint32_t i2cIndex,
     I2C_Params      i2cParams;
     I2C_Transaction i2cTransaction;
 
+    i2cIndex = 0;
+
     /* Create I2C for usage */
 
     I2C_Params_init(&i2cParams);
@@ -26,7 +28,7 @@ void suit_i2c_transfer( uint32_t i2cIndex,
     }
     else
     {
-        System_printf("I2C Initialized!\n");
+        //System_printf("I2C Initialized!\n");
     }
 
     i2cTransaction.slaveAddress = addr;

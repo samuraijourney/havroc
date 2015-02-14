@@ -12,9 +12,10 @@
 
 enum
 {
-	TRACKING_CMD = 0,
+	TRACKING_CMD = 1,
 	SYSTEM_CMD,
 	MOTOR_CMD,
+	ERROR_CMD,
 	CMD_MAX
 };
 

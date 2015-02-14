@@ -8,6 +8,7 @@
 #include <havroc/tracking/imu_driver.h>
 #include <havroc/error.h>
 #include <havroc/id.h>
+#include "common.h"
 
 #define MAGDWICK
 //#define MAHONY
@@ -216,12 +217,13 @@ static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float
   q[3] = q4 * norm;
 }
 #endif
+
 int startIMU()
 {
   int i = 0;
   int j = 0;
 
-  for(i = L_SHOULDER_IMU_ID; i <= R_WRIST_IMU_ID; i++)
+  for(i = SHOULDER_IMU_ID; i <= WRIST_IMU_ID; i++)
   {
 	IMU_array[i].q[0] = 1.0f;
 
@@ -234,18 +236,18 @@ int startIMU()
     IMU_array[i].id = i;
     IMU_array[i].lastUpdate = 0;
 
-    if(initMPU(0) == IMU_MPU_START_ERROR)
+    if(initMPU(i) == IMU_MPU_START_FAIL)
     {
-      return IMU_MPU_START_ERROR;
+      return IMU_MPU_START_FAIL;
     }
 
-    if(initCompass(0) == IMU_COMPASS_START_ERROR)
+    if(initCompass(i) == IMU_COMPASS_START_FAIL)
     {
-      return IMU_COMPASS_START_ERROR;
+      return IMU_COMPASS_START_FAIL;
     }
   }
 
-  return IMU_START_SUCCESS;
+  return SUCCESS;
 }
 
 int returnEstimate(int id, float * yaw, float * pitch, float * roll)
@@ -259,20 +261,20 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   float magX = 0;
   float magY = 0;
   float magZ = 0;
-  UInt32 now = 0;
   float delt_t = 0;
+  UInt32 now = 0;
   Types_FreqHz freq;
 
   Timestamp_getFreq(&freq);
 
-  if(readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, id) == IMU_READ_FAIL)
+  if(readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, id) != SUCCESS)
   {
-    return IMU_MPU_ERROR;
+    return IMU_MPU_READ_FAIL;
   }
 
-  if(readCompassData(&magX,&magY,&magZ, id) == IMU_READ_FAIL)
+  if(readCompassData(&magX,&magY,&magZ, id) != SUCCESS)
   {
-    return IMU_COMPASS_ERROR;
+    return IMU_COMPASS_READ_FAIL;
   }
 
   now = Timestamp_get32();
@@ -300,5 +302,5 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   *yaw   *= 180.0f / PI;// + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
   *roll  *= 180.0f / PI;
 
-  return IMU_READ_SUCCESS;
+  return SUCCESS;
 }

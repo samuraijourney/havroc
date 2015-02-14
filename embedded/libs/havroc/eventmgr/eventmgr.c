@@ -5,18 +5,28 @@
  *      Author: Akram
  */
 
+
+#include <ti/sysbios/knl/Event.h>
+#include <ti/sysbios/BIOS.h>
 #include "havroc/command.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include <stdlib.h>
 #include "uart_if.h"
+#include "common.h"
+#include <havroc/error.h>
+
+#define EventReceived 0
 
 static EVENT_CB 	  EventList[CMD_MAX][MAX_CALLBACKS];
-extern event		  eventBuff[EVENT_BUFF_SIZE];
-extern int		      eventIndex;
-extern int 			  eventCount;
 static int			  callbackCounter[CMD_MAX];
+Event_Handle 		  EventMgr_Event;
 
-void EventRegisterCB(uint32_t command, EVENT_CB Callback)
+event				  eventBuff[EVENT_BUFF_SIZE];
+int				      eventFront;
+int		 		      eventBack;
+int 				  eventCount;
+
+int EventRegisterCB(uint32_t command, EVENT_CB Callback)
 {
 	int i;
 
@@ -30,17 +40,18 @@ void EventRegisterCB(uint32_t command, EVENT_CB Callback)
 			{
 				*pEntry = Callback;
 				callbackCounter[command]++;
-				break;
 			}
 		}
 	}
 	else
 	{
-		//invalid callback or command
+		return FAILURE;
 	}
+
+	return SUCCESS;
 }
 
-static void EventFire(event currEvent)
+static int EventFire(event currEvent)
 {
 	int i;
 
@@ -54,55 +65,71 @@ static void EventFire(event currEvent)
 		}
 
 		eventCount--;
-		eventIndex--;
-
-		if(eventIndex < 0)
-		{
-			eventIndex+=EVENT_BUFF_SIZE;
-		}
+		eventBack = (eventBack + 1)%(EVENT_BUFF_SIZE);
+		return SUCCESS;
 	}
 	else
 	{
-		//invalid command
+		return FAILURE;
 	}
 }
 
-int EventMgr_EnQ(char* message)
+int EventEnQ(char* message)
 {
     int	data_index = 0;
     int	buff_index = 0;
+    int event_index = (eventFront + 1)%(EVENT_BUFF_SIZE);
 
-    eventIndex = (eventIndex + 1)%(EVENT_BUFF_SIZE);
+    if((event_index != eventBack) || (eventCount == 0))
+    {
+    	eventFront = event_index;
 
-	eventBuff[eventIndex].command = message[buff_index++];
-	eventBuff[eventIndex].data_len = message[buff_index++];
-	eventBuff[eventIndex].data_len <<= 8;
-	eventBuff[eventIndex].data_len |= message[buff_index++];
-	eventBuff[eventIndex].data_buff = (uint8_t*) malloc(sizeof(uint8_t)*eventBuff[eventIndex].data_len);
+		eventBuff[eventFront].command = message[buff_index++];
+		eventBuff[eventFront].data_len = message[buff_index++];
+		eventBuff[eventFront].data_len <<= 8;
+		eventBuff[eventFront].data_len |= message[buff_index++];
+		eventBuff[eventFront].data_buff = (uint8_t*) malloc(sizeof(uint8_t)*eventBuff[eventFront].data_len);
 
-	while(data_index < eventBuff[eventIndex].data_len)
-	{
-		eventBuff[eventIndex].data_buff[data_index++] = message[buff_index++];
-	}
+		while(data_index < eventBuff[eventFront].data_len)
+		{
+			eventBuff[eventFront].data_buff[data_index++] = message[buff_index++];
+		}
 
-	Report("TCP received command: %i, size: %i\n\r", eventBuff[eventIndex].command, eventBuff[eventIndex].data_len);
+		Report("TCP received command: %i, size: %i\n\r", eventBuff[eventFront].command, eventBuff[eventFront].data_len);
 
-	eventCount++;
+		eventCount++;
+		Event_post(EventMgr_Event, EventReceived);
+    }
 
 	return buff_index;
 }
 
-void EventMgr_Task (void)
+int EventStart()
 {
-//	while(1)
-//	{
-		if(eventCount)
+	Task_Handle task0;
+
+	EventMgr_Event = Event_create(NULL, NULL);
+	task0 = Task_create((Task_FuncPtr) EventRun, NULL, NULL);
+	if (task0 == NULL || EventMgr_Event == NULL)
+	{
+		signal(EVENT_START_FAIL);
+		return EVENT_START_FAIL;
+	}
+
+	return SUCCESS;
+}
+
+void EventRun (UArg arg0, UArg arg1)
+{
+	UInt events;
+
+	while(1)
+	{
+		events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
+
+		if(events & EventReceived)
 		{
-			EventFire(eventBuff[eventIndex]);
+			EventFire(eventBuff[eventBack]);
 		}
-		else
-		{
-			//yield processor
-		}
-//	}
+	}
 }

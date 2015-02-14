@@ -1,6 +1,7 @@
 #include <havroc/tracking/imu_driver.h>
 #include <havroc/communications/suit/suit_i2c.h>
 #include <havroc/error.h>
+#include "common.h"
 
 float mAdj_X = 0;
 float mAdj_Y = 0;
@@ -26,7 +27,7 @@ int initMPU(uint32_t imu_index)
 
 	if (rxBuff[0] != MPU_WHOAMI)
 	{
-		return IMU_MPU_START_ERROR;
+		return IMU_MPU_START_FAIL;
 	}
 
 	//Reset device
@@ -95,7 +96,7 @@ int initMPU(uint32_t imu_index)
 	//Run calibration for sensors
 	getGyroOffsets(&gyroOffsetX, &gyroOffsetY, &gyroOffsetZ, imu_index);
 
-	return IMU_MPU_START_SUCCESS;
+	return SUCCESS;
 }
 
 //Initialize compass, check if device id is valid, get factory calibrated sensitivity values
@@ -108,7 +109,7 @@ int initCompass(uint32_t imu_index)
 
 	if (rxBuff[0] != AKM_WHOAMI)
 	{
-		return IMU_COMPASS_START_ERROR;
+		return IMU_COMPASS_START_FAIL;
 	}
 
 	//Shutdown compass
@@ -136,11 +137,12 @@ int initCompass(uint32_t imu_index)
 	suit_i2c_write(imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
 	delay(10);
 
-	return IMU_COMPASS_START_SUCCESS;
+	return SUCCESS;
 }
 
 int readMPUData(float * accel_X, float * accel_Y, float * accel_Z,
-		float * gyro_X, float * gyro_Y, float * gyro_Z, uint32_t imu_index) {
+		float * gyro_X, float * gyro_Y, float * gyro_Z, uint32_t imu_index)
+{
 	float x = 0;
 	float y = 0;
 	float z = 0;
@@ -212,10 +214,10 @@ int readMPUData(float * accel_X, float * accel_Y, float * accel_Z,
 		*gyro_X = x;
 		*gyro_Y = y;
 		*gyro_Z = z;
-		return IMU_READ_SUCCESS;
+		return SUCCESS;
 	}
 
-	return IMU_READ_FAIL;
+	return FAILURE;
 }
 
 //Get x,y,z readings from compass
@@ -268,23 +270,25 @@ int readCompassData(float * mag_X, float * mag_Y, float * mag_Z, uint32_t imu_in
 			*mag_X = x;
 			*mag_Y = y;
 			*mag_Z = z;
-			return IMU_READ_SUCCESS;
+			return SUCCESS;
 		}
 	}
 
-	return IMU_READ_FAIL;
+	return FAILURE;
 }
 
 void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY,
-		float * gyro_OffsetZ, int imu_index) {
+		float * gyro_OffsetZ, int imu_index)
+{
 	float sumX = 0;
 	float sumY = 0;
 	float sumZ = 0;
 	int i;
-	uint8_t rxBuff[1];
 	int i2c_data = 0;
+	uint8_t rxBuff[1];
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		suit_i2c_read(imu_index, MPU_ADDRESS, GYRO_XOUT_H, rxBuff, 1);
 		i2c_data = rxBuff[0];
 		i2c_data <<= 8;

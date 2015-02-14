@@ -30,16 +30,16 @@ Void testFxn(UArg arg0, UArg arg1)
 
 	int result = startIMU();
 
-//	while(1)
-//	{
+	while(1)
+	{
 		result = returnEstimate(0, &yaw, &pitch, &roll);
-//		if(count%100==0)
-//		{
-//			System_printf("Yaw: %i, Pitch: %i, Roll: %i\n", yaw, pitch, roll);
-//			System_flush();
-//		}
-//		count++;
-//	}
+	//	if(count%100==0)
+	//	{
+			System_printf("Yaw: %i, Pitch: %i, Roll: %i\n", yaw, pitch, roll);
+			System_flush();
+	//	}
+		//count++;
+	}
 }
 
 /*

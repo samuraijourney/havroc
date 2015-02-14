@@ -37,36 +37,40 @@
 
 #include "havroc/command.h"
 #include "pin_mux_config.h"
+#include <ti/sysbios/BIOS.h>
 
 #define IP_ADDR           			0xc0a8006E /* 192.168.0.110 */
-#define PORT_NUM_UDP        		8888
 #define PORT_NUM_TCP        		13
 #define BUFF_SIZE	   	   			1000
-#define UDP_PACKET_COUNT   			1000
 #define TCP_PACKET_COUNT   			1
 #define SYNC_START_CODE_BYTE		0xFF
-#define SYNC_END_CODE_BYTE			0xF0
 
 // Application specific status/error codes
 typedef enum{
     // Choosing -0x7D0 to avoid overlap w/ host-driver's error codes
-    UDP_CLIENT_FAILED = -0x7D0,
-    TCP_SERVER_FAILED = UDP_CLIENT_FAILED - 1,
-    DEVICE_NOT_IN_STATION_MODE = UDP_CLIENT_FAILED - 2,
+    TCP_SERVER_FAILED = -0x7D0,
+    DEVICE_NOT_IN_STATION_MODE = TCP_SERVER_FAILED - 1,
     STATUS_CODE_MAX = -0xBB8
 }e_AppStatusCodes;
+
+typedef struct _sendMessage
+{
+	char command;
+	char length;
+	float* data;
+} sendMessage;
 
 //****************************************************************************
 //                       FUNCTION PROTOTYPES
 //****************************************************************************
-int UDP_Broadcast(unsigned short usPort);
-int TCP_Receive();
-int TCP_Send();
-int Setup_Socket(unsigned short usPort);
-void WlanInit();
-int  WlanOff();
-long  WlanConnect();
-int  WlanStartup();
+static void WiFiRun(UArg arg0, UArg arg1);
+int WiFiSendEnq(sendMessage message);
+static void WiFiSend();
+static int Setup_Socket(unsigned short usPort);
+static int WlanInit();
+static int  WlanOff();
+static long WlanConnect();
+static int  WlanStartup();
 static void BoardInit();
 static void InitializeAppVariables();
 static long ConfigureSimpleLinkToDefaultState();

@@ -52,7 +52,7 @@
 
 extern unsigned long  		  IP_Address;
 extern unsigned long  		  UDP_BufferSize;
-extern unsigned long  		  TCP_BufferSize;
+extern unsigned long  		  sendCount;
 extern unsigned long  		  UDP_Buffer[BUFF_SIZE];
 extern long  		  		  TCP_SendBuffer[BUFF_SIZE];
 
@@ -122,6 +122,12 @@ void testFxn()
 //        ERR_PRINT(lRetVal);
 //        LOOP_FOREVER();
 //    }
+
+//	if(lRetVal < 0)
+//	{
+//		UART_PRINT("TCP send command failed\n\r");
+//		LOOP_FOREVER();
+//	}
 
     lRetVal = TCP_Receive();
 

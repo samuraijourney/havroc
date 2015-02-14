@@ -8,6 +8,10 @@
 #ifndef EVENTMGR_H_
 #define EVENTMGR_H_
 
+#if defined(CCWARE) || defined(TIVAWARE)
+#include <ti/sysbios/knl/Task.h>
+#endif
+
 #include "stdint.h"
 
 #define EVENT_BUFF_SIZE 1000
@@ -23,9 +27,9 @@ typedef struct _event
 
 typedef void(*EVENT_CB)(event currEvent);
 
-void EventRegisterCB(uint32_t command, EVENT_CB Callback);
-static void EventFire(event currEvent);
-int EventMgr_EnQ(char* message);
-void EventMgr_Task (void);
+int EventRegisterCB(uint32_t command, EVENT_CB Callback);
+static int EventFire(event currEvent);
+int EventEnQ(char* message);
+void EventRun (UArg arg0, UArg arg1);
 
 #endif /* EVENTMGR_H_ */

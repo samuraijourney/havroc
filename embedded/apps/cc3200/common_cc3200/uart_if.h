@@ -1,7 +1,7 @@
 //*****************************************************************************
-// rom_pin_mux_config.c
+// uart_if.h
 //
-// configure the device pins for different signals
+// uart interface header file: Prototypes and Macros for UARTLogger
 //
 // Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
 // 
@@ -36,40 +36,59 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 7/29/2014 at 9:57:43 AM
-// by TI PinMux version 3.0.321 
+#ifndef __uart_if_H__
+#define __uart_if_H__
 
+//*****************************************************************************
+//
+// If building with a C++ compiler, make all of the definitions in this header
+// have a C binding.
 //
 //*****************************************************************************
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-#include "pin_mux_config.h"
-#include "hw_types.h"
-#include "hw_memmap.h"
-#include "hw_gpio.h"
-#include "pin.h"
-#include "gpio.h"
-#include "prcm.h"
-#include "rom.h"
-#include "rom_map.h"
+/****************************************************************************/
+/*								MACROS										*/
+/****************************************************************************/
+#define UART_BAUD_RATE  115200
+#define SYSCLK          80000000
+#define CONSOLE         UARTA0_BASE
+#define CONSOLE_PERIPH  PRCM_UARTA0
+//
+// Define the size of UART IF buffer for RX
+//
+#define UART_IF_BUFFER           64
+
+//
+// Define the UART IF buffer
+//
+extern unsigned char g_ucUARTBuffer[];
+
+
+/****************************************************************************/
+/*								FUNCTION PROTOTYPES							*/
+/****************************************************************************/
+extern void DispatcherUARTConfigure(void);
+extern void DispatcherUartSendPacket(unsigned char *inBuff, unsigned short usLength);
+extern int GetCmd(char *pcBuffer, unsigned int uiBufLen);
+extern void InitTerm(void);
+extern void ClearTerm(void);
+extern void Message(const char *format);
+extern void Error(char *format,...);
+extern int TrimSpace(char * pcInput);
+extern int Report(const char *format, ...);
 
 //*****************************************************************************
-void PinMuxConfig(void)
-{
-	//
-    // Enable Peripheral Clocks 
-    //
-	MAP_PRCMPeripheralClkEnable(PRCM_GPIOA1, PRCM_RUN_MODE_CLK);
-	MAP_PRCMPeripheralClkEnable(PRCM_GPIOA2, PRCM_RUN_MODE_CLK);
-
-	//
-    // Configure PIN_64 for GPIO Output
-    //
-	MAP_PinTypeGPIO(PIN_64, PIN_MODE_0, false);
-	MAP_GPIODirModeSet(GPIOA1_BASE, 0x2, GPIO_DIR_MODE_OUT);
-
-	//
-    // Configure PIN_15 for GPIO Input
-    //
-	MAP_PinTypeGPIO(PIN_15, PIN_MODE_0, false);
-	MAP_GPIODirModeSet(GPIOA2_BASE, 0x40, GPIO_DIR_MODE_IN);
+//
+// Mark the end of the C bindings section for C++ compilers.
+//
+//*****************************************************************************
+#ifdef __cplusplus
 }
+#endif
+
+#endif
+

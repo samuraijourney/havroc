@@ -3,7 +3,7 @@
 #  package.bld.  Any modifications to this file will be 
 #  overwritten whenever makefiles are re-generated.
 #
-#  target compatibility key = ti.targets.arm.elf.M4{1,0,5.2,0
+#  target compatibility key = ti.targets.arm.elf.M4{1,0,5.1,9
 #
 empty.xem4: package/cfg/empty.xem4.mak
 

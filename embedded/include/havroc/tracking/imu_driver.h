@@ -1,6 +1,9 @@
 #ifndef H_IMU_DRIVER
 #define H_IMU_DRIVER
 
+#include <stdint.h>
+#include <utils.h>
+
 //Device Addresses
 #define MPU_ADDRESS      0x68
 #define AK8963_ADDRESS   0x0C
@@ -45,6 +48,8 @@
 //Device modes
 #define GFS_250DPS       0
 #define AFS_2G           0
+#define delay(ms) 		 UtilsDelay((80000/5)*ms)
+
 
 
 #ifdef __cplusplus 
@@ -52,11 +57,11 @@ extern "C"
 { 
 #endif
 	
-	void initMPU();
-	void initCompass();
-	int readMPUData(float * accel_X, float * accel_Y, float * accel_Z, float * gyro_X, float * gyro_Y, float * gyro_Z);
-	int readCompassData(float * mag_X, float * mag_Y, float * mag_Z);
-	void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY, float * gyro_OffsetZ);
+	int initMPU(uint32_t imu_index);
+	int initCompass(uint32_t imu_index);
+	int readMPUData(float * accel_X, float * accel_Y, float * accel_Z, float * gyro_X, float * gyro_Y, float * gyro_Z, uint32_t imu_index);
+	int readCompassData(float * mag_X, float * mag_Y, float * mag_Z, uint32_t imu_index);
+	void getGyroOffsets(float * gyro_OffsetX, float * gyro_OffsetY, float * gyro_OffsetZ, int imu_index);
 
 #ifdef __cplusplus 
 } 

@@ -93,45 +93,42 @@ static Hwi_Struct hwiStruct;
 /*
  *  ======== CC3200_LP_errorDMAHwi ========
  */
-static Void CC3200_LP_errorDMAHwi(UArg arg)
-{
-    System_printf("DMA error code: %d\n", MAP_uDMAErrorStatusGet());
-    MAP_uDMAErrorStatusClear();
-    System_abort("DMA error!!");
+static Void CC3200_LP_errorDMAHwi(UArg arg) {
+	System_printf("DMA error code: %d\n", MAP_uDMAErrorStatusGet());
+	MAP_uDMAErrorStatusClear();
+	System_abort("DMA error!!");
 }
 
 /*
  *  ======== CC3200_LP_initDMA ========
  */
-void CC3200_LP_initDMA(void)
-{
-    Error_Block eb;
-    Hwi_Params  hwiParams;
+void CC3200_LP_initDMA(void) {
+	Error_Block eb;
+	Hwi_Params hwiParams;
 
-    if(!DMA_initialized) {
-        Error_init(&eb);
-        Hwi_Params_init(&hwiParams);
-        Hwi_construct(&(hwiStruct), INT_UDMAERR, CC3200_LP_errorDMAHwi,
-                      &hwiParams, &eb);
-        if (Error_check(&eb)) {
-            System_abort("Couldn't create DMA error hwi");
-        }
+	if (!DMA_initialized) {
+		Error_init(&eb);
+		Hwi_Params_init(&hwiParams);
+		Hwi_construct(&(hwiStruct), INT_UDMAERR, CC3200_LP_errorDMAHwi,
+				&hwiParams, &eb);
+		if (Error_check(&eb)) {
+			System_abort("Couldn't create DMA error hwi");
+		}
 
-        MAP_PRCMPeripheralClkEnable(PRCM_UDMA, PRCM_RUN_MODE_CLK);
-        MAP_PRCMPeripheralReset(PRCM_UDMA);
-        MAP_uDMAEnable();
-        MAP_uDMAControlBaseSet(CC3200_LP_DMAControlTable);
+		MAP_PRCMPeripheralClkEnable(PRCM_UDMA, PRCM_RUN_MODE_CLK);
+		MAP_PRCMPeripheralReset(PRCM_UDMA);
+		MAP_uDMAEnable();
+		MAP_uDMAControlBaseSet(CC3200_LP_DMAControlTable);
 
-        DMA_initialized = true;
-    }
+		DMA_initialized = true;
+	}
 }
 
 /*
  *  ======== CC3200_LP_initGeneral ========
  */
-void CC3200_LP_initGeneral(void)
-{
-    PinMuxConfig();
+void CC3200_LP_initGeneral(void) {
+	PinMuxConfig();
 }
 
 #if TI_DRIVERS_GPIO_INCLUDED
@@ -144,11 +141,11 @@ void gpioButtonFxn1(void);
 
 /* GPIO configuration structure */
 const GPIO_HWAttrs gpioHWAttrs[CC3200_LP_GPIOCOUNT] = {
-    {GPIOA1_BASE, GPIO_PIN_1, GPIO_OUTPUT}, /* CC3200_LP_LED_D7 */
-    {GPIOA1_BASE, GPIO_PIN_2, GPIO_OUTPUT}, /* CC3200_LP_LED_D6 */
-    {GPIOA1_BASE, GPIO_PIN_3, GPIO_OUTPUT}, /* CC3200_LP_LED_D5 */
-    {GPIOA2_BASE, GPIO_PIN_6, GPIO_INPUT},  /* CC3200_LP_SW2 */
-    {GPIOA1_BASE, GPIO_PIN_5, GPIO_INPUT},  /* CC3200_LP_SW3 */
+	{	GPIOA1_BASE, GPIO_PIN_1, GPIO_OUTPUT}, /* CC3200_LP_LED_D7 */
+	{	GPIOA1_BASE, GPIO_PIN_2, GPIO_OUTPUT}, /* CC3200_LP_LED_D6 */
+	{	GPIOA1_BASE, GPIO_PIN_3, GPIO_OUTPUT}, /* CC3200_LP_LED_D5 */
+	{	GPIOA2_BASE, GPIO_PIN_6, GPIO_INPUT}, /* CC3200_LP_SW2 */
+	{	GPIOA1_BASE, GPIO_PIN_5, GPIO_INPUT}, /* CC3200_LP_SW3 */
 };
 
 /* Memory for the GPIO module to construct a Hwis */
@@ -157,22 +154,22 @@ Hwi_Struct callbackHwi1;
 
 /* GPIO call-back structure to set call-backs for GPIO interrupts */
 const GPIO_Callbacks CC3200_LP_gpioPortA1Callbacks = {
-        GPIOA1_BASE, INT_GPIOA1, &callbackHwi1,
-        {NULL, NULL, NULL, NULL, NULL, gpioButtonFxn1, NULL, NULL}
+	GPIOA1_BASE, INT_GPIOA1, &callbackHwi1,
+	{	NULL, NULL, NULL, NULL, NULL, gpioButtonFxn1, NULL, NULL}
 };
 
 const GPIO_Callbacks CC3200_LP_gpioPortA2Callbacks = {
-        GPIOA2_BASE, INT_GPIOA2, &callbackHwi0,
-        {NULL, NULL, NULL, NULL, NULL, NULL, gpioButtonFxn0, NULL}
+	GPIOA2_BASE, INT_GPIOA2, &callbackHwi0,
+	{	NULL, NULL, NULL, NULL, NULL, NULL, gpioButtonFxn0, NULL}
 };
 
 const GPIO_Config GPIO_config[] = {
-    {&gpioHWAttrs[0]},
-    {&gpioHWAttrs[1]},
-    {&gpioHWAttrs[2]},
-    {&gpioHWAttrs[3]},
-    {&gpioHWAttrs[4]},
-    {NULL},
+	{	&gpioHWAttrs[0]},
+	{	&gpioHWAttrs[1]},
+	{	&gpioHWAttrs[2]},
+	{	&gpioHWAttrs[3]},
+	{	&gpioHWAttrs[4]},
+	{	NULL},
 };
 
 /*
@@ -180,8 +177,8 @@ const GPIO_Config GPIO_config[] = {
  */
 void CC3200_LP_initGPIO(void)
 {
-    /* Once GPIO_init is called, GPIO_config cannot be changed */
-    GPIO_init();
+	/* Once GPIO_init is called, GPIO_config cannot be changed */
+	GPIO_init();
 }
 #endif /* TI_DRIVERS_GPIO_INCLUDED */
 
@@ -193,12 +190,12 @@ I2CCC3200_Object i2cCC3200Objects[CC3200_LP_I2CCOUNT];
 
 /* I2C configuration structure */
 const I2CCC3200_HWAttrs i2cCC3200HWAttrs[CC3200_LP_I2CCOUNT] = {
-    {I2CA0_BASE, INT_I2CA0}
+	{	I2CA0_BASE, INT_I2CA0}
 };
 
 const I2C_Config I2C_config[] = {
-    {&I2CCC3200_fxnTable, &i2cCC3200Objects[0], &i2cCC3200HWAttrs[0]},
-    {NULL, NULL, NULL}
+	{	&I2CCC3200_fxnTable, &i2cCC3200Objects[0], &i2cCC3200HWAttrs[0]},
+	{	NULL, NULL, NULL}
 };
 
 /*
@@ -206,7 +203,7 @@ const I2C_Config I2C_config[] = {
  */
 void CC3200_LP_initI2C(void)
 {
-    I2C_init();
+	I2C_init();
 }
 #endif /* TI_DRIVERS_I2C_INCLUDED */
 
@@ -220,24 +217,24 @@ SDSPICC3200_Object sdspiCC3200objects[CC3200_LP_SDSPICOUNT];
 
 /* SDSPI configuration structure, describing which pins are to be used */
 const SDSPICC3200_HWAttrs sdspiCC3200HWattrs[CC3200_LP_SDSPICOUNT] = {
-    {
-        GSPI_BASE,      /* SPI Peripheral's base address */
-        PRCM_GSPI,      /* SPI PRCM peripheral number */
+	{
+		GSPI_BASE, /* SPI Peripheral's base address */
+		PRCM_GSPI, /* SPI PRCM peripheral number */
 
-        GPIOA0_BASE,    /* CS GPIO base */
-        GPIO_PIN_7,     /* CS GPIO pin number */
+		GPIOA0_BASE, /* CS GPIO base */
+		GPIO_PIN_7, /* CS GPIO pin number */
 
-        GPIOA2_BASE,    /* GPIO base addr when using MOSI as GPIO */
-        GPIO_PIN_0,     /* GPIO pin number when using MOSI as GPIO */
-        PIN_MODE_0,     /* GPIO pin mode to use MOSI as GPIO */
-        PIN_MODE_7,     /* Pin mode to use MOSI */
-        PIN_07          /* Package pin number */
-    }
+		GPIOA2_BASE, /* GPIO base addr when using MOSI as GPIO */
+		GPIO_PIN_0, /* GPIO pin number when using MOSI as GPIO */
+		PIN_MODE_0, /* GPIO pin mode to use MOSI as GPIO */
+		PIN_MODE_7, /* Pin mode to use MOSI */
+		PIN_07 /* Package pin number */
+	}
 };
 
 const SDSPI_Config SDSPI_config[] = {
-    {&SDSPICC3200_fxnTable, &sdspiCC3200objects[0], &sdspiCC3200HWattrs[0]},
-    {NULL, NULL, NULL}
+	{	&SDSPICC3200_fxnTable, &sdspiCC3200objects[0], &sdspiCC3200HWattrs[0]},
+	{	NULL, NULL, NULL}
 };
 
 /*
@@ -245,10 +242,10 @@ const SDSPI_Config SDSPI_config[] = {
  */
 void CC3200_LP_initSDSPI(void)
 {
-    /* Raise the CS pin to deselect the SD card */
-    MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, GPIO_PIN_7);
+	/* Raise the CS pin to deselect the SD card */
+	MAP_GPIOPinWrite(GPIOA0_BASE, GPIO_PIN_7, GPIO_PIN_7);
 
-    SDSPI_init();
+	SDSPI_init();
 }
 #endif /* TI_DRIVERS_SDSPI_INCLUDED */
 
@@ -270,24 +267,24 @@ uint32_t spiCC3200DMAscratchBuf[CC3200_LP_SPICOUNT];
 
 /* SPI configuration structure */
 const SPICC3200DMA_HWAttrs SPICC3200DMAHWAttrs[CC3200_LP_SPICOUNT] = {
-    {
-        GSPI_BASE,
-        INT_GSPI,
-        PRCM_GSPI,
-        SPI_HW_CTRL_CS,
-        SPI_CS_ACTIVELOW,
-        SPI_4PIN_MODE,
-        SPI_TURBO_OFF,
-        &spiCC3200DMAscratchBuf[0],
-        0,
-        UDMA_CH6_GSPI_RX,
-        UDMA_CH7_GSPI_TX,
-    }
+	{
+		GSPI_BASE,
+		INT_GSPI,
+		PRCM_GSPI,
+		SPI_HW_CTRL_CS,
+		SPI_CS_ACTIVELOW,
+		SPI_4PIN_MODE,
+		SPI_TURBO_OFF,
+		&spiCC3200DMAscratchBuf[0],
+		0,
+		UDMA_CH6_GSPI_RX,
+		UDMA_CH7_GSPI_TX,
+	}
 };
 
 const SPI_Config SPI_config[] = {
-    {&SPICC3200DMA_fxnTable, &SPICC3200DMAobjects[0], &SPICC3200DMAHWAttrs[0]},
-    {NULL, NULL, NULL},
+	{	&SPICC3200DMA_fxnTable, &SPICC3200DMAobjects[0], &SPICC3200DMAHWAttrs[0]},
+	{	NULL, NULL, NULL},
 };
 
 /*
@@ -295,8 +292,8 @@ const SPI_Config SPI_config[] = {
  */
 void CC3200_LP_initSPI(void)
 {
-    CC3200_LP_initDMA();
-    SPI_init();
+	CC3200_LP_initDMA();
+	SPI_init();
 }
 #endif /* TI_DRIVERS_SPI_INCLUDED */
 
@@ -308,22 +305,22 @@ UARTCC3200_Object uartCC3200Objects[CC3200_LP_UARTCOUNT];
 
 /* UART configuration structure */
 const UARTCC3200_HWAttrs uartCC3200HWAttrs[CC3200_LP_UARTCOUNT] = {
-    {UARTA0_BASE, INT_UARTA0}, /* CC3200_UARTA0 */
-    {UARTA1_BASE, INT_UARTA1}, /* CC3200_UARTA1 */
+	{	UARTA0_BASE, INT_UARTA0}, /* CC3200_UARTA0 */
+	{	UARTA1_BASE, INT_UARTA1}, /* CC3200_UARTA1 */
 };
 
 const UART_Config UART_config[] = {
-    {
-        &UARTCC3200_fxnTable,
-        &uartCC3200Objects[0],
-        &uartCC3200HWAttrs[0]
-    },
-    {
-        &UARTCC3200_fxnTable,
-        &uartCC3200Objects[1],
-        &uartCC3200HWAttrs[1]
-    },
-    {NULL, NULL, NULL}
+	{
+		&UARTCC3200_fxnTable,
+		&uartCC3200Objects[0],
+		&uartCC3200HWAttrs[0]
+	},
+	{
+		&UARTCC3200_fxnTable,
+		&uartCC3200Objects[1],
+		&uartCC3200HWAttrs[1]
+	},
+	{	NULL, NULL, NULL}
 };
 
 /*
@@ -331,7 +328,7 @@ const UART_Config UART_config[] = {
  */
 void CC3200_LP_initUART(void)
 {
-    UART_init();
+	UART_init();
 }
 #endif /* TI_DRIVERS_UART_INCLUDED */
 
@@ -344,17 +341,17 @@ WatchdogCC3200_Object watchdogCC3200Objects[CC3200_LP_WATCHDOGCOUNT];
 
 /* Watchdog configuration structure */
 const WatchdogCC3200_HWAttrs watchdogCC3200HWAttrs[CC3200_LP_WATCHDOGCOUNT] = {
-    /* CC3200_WDA0 with 1 sec period at default CPU clock freq */
-    {WDT_BASE, INT_WDT, 80000000},
+	/* CC3200_WDA0 with 1 sec period at default CPU clock freq */
+	{	WDT_BASE, INT_WDT, 80000000},
 };
 
 const Watchdog_Config Watchdog_config[] = {
-    {
-        &WatchdogCC3200_fxnTable,
-        &watchdogCC3200Objects[0],
-        &watchdogCC3200HWAttrs[0]
-    },
-    {NULL, NULL, NULL},
+	{
+		&WatchdogCC3200_fxnTable,
+		&watchdogCC3200Objects[0],
+		&watchdogCC3200HWAttrs[0]
+	},
+	{	NULL, NULL, NULL},
 };
 
 /*
@@ -362,9 +359,9 @@ const Watchdog_Config Watchdog_config[] = {
  */
 void CC3200_LP_initWatchdog(void)
 {
-    MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
-    MAP_PRCMPeripheralReset(PRCM_WDT);
+	MAP_PRCMPeripheralClkEnable(PRCM_WDT, PRCM_RUN_MODE_CLK);
+	MAP_PRCMPeripheralReset(PRCM_WDT);
 
-    Watchdog_init();
+	Watchdog_init();
 }
 #endif /* TI_DRIVERS_WATCHDOG_INCLUDED */

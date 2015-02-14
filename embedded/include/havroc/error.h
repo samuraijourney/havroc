@@ -2,15 +2,54 @@
 #define H_ERROR
 
 // Tracking service layer errors
-#define SERVICE_START_FAIL 		1
-#define SERVICE_END_FAIL		2
-#define SERVICE_KILLED			3
-#define SERVICE_READ_FAIL		4
+
+#define SERVICE_ERROR_BASE 0
+
+enum
+{
+	SERVICE_START_FAIL = 1,
+	SERVICE_END_FAIL,
+	SERVICE_READ_FAIL,
+	SERVICE_SEND_FAIL,
+	SERVICE_EXIT,
+	SERVICE_ERROR_MAX
+};
 
 // IMU Driver layer errors
-#define IMU_START_SUCCESS		10
-#define IMU_READ_SUCCESS		11
-#define IMU_MPU_ERROR			12
-#define IMU_COMPASS_ERROR		13
+
+#define IMU_ERROR_BASE 0
+
+enum
+{
+	IMU_MPU_START_FAIL = 10,
+	IMU_COMPASS_START_FAIL,
+	IMU_MPU_READ_FAIL,
+	IMU_COMPASS_READ_FAIL,
+	IMU_ERROR_MAX
+};
+
+// Event manager layer errors
+
+#define EVENT_ERROR_BASE 0
+
+enum
+{
+	EVENT_START_FAIL = 20,
+	EVENT_ERROR_MAX
+};
+
+// WiFi layer errors
+
+#define WiFi_ERROR_BASE 0
+
+enum
+{
+	WiFi_START_FAIL = 30,
+	WiFi_BUFFER_FULL,
+	WiFi_ERROR_MAX
+};
+
+
+void signal(int message);
 
 #endif

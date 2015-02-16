@@ -51,6 +51,28 @@ namespace havroc
 		}
 
 		template<class T>
+		void register_start_callback(void(T::*start_callback)(), T* obj)
+		{
+			m_start_event.connect(boost::bind(start_callback, obj));
+		}
+
+		void register_start_callback(void(*start_callback)())
+		{
+			m_start_event.connect(start_callback);
+		}
+
+		template<class T>
+		void register_end_callback(void(T::*start_callback)(), T* obj)
+		{
+			m_end_event.connect(boost::bind(start_callback, obj));
+		}
+
+		void register_end_callback(void(*end_callback)())
+		{
+			m_end_event.connect(end_callback);
+		}
+
+		template<class T>
 		void unregister_shoulder_callback(void(T::*shoulder_callback)(float s_yaw, float s_pitch, float s_roll, uint8_t side), T* obj)
 		{
 			m_shoulder_event.disconnect(boost::bind(shoulder_callback, obj, _1, _2, _3, _4));
@@ -83,6 +105,28 @@ namespace havroc
 			m_wrist_event.disconnect(wrist_callback);
 		}
 
+		template<class T>
+		void unregister_start_callback(void(T::*start_callback)(), T* obj)
+		{
+			m_start_event.disconnect(boost::bind(start_callback, obj));
+		}
+
+		void unregister_start_callback(void(*start_callback)())
+		{
+			m_start_event.disconnect(start_callback);
+		}
+
+		template<class T>
+		void unregister_end_callback(void(T::*start_callback)(), T* obj)
+		{
+			m_end_event.disconnect(boost::bind(start_callback, obj));
+		}
+
+		void unregister_end_callback(void(*end_callback)())
+		{
+			m_end_event.disconnect(end_callback);
+		}
+
 
 	private:
 		TrackingManager();
@@ -94,6 +138,9 @@ namespace havroc
 		boost::signals2::signal<void(float, float, float, uint8_t)> m_shoulder_event;
 		boost::signals2::signal<void(float, float, float, uint8_t)> m_elbow_event;
 		boost::signals2::signal<void(float, float, float, uint8_t)> m_wrist_event;
+
+		boost::signals2::signal<void()> m_start_event;
+		boost::signals2::signal<void()> m_end_event;
 	};
 
 } /* namespace havroc */

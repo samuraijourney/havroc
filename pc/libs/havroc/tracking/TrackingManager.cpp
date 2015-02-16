@@ -25,6 +25,8 @@ namespace havroc
 	{
 		if (pkg->length < 2 * ANGLES_PER_ARM * sizeof(float))
 		{
+			pkg->data[0] ? m_start_event() : m_end_event();
+
 			return; // Package data length isn't long enough for it to be a complete tracking packet
 		}
 

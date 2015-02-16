@@ -80,6 +80,7 @@ extern "C"
 
 	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_shoulder_callback(void(*shoulder_callback)(float, float, float, uint8_t))
 	{
+		shoulder_callback(10.0, 11.0, 12.0, RIGHT_ARM);
 		havroc::TrackingManager::get()->register_shoulder_callback(shoulder_callback);
 	}
 

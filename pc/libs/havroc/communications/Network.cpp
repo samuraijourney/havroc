@@ -64,6 +64,8 @@ namespace havroc
 			}
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
+
+		m_signals_pack->connect_event.disconnect(boost::bind(&Network::init_loop, this));
 	}
 
 }

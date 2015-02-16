@@ -6,7 +6,7 @@
 
 #include <havroc/communications/Network.h>
 
-#define UDP_PORT 7999
+#define UDP_PORT 8113
 
 using boost::asio::ip::udp;
 
@@ -15,13 +15,13 @@ namespace havroc
 	class UDPNetwork : public Network
 	{
 	public:
-		UDPNetwork(boost::asio::io_service& service, int port, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
+		UDPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~UDPNetwork();
 
-		virtual int start_service();
+		virtual int start_service() = 0;
 
 	protected:
-		udp::socket m_socket;
+		boost::shared_ptr<udp::socket> m_socket;
 
 	private:
 		int kill_socket();
@@ -47,6 +47,8 @@ namespace havroc
 	public:
 		UDPNetworkServer(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~UDPNetworkServer();
+
+		int start_service();
 
 		int broadcast(BYTE* msg, size_t size, bool free_mem = false) { return send(msg, size, free_mem); }
 

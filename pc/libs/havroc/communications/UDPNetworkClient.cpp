@@ -5,7 +5,7 @@ namespace havroc
 {
 
 	UDPNetworkClient::UDPNetworkClient(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
-		: UDPNetwork(service, UDP_PORT, signals_pack){}
+		: UDPNetwork(service, signals_pack){}
 
 	UDPNetworkClient::~UDPNetworkClient(){}
 
@@ -15,6 +15,8 @@ namespace havroc
 		{
 			return NETWORK_IS_ACTIVE;
 		}
+
+		m_socket = boost::shared_ptr<udp::socket>(new udp::socket(m_service, udp::endpoint(udp::v4(), UDP_PORT)));
 
 		on_connect();
 
@@ -29,7 +31,7 @@ namespace havroc
 		{
 			udp::endpoint sender_endpoint;
 
-			m_socket.async_receive_from(
+			m_socket->async_receive_from(
 				boost::asio::buffer(m_buffer, m_buffer.size()), sender_endpoint,
 				boost::bind(&UDPNetworkClient::handle_receive, this,
 				boost::asio::placeholders::error,

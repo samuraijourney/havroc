@@ -48,13 +48,14 @@ namespace havroc
 
 		virtual int kill_socket() = 0;
 
+		boost::asio::io_service& m_service;
+
 	private:
 		void init_loop();
 		void loop();
 
 		boost::shared_ptr<comm_signals_pack> m_signals_pack;
 
-		boost::asio::io_service& m_service;
 		boost::thread m_poll_thread;
 
 		bool m_active;

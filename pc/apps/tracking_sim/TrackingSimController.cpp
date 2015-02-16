@@ -143,6 +143,7 @@ bool TrackingSimController::load_data()
 
 	if (!m_file)
 	{
+		printf("Unable to load data\n");
 		return false;
 	}
 

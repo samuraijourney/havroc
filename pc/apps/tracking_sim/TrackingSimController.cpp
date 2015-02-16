@@ -192,6 +192,6 @@ void TrackingSimController::populate_tracking_packet(tracking_packet& pkg, char*
 {
 	for (int i = 0; i < 2 * ANGLES_PER_ARM; i++)
 	{
-		pkg.angles[i] = atof(data[i+1]);
+		pkg.angles[i] = (float)atof(data[i+1]);
 	}
 }

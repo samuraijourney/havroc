@@ -35,7 +35,7 @@ namespace havroc {
 		void handle_send(BYTE*, size_t, bool, const boost::system::error_code&, std::size_t);
 		int  kill_socket();
 
-		boost::array<char,2048> m_buffer;
+		boost::array<char, 49152> m_buffer; // 48 kb
 	};
 
 	class TCPNetworkClient : public TCPNetwork

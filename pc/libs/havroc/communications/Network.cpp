@@ -14,7 +14,7 @@ namespace havroc
 
 		m_signals_pack = signals_pack;
 
-		m_signals_pack->connect_event.connect(boost::bind(&Network::init_loop, this));
+		register_connect_callback<Network>(&Network::init_loop, this);
 	}
 
 	Network::~Network(){}
@@ -64,8 +64,6 @@ namespace havroc
 			}
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
-
-		m_signals_pack->connect_event.disconnect(boost::bind(&Network::init_loop, this));
 	}
 
 }

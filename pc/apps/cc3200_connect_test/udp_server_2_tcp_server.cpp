@@ -124,18 +124,18 @@ int main(int argc, char* argv[])
 		boost::asio::io_service io_service;
 		havroc::UDPNetworkServer udp(io_service);
 
-		udp.get_sent_event().connect(&udp_sent_handler);
-		udp.get_connect_event().connect(&udp_connect_handler);
-		udp.get_disconnect_event().connect(&udp_disconnect_handler);
+		udp.register_sent_callback(&udp_sent_handler);
+		udp.register_connect_callback(&udp_connect_handler);
+		udp.register_disconnect_callback(&udp_disconnect_handler);
 
 		udp.start_service();
 
 		havroc::TCPNetworkServer tcp(io_service);
 
-		tcp.get_sent_event().connect(&tcp_sent_handler);
-		tcp.get_receive_event().connect(&tcp_receive_handler);
-		tcp.get_connect_event().connect(&tcp_connect_handler);
-		tcp.get_disconnect_event().connect(&tcp_disconnect_handler);
+		tcp.register_sent_callback(&tcp_sent_handler);
+		tcp.register_receive_callback(&tcp_receive_handler);
+		tcp.register_connect_callback(&tcp_connect_handler);
+		tcp.register_disconnect_callback(&tcp_disconnect_handler);
 
 		boost::thread(boost::bind(&havroc::TCPNetworkServer::start_service, &tcp));
 

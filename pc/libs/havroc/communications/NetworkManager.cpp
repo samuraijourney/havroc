@@ -29,10 +29,10 @@ namespace havroc
 		m_udp_server = boost::shared_ptr<UDPNetworkServer>(new UDPNetworkServer(_io_service_udp_server));
 		m_udp_client = boost::shared_ptr<UDPNetworkClient>(new UDPNetworkClient(_io_service_udp_client));
 
-		m_tcp_server->get_disconnect_event().connect(boost::bind(&NetworkManager::network_disconnect_tcp_server, this));
-		m_tcp_client->get_disconnect_event().connect(boost::bind(&NetworkManager::network_disconnect_tcp_client, this));
-		m_udp_server->get_disconnect_event().connect(boost::bind(&NetworkManager::network_disconnect_udp_server, this));
-		m_udp_client->get_disconnect_event().connect(boost::bind(&NetworkManager::network_disconnect_udp_client, this));
+		m_tcp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_server, this);
+		m_tcp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_client, this);
+		m_udp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_server, this);
+		m_udp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_client, this);
 	}
 
 	int NetworkManager::start_tcp_server()

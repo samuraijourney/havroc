@@ -35,9 +35,9 @@ int main(int argc, char* argv[])
     boost::asio::io_service io_service;
     havroc::UDPNetworkClient udp(io_service);
 
-	udp.get_receive_event().connect(&receive_handler);
-	udp.get_connect_event().connect(&connect_handler);
-	udp.get_disconnect_event().connect(&disconnect_handler);
+	udp.register_receive_callback(&receive_handler);
+	udp.register_connect_callback(&connect_handler);
+	udp.register_disconnect_callback(&disconnect_handler);
 
     udp.start_service();
 

@@ -28,10 +28,93 @@ namespace havroc
 		Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~Network();
 
-		boost::signals2::signal<void(BYTE*, size_t)>& get_sent_event()	     { return m_signals_pack->sent_event; }
-		boost::signals2::signal<void(BYTE*, size_t)>& get_receive_event()	 { return m_signals_pack->receive_event; }
-		boost::signals2::signal<void()>&  			  get_connect_event()	 { return m_signals_pack->connect_event; }
-		boost::signals2::signal<void()>& 			  get_disconnect_event() { return m_signals_pack->disconnect_event; }
+		template<class T>
+		void register_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj)
+		{
+			m_signals_pack->sent_event.connect(boost::bind(sent_callback, obj, _1, _2));
+		}
+
+		void register_sent_callback(void(*sent_callback)(BYTE* msg, size_t size))
+		{
+			m_signals_pack->sent_event.connect(sent_callback);
+		}
+
+		template<class T>
+		void register_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj)
+		{
+			m_signals_pack->receive_event.connect(boost::bind(receive_callback, obj, _1, _2));
+		}
+
+		void register_receive_callback(void(*receive_callback)(BYTE* msg, size_t size))
+		{
+			m_signals_pack->receive_event.connect(receive_callback);
+		}
+
+		template<class T>
+		void register_connect_callback(void(T::*connect_callback)(), T* obj)
+		{
+			m_signals_pack->connect_event.connect(boost::bind(connect_callback, obj));
+		}
+
+		void register_connect_callback(void(*connect_callback)())
+		{
+			m_signals_pack->connect_event.connect(connect_callback);
+		}
+
+		template<class T>
+		void register_disconnect_callback(void(T::*disconnect_callback)(), T* obj)
+		{
+			m_signals_pack->disconnect_event.connect(boost::bind(disconnect_callback, obj));
+		}
+
+		void register_disconnect_callback(void(*disconnect_callback)())
+		{
+			m_signals_pack->disconnect_event.connect(disconnect_callback);
+		}
+
+		template<class T>
+		void unregister_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj)
+		{
+			m_signals_pack->sent_event.disconnect(boost::bind(sent_callback, obj, _1, _2));
+		}
+
+		void unregister_sent_callback(void(*sent_callback)(BYTE* msg, size_t size))
+		{
+			m_signals_pack->sent_event.disconnect(sent_callback);
+		}
+
+		template<class T>
+		void unregister_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj)
+		{
+			m_signals_pack->receive_event.disconnect(boost::bind(receive_callback, obj, _1, _2));
+		}
+
+		void unregister_receive_callback(void(*receive_callback)(BYTE* msg, size_t size))
+		{
+			m_signals_pack->receive_event.disconnect(receive_callback);
+		}
+
+		template<class T>
+		void unregister_connect_callback(void(T::*connect_callback)(), T* obj)
+		{
+			m_signals_pack->connect_event.disconnect(boost::bind(connect_callback, obj));
+		}
+
+		void unregister_connect_callback(void(*connect_callback)())
+		{
+			m_signals_pack->connect_event.disconnect(connect_callback);
+		}
+
+		template<class T>
+		void unregister_disconnect_callback(void(T::*disconnect_callback)(), T* obj)
+		{
+			m_signals_pack->disconnect_event.disconnect(boost::bind(disconnect_callback, obj));
+		}
+
+		void unregister_disconnect_callback(void(*disconnect_callback)())
+		{
+			m_signals_pack->disconnect_event.disconnect(disconnect_callback);
+		}
 
 		boost::shared_ptr<comm_signals_pack> get_comm_signals_pack() { return m_signals_pack; }
 

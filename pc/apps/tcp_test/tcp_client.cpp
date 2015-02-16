@@ -84,10 +84,10 @@ int main(int argc, char* argv[])
 		boost::asio::io_service io_service;
 		havroc::TCPNetworkClient tcp(io_service, ip);
 
-		tcp.get_sent_event().connect(&sent_handler);
-		tcp.get_receive_event().connect(&receive_handler);
-		tcp.get_connect_event().connect(&connect_handler);
-		tcp.get_disconnect_event().connect(&disconnect_handler);
+		tcp.register_sent_callback(&sent_handler);
+		tcp.register_receive_callback(&receive_handler);
+		tcp.register_connect_callback(&connect_handler);
+		tcp.register_disconnect_callback(&disconnect_handler);
 
 		tcp.start_service();
 

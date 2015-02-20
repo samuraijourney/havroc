@@ -12,9 +12,20 @@
 extern "C"
 {
 
+	void CALLBACK_CONV hvr_register_mirror_callback(mirror_callback callback)
+	{
+		callback(1.123f, 2.345f, 3.456f, (BYTE)RIGHT_ARM);
+		callback(4.567f, 5.678f, 6.789f, (BYTE)RIGHT_ARM);
+		callback(7.890f, 8.909f, 9.098f, (BYTE)RIGHT_ARM);
+		callback(0.987f, 9.876f, 8.765f, (BYTE)LEFT_ARM);
+		callback(7.654f, 6.543f, 5.432f, (BYTE)LEFT_ARM);
+
+		havroc::TrackingManager::get()->register_shoulder_callback(callback);
+	}
+
 	/* Network API functions */
 
-	extern HAVROC_LIBRARY_DLL_API int CALLBACK_CONV		hvr_start_connection(char* ip)
+	int CALLBACK_CONV hvr_start_connection(char* ip)
 	{
 		if (!ip)
 		{
@@ -24,41 +35,41 @@ extern "C"
 		return havroc::NetworkManager::get()->start_tcp_client(ip);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API int CALLBACK_CONV		hvr_end_connection()
+	int CALLBACK_CONV hvr_end_connection()
 	{
 		return havroc::NetworkManager::get()->stop_tcp_client();
 	}
 
-	extern HAVROC_LIBRARY_DLL_API bool CALLBACK_CONV	hvr_is_active()
+	bool CALLBACK_CONV hvr_is_network_active()
 	{
 		return havroc::NetworkManager::get()->is_tcp_client_active();
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_connect_callback(void(*connect_callback)())
+	void CALLBACK_CONV hvr_register_connect_callback(connect_callback callback)
 	{
-		havroc::NetworkManager::get()->register_connect_callback(connect_callback, TCP_CLIENT);
+		havroc::NetworkManager::get()->register_connect_callback(callback, TCP_CLIENT);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_disconnect_callback(void(*disconnect_callback)())
+	void CALLBACK_CONV hvr_register_disconnect_callback(disconnect_callback callback)
 	{
-		havroc::NetworkManager::get()->register_disconnect_callback(disconnect_callback, TCP_CLIENT);
+		havroc::NetworkManager::get()->register_disconnect_callback(callback, TCP_CLIENT);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_unregister_connect_callback(void(*connect_callback)())
+	void CALLBACK_CONV hvr_unregister_connect_callback(connect_callback callback)
 	{
-		havroc::NetworkManager::get()->unregister_connect_callback(connect_callback, TCP_CLIENT);
+		havroc::NetworkManager::get()->unregister_connect_callback(callback, TCP_CLIENT);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_unregister_disconnect_callback(void(*disconnect_callback)())
+	void CALLBACK_CONV hvr_unregister_disconnect_callback(disconnect_callback callback)
 	{
-		havroc::NetworkManager::get()->unregister_disconnect_callback(disconnect_callback, TCP_CLIENT);
+		havroc::NetworkManager::get()->unregister_disconnect_callback(callback, TCP_CLIENT);
 	}
 
 
 
 	/* Tracking API functions */
 
-	extern HAVROC_LIBRARY_DLL_API int CALLBACK_CONV		hvr_start_tracking_service()
+	int CALLBACK_CONV hvr_start_tracking_service()
 	{
 		BYTE* msg;
 		size_t size;
@@ -68,7 +79,7 @@ extern "C"
 		return havroc::NetworkManager::get()->send(msg, size, TCP_CLIENT, true);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API int CALLBACK_CONV		hvr_end_tracking_service()
+	int CALLBACK_CONV hvr_end_tracking_service()
 	{
 		BYTE* msg;
 		size_t size;
@@ -78,42 +89,46 @@ extern "C"
 		return havroc::NetworkManager::get()->send(msg, size, TCP_CLIENT, true);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_shoulder_callback(void(*shoulder_callback)(float, float, float, uint8_t))
+	bool CALLBACK_CONV hvr_is_tracking_active()
 	{
-		shoulder_callback(10.0, 11.0, 12.0, RIGHT_ARM);
-		havroc::TrackingManager::get()->register_shoulder_callback(shoulder_callback);
+		return havroc::TrackingManager::get()->is_active();
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_elbow_callback(void(*elbow_callback)(float, float, float, uint8_t))
+	void CALLBACK_CONV hvr_register_shoulder_callback(shoulder_callback callback)
 	{
-		havroc::TrackingManager::get()->register_elbow_callback(elbow_callback);
+		havroc::TrackingManager::get()->register_shoulder_callback(callback);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_wrist_callback(void(*wrist_callback)(float, float, float, uint8_t))
+	void CALLBACK_CONV hvr_register_elbow_callback(elbow_callback callback)
 	{
-		havroc::TrackingManager::get()->register_wrist_callback(wrist_callback);
+		havroc::TrackingManager::get()->register_elbow_callback(callback);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_unregister_shoulder_callback(void(*shoulder_callback)(float, float, float, uint8_t))
+	void CALLBACK_CONV hvr_register_wrist_callback(wrist_callback callback)
 	{
-		havroc::TrackingManager::get()->unregister_shoulder_callback(shoulder_callback);
+		havroc::TrackingManager::get()->register_wrist_callback(callback);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_unregister_elbow_callback(void(*elbow_callback)(float, float, float, uint8_t))
+	void CALLBACK_CONV hvr_unregister_shoulder_callback(shoulder_callback callback)
 	{
-		havroc::TrackingManager::get()->unregister_elbow_callback(elbow_callback);
+		havroc::TrackingManager::get()->unregister_shoulder_callback(callback);
 	}
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_unregister_wrist_callback(void(*wrist_callback)(float, float, float, uint8_t))
+	void CALLBACK_CONV hvr_unregister_elbow_callback(elbow_callback callback)
 	{
-		havroc::TrackingManager::get()->unregister_wrist_callback(wrist_callback);
+		havroc::TrackingManager::get()->unregister_elbow_callback(callback);
+	}
+
+	void CALLBACK_CONV hvr_unregister_wrist_callback(wrist_callback callback)
+	{
+		havroc::TrackingManager::get()->unregister_wrist_callback(callback);
 	}
 
 
 
 	/* Motor API functions */
 
-	extern HAVROC_LIBRARY_DLL_API int CALLBACK_CONV		hvr_send_motor_command(BYTE* index, BYTE* intensity, int length)
+	int CALLBACK_CONV hvr_send_motor_command(BYTE* index, BYTE* intensity, int length)
 	{
 		BYTE* msg;
 		size_t size;

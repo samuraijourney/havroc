@@ -17,6 +17,8 @@ namespace havroc
 
 		static TrackingManager* get();
 
+		bool is_active() { return m_active; }
+
 		template<class T>
 		void register_shoulder_callback(void(T::*shoulder_callback)(float s_yaw, float s_pitch, float s_roll, uint8_t side), T* obj)
 		{
@@ -141,6 +143,8 @@ namespace havroc
 
 		boost::signals2::signal<void()> m_start_event;
 		boost::signals2::signal<void()> m_end_event;
+
+		bool m_active;
 	};
 
 } /* namespace havroc */

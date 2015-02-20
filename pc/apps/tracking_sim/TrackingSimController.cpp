@@ -12,7 +12,8 @@ TrackingSimController::TrackingSimController(std::string file_path)
 : m_file_path(file_path),
   m_loaded(false),
   m_stop(false),
-  m_playing(false){}
+  m_playing(false),
+  m_pause(false){}
 
 TrackingSimController::~TrackingSimController(){}
 
@@ -25,6 +26,16 @@ void TrackingSimController::change(bool repeat, int action_id)
 	m_stop = false;
 
 	play(repeat, action_id);
+}
+
+void TrackingSimController::pause()
+{
+	m_pause = true;
+}
+
+void TrackingSimController::resume()
+{
+	m_pause = false;
 }
 
 void TrackingSimController::stop()
@@ -112,6 +123,11 @@ bool TrackingSimController::play_action(int action_id, bool repeat)
 		{
 			BYTE* msg;
 			size_t size;
+
+			while (m_pause)
+			{
+				boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+			}
 
 			havroc::CommandBuilder::build_tracking_data_sim_command(msg, size, selected_action.data[i].angles);
 			if (int failures = havroc::NetworkManager::get()->send(msg, size, true))

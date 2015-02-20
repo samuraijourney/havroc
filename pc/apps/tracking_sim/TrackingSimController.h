@@ -34,6 +34,8 @@ public:
 	virtual ~TrackingSimController();
 
 	void play(bool repeat, int action_id = -1);
+	void pause();
+	void resume();
 	void stop();
 	void change(bool repeat, int action_id);
 
@@ -54,6 +56,7 @@ private:
 
 	bool m_loaded;
 	bool m_playing;
+	bool m_pause;
 	bool m_stop;
 };
 

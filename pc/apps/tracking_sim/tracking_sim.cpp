@@ -17,9 +17,18 @@ int prompt_for_action()
 	do
 	{
 		printf("Select action:\t1) Static Anterior Parallel\n\t\t2) Static Anterior Parallel 90\n\t\t3) Static Neutral Boxing\n\t\t");
-		printf("4) Static Neutral Side\n\t\t5) Static Lateral Parallel\n\t\t6) Dynamic Boxing\n\t\t7) Cycle All\nChoice: ");
+		printf("4) Static Neutral Side\n\t\t5) Static Lateral Parallel\n\t\t6) Dynamic Boxing\n\t\t7) Cycle All\n\t\t8) Pause\nChoice: ");
 
 		std::cin >> choice;
+
+		if (choice == 8)
+		{
+			sim_controller->pause();
+			std::cout << "Playback paused, press enter to resume";
+			std::cin.ignore(INT_MAX, '\n');
+			std::cin.get();
+			sim_controller->resume();
+		}
 	} while (choice > ACTIONS_COUNT+1 || choice < 1);
 
 	std::cout << "Playing tracking data: " << choice << std::endl;

@@ -56,8 +56,8 @@ namespace havroc
 				{
 					if (m_buffer[i] == (char)START_SYNC)
 					{
-						data_size = ((((uint16_t)m_buffer[i + 2]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i + 3]) & 0x00FF);
-						size = data_size + 4;
+						data_size = ((((uint16_t)m_buffer[i + 3]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i + 4]) & 0x00FF);
+						size = data_size + OVERHEAD_BYTES_CNT;
 						start = (BYTE*)&m_buffer.c_array()[i];
 
 						on_receive(start, size);

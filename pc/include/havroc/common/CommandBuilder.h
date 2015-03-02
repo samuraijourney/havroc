@@ -9,19 +9,30 @@
 
 #include <havroc/tracking/TrackingDefinitions.h>
 
-#define START_SYNC 0xFF
-#define DIV_SYNC   0xF0
+#define START_SYNC 255 // 0xFF
+#define DIV_SYNC   240 // 0xF0
 
-#define TRACKING_CMD 1
-#define SYSTEM_CMD	 2
-#define MOTOR_CMD	 3
-#define ERROR_CMD	 4
+#define TRACKING_MOD 1
+#define SYSTEM_MOD	 2
+#define MOTOR_MOD	 3
+
+#define TRACKING_STATE_CMD 10
+#define TRACKING_DATA_CMD  11
+
+#define MOTOR_DATA_CMD	   20
+
+#define SYSTEM_KILL_CMD	   30
+
+#define ERROR_CMD		   0
+
+#define OVERHEAD_BYTES_CNT 5
 
 namespace havroc
 {
 	typedef struct _command_pkg
 	{
 		uint8_t  command;
+		uint8_t  module;
 		uint16_t length;
 		BYTE*	 data;
 	} command_pkg;
@@ -44,8 +55,8 @@ namespace havroc
 		// Populate packet byte pointer and size from motor command parameters
 		static void build_motor_command(BYTE*& packet, size_t& size, BYTE* index, BYTE* intensity, int length);
 
-		// Populate packet byte pointer and size from error command parameter
-		static void build_error_command(BYTE*& packet, size_t& size, uint8_t error);
+		// Populate packet byte pointer and size from error command and module parameters
+		static void build_error_command(BYTE*& packet, size_t& size, uint8_t module, uint8_t error);
 
 		// Populate command_pkg struct with data from a byte representation of a command packet and its size
 		static void parse_command(command_pkg*& pkg, BYTE*& packet, size_t size);

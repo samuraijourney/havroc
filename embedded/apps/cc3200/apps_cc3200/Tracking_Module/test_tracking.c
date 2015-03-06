@@ -5,6 +5,8 @@
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
+#include <ti/sysbios/knl/Event.h>
+
 
 /* BIOS Header files */
 #include <ti/sysbios/BIOS.h>
@@ -23,6 +25,9 @@
 #define MPU_ADDRESS      0x68
 #define WHO_AM_I_MPU9250 0x75
 
+Event_Handle   EventMgr_Event;
+Event_Handle   Timer_Event;
+
 Void testFxn(UArg arg0, UArg arg1)
 {
 	float yaw, pitch, roll;
@@ -35,7 +40,7 @@ Void testFxn(UArg arg0, UArg arg1)
 		result = returnEstimate(0, &yaw, &pitch, &roll);
 	//	if(count%100==0)
 	//	{
-			System_printf("Yaw: %i, Pitch: %i, Roll: %i\n", yaw, pitch, roll);
+			System_printf("Yaw: %f, Pitch: %f, Roll: %f\n", yaw, pitch, roll);
 			System_flush();
 	//	}
 		//count++;
@@ -54,6 +59,11 @@ int main(void)
 		System_printf("Task create failed.\n");
 		System_flush();
 	}
+
+	//ServiceStart();
+
+	EventMgr_Event = Event_create(NULL, NULL);
+	Timer_Event = Event_create(NULL, NULL);
 
     /* Call board init functions */
     Board_initGeneral();

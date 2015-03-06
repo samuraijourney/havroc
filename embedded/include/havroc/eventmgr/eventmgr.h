@@ -20,16 +20,17 @@
 
 typedef struct _event
 {
-    uint8_t 	command;
+    int8_t 	    command;
     uint16_t 	data_len;
     uint8_t*    data_buff;
 } event;
 
 typedef void(*EVENT_CB)(event currEvent);
 
-int EventRegisterCB(uint32_t command, EVENT_CB Callback);
+int EventRegisterCB(int32_t command, EVENT_CB Callback);
 static int EventFire(event currEvent);
 int EventEnQ(char* message);
+int EventStart();
 void EventRun (UArg arg0, UArg arg1);
 
 #endif /* EVENTMGR_H_ */

@@ -63,15 +63,16 @@ typedef struct _sendMessage
 //****************************************************************************
 //                       FUNCTION PROTOTYPES
 //****************************************************************************
-static void WiFiRun(UArg arg0, UArg arg1);
-int WiFiSendEnq(sendMessage message);
+int WiFiSendEnQ(sendMessage message);
+int WiFiStartup();
+int WlanStartTask();
+void WiFiRun(UArg arg0, UArg arg1);
+bool isWiFiActive();
 static void WiFiSend();
 static int Setup_Socket(unsigned short usPort);
 static int WlanInit();
 static int  WlanOff();
 static long WlanConnect();
-static int  WlanStartup();
-static void BoardInit();
 static void InitializeAppVariables();
 static long ConfigureSimpleLinkToDefaultState();
 

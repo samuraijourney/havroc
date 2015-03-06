@@ -5,28 +5,37 @@
  *      Author: Akram
  */
 
+/* Standard C Includes */
+#include <stdlib.h>
 
+/* SYS/BIOS Includes */
 #include <ti/sysbios/knl/Event.h>
 #include <ti/sysbios/BIOS.h>
-#include "havroc/command.h"
-#include "havroc/eventmgr/eventmgr.h"
-#include <stdlib.h>
+#include <xdc/runtime/System.h>
+#include <xdc/runtime/Timestamp.h>
+#include <xdc/runtime/Types.h>
+
+/* Driverlib Includes */
 #include "uart_if.h"
 #include "common.h"
+
+/* HaVRoc library includes */
+#include "havroc/command.h"
+#include "havroc/eventmgr/eventmgr.h"
 #include <havroc/error.h>
 
-#define EventReceived 0
+#define EventReceived 1
 
 static EVENT_CB 	  EventList[CMD_MAX][MAX_CALLBACKS];
 static int			  callbackCounter[CMD_MAX];
-Event_Handle 		  EventMgr_Event;
+extern Event_Handle   EventMgr_Event;
 
 event				  eventBuff[EVENT_BUFF_SIZE];
 int				      eventFront;
 int		 		      eventBack;
 int 				  eventCount;
 
-int EventRegisterCB(uint32_t command, EVENT_CB Callback)
+int EventRegisterCB(int32_t command, EVENT_CB Callback)
 {
 	int i;
 
@@ -54,6 +63,8 @@ int EventRegisterCB(uint32_t command, EVENT_CB Callback)
 static int EventFire(event currEvent)
 {
 	int i;
+
+	Report("In Event Handler: Received %i command \n\r", currEvent.command);
 
 	if((currEvent.command >= CMD_BASE) && (currEvent.command < CMD_MAX) && (callbackCounter[currEvent.command] > 0))
 	{
@@ -107,9 +118,13 @@ int EventEnQ(char* message)
 int EventStart()
 {
 	Task_Handle task0;
+	Task_Params params;
 
-	EventMgr_Event = Event_create(NULL, NULL);
-	task0 = Task_create((Task_FuncPtr) EventRun, NULL, NULL);
+	Task_Params_init(&params);
+	params.instance->name = "EventRun_Task";
+	params.priority = 10;
+
+	task0 = Task_create((Task_FuncPtr) EventRun, &params, NULL);
 	if (task0 == NULL || EventMgr_Event == NULL)
 	{
 		signal(EVENT_START_FAIL);
@@ -122,14 +137,33 @@ int EventStart()
 void EventRun (UArg arg0, UArg arg1)
 {
 	UInt events;
+	float prev = 0;
+	float now = 0;
+	Types_FreqHz freq;
+
+	Timestamp_getFreq(&freq);
+
+	InitTerm();
 
 	while(1)
 	{
+		prev = Timestamp_get32()/(1.0*freq.lo);
+
+		System_printf("In Event Handler, Waiting for Event \n");
+		System_flush();
+
 		events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
+
+		System_printf("In Event Handler, Event received \n");
+		System_flush();
 
 		if(events & EventReceived)
 		{
 			EventFire(eventBuff[eventBack]);
 		}
+		now = Timestamp_get32()/(1.0*freq.lo);
+
+		System_printf("This is Task 2 - Elapsed Time is %.04f\n", now-prev);
+		System_flush();
 	}
 }

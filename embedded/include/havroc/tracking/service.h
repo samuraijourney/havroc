@@ -10,13 +10,18 @@
 #include <havroc/error.h>
 #include <havroc/id.h>
 
-volatile bool active = false;
-
 int ServiceStart();
+
+int ServiceStart_Raw();
 
 void ServiceEnd();
 
-void ServiceRun(UArg arg0, UArg arg1);	// Loop method for publishing service
+void ServiceRun(void);	// Loop method for publishing service
+
+void ServiceRun_Raw(void);	// Loop method for publishing service
+
+static void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
+		float gyroY, float gyroZ, float magX, float magY, float magZ); // Packages and pushes data to be communicated
 
 static void ServicePublish(float s_yaw, float s_pitch, float s_roll, float e_yaw,
 		float e_pitch, float e_roll, float w_yaw, float w_pitch, float w_roll); // Packages and pushes data to be communicated

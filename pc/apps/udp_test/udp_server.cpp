@@ -8,14 +8,7 @@
 
 #define NUM_MOTORS 17
 
-std::string make_daytime_string()
-{
-  using namespace std; // For time_t, time and ctime;
-  time_t now = time(0);
-  return ctime(&now);
-}
-
-void sent_handler(char* msg, size_t size)
+void sent_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -24,7 +17,7 @@ void sent_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "UDP Server sent message: " << str_msg << std::endl;
 	}
 }
@@ -46,14 +39,14 @@ int main(int argc, char* argv[])
     boost::asio::io_service io_service;
     havroc::UDPNetworkServer udp(io_service);
 
-	udp.get_sent_event().connect(&sent_handler);
-	udp.get_connect_event().connect(&connect_handler);
-	udp.get_disconnect_event().connect(&disconnect_handler);
+	udp.register_sent_callback(&sent_handler);
+	udp.register_connect_callback(&connect_handler);
+	udp.register_disconnect_callback(&disconnect_handler);
 
 	udp.start_service();
 
-	char indices[NUM_MOTORS];
-	char intensities[NUM_MOTORS];
+	BYTE indices[NUM_MOTORS];
+	BYTE intensities[NUM_MOTORS];
 
 	while (udp.is_active())
 	{
@@ -63,7 +56,7 @@ int main(int argc, char* argv[])
 			intensities[i] = rand() % 100 + 1;
 		}
 
-		char* msg;
+		BYTE* msg;
 		size_t size;
 
 		havroc::CommandBuilder::build_tracking_command(msg, size, true);

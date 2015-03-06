@@ -9,12 +9,14 @@ namespace havroc
 	{
 		if (signals_pack == 0)
 		{
-			signals_pack = boost::shared_ptr<comm_signals_pack>(new comm_signals_pack());
+			m_signals_pack = boost::shared_ptr<comm_signals_pack>(new comm_signals_pack());
+		}
+		else
+		{
+			m_signals_pack = signals_pack;
 		}
 
-		m_signals_pack = signals_pack;
-
-		m_signals_pack->connect_event.connect(boost::bind(&Network::init_loop, this));
+		register_connect_callback<Network>(&Network::init_loop, this);
 	}
 
 	Network::~Network(){}
@@ -62,7 +64,7 @@ namespace havroc
 			{
 				end_service(NETWORK_UNEXPECTED_EVENT_LOOP_FAILURE);
 			}
-			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		}
 	}
 

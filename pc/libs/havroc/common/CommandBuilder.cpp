@@ -3,101 +3,130 @@
 namespace havroc
 {
 
-	void CommandBuilder::build_tracking_command(char*& packet, size_t& size, bool on)
+	void CommandBuilder::build_tracking_command(BYTE*& packet, size_t& size, bool on)
 	{
-		size = 5;
-		packet = (char*)malloc(sizeof(char) * size);
+		size = OVERHEAD_BYTES_CNT + 1;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
 
-		packet[0] = (char)START_SYNC;		// Start
-		packet[1] = (char)TRACKING_CMD;		// Command
-		packet[2] = (char)0;				// Number of bytes high
-		packet[3] = (char)sizeof(bool);		// Number of bytes low
-		packet[4] = (char)on;				// Data
+		packet[0] = (BYTE)START_SYNC;		  // Start
+		packet[1] = (BYTE)TRACKING_MOD;		  // Module
+		packet[2] = (BYTE)TRACKING_STATE_CMD; // Command
+		packet[3] = (BYTE)0;				  // Number of bytes high
+		packet[4] = (BYTE)sizeof(bool);		  // Number of bytes low
+		packet[5] = (BYTE)on;				  // Data
 	}
 
-	void CommandBuilder::build_kill_system_command(char*& packet, size_t& size)
+	void CommandBuilder::build_tracking_data_sim_command(BYTE*& packet, size_t& size, float angles[2 * ANGLES_PER_ARM])
 	{
-		size = 4;
-		packet = (char*)malloc(sizeof(char) * size);
+		uint16_t data_size = 2 * ANGLES_PER_ARM * sizeof(float);
+		size = OVERHEAD_BYTES_CNT + data_size;
 
-		packet[0] = (char)START_SYNC;
-		packet[1] = (char)SYSTEM_CMD;
-		packet[2] = (char)0;
-		packet[3] = (char)0;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
+
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)TRACKING_MOD;
+		packet[2] = (BYTE)TRACKING_DATA_CMD;
+		packet[3] = (BYTE)((data_size >> 8) & 0x00FF);
+		packet[4] = (BYTE)(data_size & 0x00FF);
+
+		for (int i = 0; i < 2 * ANGLES_PER_ARM; i++)
+		{
+			BYTE* p = reinterpret_cast<BYTE*>(&angles[i]);
+
+			for (int j = 0; j < sizeof(float); j++)
+			{
+				packet[i * sizeof(float) + j + OVERHEAD_BYTES_CNT] = p[j];
+			}
+		}
 	}
 
-	void CommandBuilder::build_motor_command(char*& packet, size_t& size, char* index, char* intensity, int length)
+	void CommandBuilder::build_kill_system_command(BYTE*& packet, size_t& size)
 	{
-		uint16_t data_size = sizeof(char) * 2 * length + length;
-		size = data_size + 4;
+		size = OVERHEAD_BYTES_CNT;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
 
-		packet = (char*)malloc(sizeof(char) * size);
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)SYSTEM_MOD;
+		packet[2] = (BYTE)SYSTEM_KILL_CMD;
+		packet[3] = (BYTE)0;
+		packet[4] = (BYTE)0;
+	}
 
-		packet[0] = (char)START_SYNC;
-		packet[1] = (char)MOTOR_CMD;
-		packet[2] = (char)((data_size >> 8) & 0x00FF);
-		packet[3] = (char)(data_size & 0x00FF);
+	void CommandBuilder::build_motor_command(BYTE*& packet, size_t& size, BYTE* index, BYTE* intensity, int length)
+	{
+		uint16_t data_size = sizeof(BYTE) * 2 * length + length;
+		size = data_size + OVERHEAD_BYTES_CNT;
+
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
+
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)MOTOR_MOD;
+		packet[2] = (BYTE)MOTOR_DATA_CMD;
+		packet[3] = (BYTE)((data_size >> 8) & 0x00FF);
+		packet[4] = (BYTE)(data_size & 0x00FF);
 
 		for (int i = 0; i < length; i++)
 		{
-			packet[i * 3 + 4] = (char)index[i];
-			packet[i * 3 + 5] = (char)intensity[i];
-			packet[i * 3 + 6] = (char)DIV_SYNC;
+			packet[i * 3 + OVERHEAD_BYTES_CNT + 0] = (BYTE)index[i];
+			packet[i * 3 + OVERHEAD_BYTES_CNT + 1] = (BYTE)intensity[i];
+			packet[i * 3 + OVERHEAD_BYTES_CNT + 2] = (BYTE)DIV_SYNC;
 		}
 	}
 
-	void CommandBuilder::build_error_command(char*& packet, size_t& size, uint8_t error)
+	void CommandBuilder::build_error_command(BYTE*& packet, size_t& size, uint8_t module, uint8_t error)
 	{
-		size = 5;
-		packet = (char*)malloc(sizeof(char) * size);
+		size = OVERHEAD_BYTES_CNT + 1;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
 
-		packet[0] = (char)START_SYNC;	
-		packet[1] = (char)ERROR_CMD;
-		packet[2] = (char)0;
-		packet[3] = (char)sizeof(uint8_t);
-		packet[4] = (char)error;
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)module;
+		packet[2] = (BYTE)ERROR_CMD;
+		packet[3] = (BYTE)0;
+		packet[4] = (BYTE)sizeof(uint8_t);
+		packet[5] = (BYTE)error;
 	}
 
-	void CommandBuilder::parse_command(command_pkg*& pkg, char*& packet, size_t size)
+	void CommandBuilder::build_command(BYTE*& packet, size_t& size, command_pkg*& pkg)
 	{
-		pkg->command = packet[1];
-		pkg->length = ((((uint16_t)packet[2]) << 8) & 0xFF00) | (((uint16_t)packet[3]) & 0x00FF);
-		pkg->data = (char*)malloc(sizeof(char)*(size - 4));
+		size = pkg->length + OVERHEAD_BYTES_CNT;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
 
-		for (int i = 0; i < (int)(size - 4); i++)
-		{
-			pkg->data[i] = packet[i + 4];
-		}
-	}
-
-	void CommandBuilder::build_command(char*& packet, size_t& size, command_pkg*& pkg)
-	{
-		size = pkg->length + 4;
-		packet = (char*)malloc(sizeof(char) * size);
-
-		packet[0] = (char)START_SYNC;
-		packet[1] = (char)pkg->command;
-		packet[2] = (char)((pkg->length >> 8) & 0x00FF);
-		packet[3] = (char)(pkg->length & 0x00FF);
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)pkg->module;
+		packet[2] = (BYTE)pkg->command;
+		packet[3] = (BYTE)((pkg->length >> 8) & 0x00FF);
+		packet[4] = (BYTE)(pkg->length & 0x00FF);
 
 		for (int i = 0; i < pkg->length; i++)
 		{
-			packet[i + 4] = pkg->data[i];
+			packet[i + OVERHEAD_BYTES_CNT] = pkg->data[i];
 		}
 	}
 
-	bool CommandBuilder::is_command(char*& packet, size_t size)
+	void CommandBuilder::parse_command(command_pkg*& pkg, BYTE*& packet, size_t size)
 	{
-		bool valid_start_sync	= packet[0] == (char)START_SYNC;
-		bool valid_command_type = packet[1] == TRACKING_CMD ||
-								  packet[1] == SYSTEM_CMD	||
-								  packet[1] == MOTOR_CMD	||
-								  packet[1] == ERROR_CMD;
+		pkg->module = packet[1];
+		pkg->command = packet[2];
+		pkg->length = ((((uint16_t)packet[3]) << 8) & 0xFF00) | (((uint16_t)packet[4]) & 0x00FF);
+		pkg->data = (BYTE*)malloc(sizeof(BYTE)*(size - OVERHEAD_BYTES_CNT));
+
+		for (int i = 0; i < (int)(size - OVERHEAD_BYTES_CNT); i++)
+		{
+			pkg->data[i] = packet[i + OVERHEAD_BYTES_CNT];
+		}
+	}
+
+	bool CommandBuilder::is_command(BYTE*& packet, size_t size)
+	{
+		bool valid_start_sync   = packet[0] == (BYTE)START_SYNC;
+		bool valid_command_type = packet[1] == (BYTE)TRACKING_MOD ||
+								  packet[1] == (BYTE)SYSTEM_MOD	  ||
+								  packet[1] == (BYTE)MOTOR_MOD;
 
 		return valid_start_sync && valid_command_type;
 	}
 
-	void CommandBuilder::print_command(char*& packet, size_t size, int tabs)
+	void CommandBuilder::print_command(BYTE*& packet, size_t size, int tabs)
 	{
 		if (!is_command(packet, size))
 		{
@@ -115,8 +144,35 @@ namespace havroc
 
 		printf("Packet start ===========================================\n");
 
-		uint8_t command_type = packet[1];
-		uint16_t data_size = ((((uint16_t)packet[2]) << 8) & 0xFF00) | (((uint16_t)packet[3]) & 0x00FF);
+		uint8_t module_type = packet[1];
+		uint8_t command_type = packet[2];
+		uint16_t data_size = ((((uint16_t)packet[3]) << 8) & 0xFF00) | (((uint16_t)packet[4]) & 0x00FF);
+
+		for (int j = 0; j < inner_tabs; j++)
+		{
+			printf("\t");
+		}
+
+		printf("Module type: \t0x%02X ", (unsigned)(unsigned char)module_type);
+		switch (module_type)
+		{
+		case(TRACKING_MOD) :
+		{
+			printf("(Tracking)");
+			break;
+		}
+		case(SYSTEM_MOD) :
+		{
+			printf("(System)");
+			break;
+		}
+		case(MOTOR_MOD) :
+		{
+			printf("(Motor)");
+			break;
+		}
+		}
+		printf("\n");
 
 		for (int j = 0; j < inner_tabs; j++)
 		{
@@ -126,22 +182,27 @@ namespace havroc
 		printf("Command type: \t0x%02X ", (unsigned)(unsigned char)command_type);
 		switch (command_type)
 		{
-		case(TRACKING_CMD) :
+		case(TRACKING_STATE_CMD) :
 		{
-			printf("(Tracking)");
+			printf("(State)");
 			break;
 		}
-		case(SYSTEM_CMD) :
+		case(TRACKING_DATA_CMD) :
 		{
-			printf("(System)");
+			printf("(Data)");
 			break;
 		}
-		case(MOTOR_CMD) :
+		case(MOTOR_DATA_CMD) :
 		{
-			printf("(Motor)");
+			printf("(Data)");
 			break;
 		}
-		case(ERROR_CMD) :
+		case(SYSTEM_KILL_CMD) :
+		{
+			printf("(Kill)");
+			break;
+		}
+		case(ERROR) :
 		{
 			printf("(Error)");
 			break;
@@ -163,7 +224,7 @@ namespace havroc
 
 		printf("Data:\n");
 
-		print_raw_bytes(packet, size, 4, inner_tabs + 1);
+		print_raw_bytes(packet, size, OVERHEAD_BYTES_CNT, inner_tabs + 1);
 
 		for (int j = 0; j < tabs; j++)
 		{
@@ -173,7 +234,7 @@ namespace havroc
 		printf("Packet end =============================================\n\n");
 	}
 
-	void CommandBuilder::print_raw_bytes(char*& packet, size_t size, int offset, int tabs)
+	void CommandBuilder::print_raw_bytes(BYTE*& packet, size_t size, int offset, int tabs)
 	{
 		if (size - offset > 0)
 		{
@@ -188,7 +249,7 @@ namespace havroc
 		{
 			printf("0x%02X ", (unsigned)(unsigned char)packet[i]);
 
-			if (((i + offset + 1) % 8 == 0) && i > 0)
+			if (((i - offset + 1) % 8 == 0) && i > 0)
 			{
 				printf("\n");
 

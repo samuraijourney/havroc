@@ -9,7 +9,7 @@ namespace havroc
 
 	TCPNetwork::~TCPNetwork(){}
 
-	int TCPNetwork::send(char* msg, size_t size, bool free_mem)
+	int TCPNetwork::send(BYTE* msg, size_t size, bool free_mem)
 	{
 		if(is_active())
 		{
@@ -24,7 +24,7 @@ namespace havroc
 		return NETWORK_IS_INACTIVE;
 	}
 
-	void TCPNetwork::handle_send(char* msg /*message*/,
+	void TCPNetwork::handle_send(BYTE* msg /*message*/,
 								 size_t size /*message size*/,
 								 bool free_mem /*ownership*/,
 								 const boost::system::error_code& /*error*/,
@@ -52,7 +52,7 @@ namespace havroc
 		{
 			if (!error || error == boost::asio::error::message_size)
 			{
-				char* start = 0;
+				BYTE* start = 0;
 				size_t size = 0;
 				uint16_t data_size = 0;
 
@@ -62,9 +62,9 @@ namespace havroc
 				{
 					if (m_buffer[i] == (char)START_SYNC)
 					{
-						data_size = ((((uint16_t)m_buffer[i+2]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i+3]) & 0x00FF);
-						size = data_size + 4;
-						start = &m_buffer.c_array()[i];
+						data_size = ((((uint16_t)m_buffer[i+3]) << 8) & 0xFF00) | (((uint16_t)m_buffer[i+4]) & 0x00FF);
+						size = data_size + OVERHEAD_BYTES_CNT;
+						start = (BYTE*)&m_buffer.c_array()[i];
 
 						on_receive(start, size);
 
@@ -72,7 +72,7 @@ namespace havroc
 					}
 					else
 					{
-						on_receive(m_buffer.c_array(), bytes);
+						on_receive((BYTE*)m_buffer.c_array(), bytes);
 						break;
 					}
 				}

@@ -107,7 +107,7 @@ namespace havroc
 	private:
 		CommandManager();
 
-		void receive_handler(char* msg, size_t size);
+		void receive_handler(BYTE* msg, size_t size);
 		void event_loop();
 
 		boost::signals2::signal<void(command_pkg*)> m_tracking_event;

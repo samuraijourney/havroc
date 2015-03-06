@@ -35,7 +35,7 @@ namespace havroc
 
 		int handles = 1;
 
-		m_socket.get_io_service().reset();
+		m_service.reset();
 
 		while (!is_active())
 		{
@@ -46,7 +46,7 @@ namespace havroc
 					boost::asio::placeholders::error));
 			}
 
-			handles = m_socket.get_io_service().poll(error);
+			handles = m_service.poll(error);
 			if (error)
 			{
 				return NETWORK_CONNECTION_START_FAILED;

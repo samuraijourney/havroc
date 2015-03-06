@@ -23,6 +23,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_command_communicatio
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_random_hacks", "havroc_random_hacks\havroc_random_hacks.vcxproj", "{E5D5B08E-D1ED-4F01-98D0-46E609C90F44}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_library_dll", "havroc_library_dll\havroc_library_dll.vcxproj", "{C9BCE2DE-7DF4-4E56-87B1-AF2302018F0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "havroc_tracking_sim", "havroc_tracking_sim\havroc_tracking_sim.vcxproj", "{7882D083-C7D7-4D57-8551-452B28E3A7F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -69,6 +73,14 @@ Global
 		{E5D5B08E-D1ED-4F01-98D0-46E609C90F44}.Debug|Win32.Build.0 = Debug|Win32
 		{E5D5B08E-D1ED-4F01-98D0-46E609C90F44}.Release|Win32.ActiveCfg = Release|Win32
 		{E5D5B08E-D1ED-4F01-98D0-46E609C90F44}.Release|Win32.Build.0 = Release|Win32
+		{C9BCE2DE-7DF4-4E56-87B1-AF2302018F0C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C9BCE2DE-7DF4-4E56-87B1-AF2302018F0C}.Debug|Win32.Build.0 = Debug|Win32
+		{C9BCE2DE-7DF4-4E56-87B1-AF2302018F0C}.Release|Win32.ActiveCfg = Release|Win32
+		{C9BCE2DE-7DF4-4E56-87B1-AF2302018F0C}.Release|Win32.Build.0 = Release|Win32
+		{7882D083-C7D7-4D57-8551-452B28E3A7F6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7882D083-C7D7-4D57-8551-452B28E3A7F6}.Debug|Win32.Build.0 = Debug|Win32
+		{7882D083-C7D7-4D57-8551-452B28E3A7F6}.Release|Win32.ActiveCfg = Release|Win32
+		{7882D083-C7D7-4D57-8551-452B28E3A7F6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

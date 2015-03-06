@@ -12,7 +12,7 @@ public:
 	TestTCPClientCallback(){}
 	~TestTCPClientCallback(){}
 
-	void sent_callback(char* msg, size_t size)
+	void sent_callback(BYTE* msg, size_t size)
 	{
 		if (havroc::CommandBuilder::is_command(msg, size))
 		{
@@ -21,12 +21,12 @@ public:
 		}
 		else
 		{
-			std::string str_msg(msg);
+			std::string str_msg((char*) msg);
 			std::cout << "TCP Client sent message: " << str_msg << std::endl;
 		}
 	}
 
-	void receive_callback(char* msg, size_t size)
+	void receive_callback(BYTE* msg, size_t size)
 	{
 		if (havroc::CommandBuilder::is_command(msg, size))
 		{
@@ -34,7 +34,7 @@ public:
 		}
 		else
 		{
-			std::string str_msg(msg);
+			std::string str_msg((char*) msg);
 			std::cout << "TCP Client receiving message: " << str_msg << std::endl;
 		}
 	}
@@ -58,7 +58,7 @@ public:
 
 	void tracking_callback(havroc::command_pkg* pkg)
 	{
-		char* packet;
+		BYTE* packet;
 		size_t size;
 
 		std::cout << "Tracking command received" << std::endl;
@@ -70,7 +70,7 @@ public:
 
 	void system_callback(havroc::command_pkg* pkg)
 	{
-		char* packet;
+		BYTE* packet;
 		size_t size;
 
 		std::cout << "System command received" << std::endl;
@@ -82,7 +82,7 @@ public:
 
 	void motor_callback(havroc::command_pkg* pkg)
 	{
-		char* packet;
+		BYTE* packet;
 		size_t size;
 
 		std::cout << "Motor command received" << std::endl;
@@ -112,7 +112,7 @@ int main()
 	TestTCPClientCallback* tcp = new TestTCPClientCallback();
 	TestCommandCallback* cmd = new TestCommandCallback();
 
-	n_manager->set_connections(TCP_CLIENT);
+	n_manager->set_connections(TCP_SERVER);
 	n_manager->register_connect_callback<TestTCPClientCallback>(&TestTCPClientCallback::connect_callback, tcp);
 	n_manager->register_disconnect_callback<TestTCPClientCallback>(&TestTCPClientCallback::disconnect_callback, tcp);
 	n_manager->register_sent_callback<TestTCPClientCallback>(&TestTCPClientCallback::sent_callback, tcp);
@@ -127,16 +127,16 @@ int main()
 	c_manager->register_tracking_callback(&tracking_example_callback_with_no_class);
 	c_manager->register_error_callback(&error_callback);
 
-	if(int error = n_manager->start_tcp_client("127.0.0.1"))
+	if(int error = n_manager->start_tcp_server())
 	{
-		printf("TCP Client failed to start with error code: %d\n", error);
+		printf("TCP Server failed to start with error code: %d\n", error);
 		printf("Terminating program\n");
 		
 		return -1;
 	}
 
-	char indices[NUM_MOTORS];
-	char intensities[NUM_MOTORS];
+	BYTE indices[NUM_MOTORS];
+	BYTE intensities[NUM_MOTORS];
 
 	while (n_manager->get_reconnect() || n_manager->is_active())
 	{
@@ -146,7 +146,7 @@ int main()
 			intensities[i] = rand() % 100 + 1;
 		}
 
-		char* msg;
+		BYTE* msg;
 		size_t size;
 
 		havroc::CommandBuilder::build_tracking_command(msg, size, true);

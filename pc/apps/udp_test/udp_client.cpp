@@ -4,7 +4,7 @@
 #include <havroc/communications/UDPNetwork.h>
 #include <havroc/common/CommandBuilder.h>
 
-void receive_handler(char* msg, size_t size)
+void receive_handler(BYTE* msg, size_t size)
 {
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
@@ -13,7 +13,7 @@ void receive_handler(char* msg, size_t size)
 	}
 	else
 	{
-		std::string str_msg(msg);
+		std::string str_msg((char*) msg);
 		std::cout << "UDP Client receiving message: " << str_msg << std::endl;
 	}
 }
@@ -35,9 +35,9 @@ int main(int argc, char* argv[])
     boost::asio::io_service io_service;
     havroc::UDPNetworkClient udp(io_service);
 
-	udp.get_receive_event().connect(&receive_handler);
-	udp.get_connect_event().connect(&connect_handler);
-	udp.get_disconnect_event().connect(&disconnect_handler);
+	udp.register_receive_callback(&receive_handler);
+	udp.register_connect_callback(&connect_handler);
+	udp.register_disconnect_callback(&disconnect_handler);
 
     udp.start_service();
 

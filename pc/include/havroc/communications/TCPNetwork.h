@@ -19,7 +19,7 @@ namespace havroc {
 		TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack = 0);
 		virtual ~TCPNetwork();
 
-		int	 send(char* msg, size_t size, bool free_mem = false);
+		int	 send(BYTE* msg, size_t size, bool free_mem = false);
 
 		virtual int start_service() = 0;
 
@@ -32,10 +32,10 @@ namespace havroc {
 	private:
 		void receive();
 		void handle_receive(const boost::system::error_code& error, std::size_t bytes);
-		void handle_send(char*, size_t, bool, const boost::system::error_code&, std::size_t);
+		void handle_send(BYTE*, size_t, bool, const boost::system::error_code&, std::size_t);
 		int  kill_socket();
 
-		boost::array<char,256> m_buffer;
+		boost::array<char, 49152> m_buffer; // 48 kb
 	};
 
 	class TCPNetworkClient : public TCPNetwork

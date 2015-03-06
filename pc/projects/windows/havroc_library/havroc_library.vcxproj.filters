@@ -19,6 +19,9 @@
     <Filter Include="Source Files\common">
       <UniqueIdentifier>{3149729c-ca0e-40b5-9b67-6bf0ab09cdb3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\tracking">
+      <UniqueIdentifier>{e7805a6d-040e-4f8a-b1df-11b839ba966a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -53,6 +56,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\libs\havroc\common\CommandBuilder.cpp">
       <Filter>Source Files\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\tracking\TrackingManager.cpp">
+      <Filter>Source Files\tracking</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

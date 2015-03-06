@@ -40,8 +40,8 @@ namespace havroc
 
 		int send(std::string msg);
 		int send(std::string msg, uint8_t types);
-		int send(char* msg, size_t size, bool free_mem = false);
-		int send(char* msg, size_t size, uint8_t types, bool free_mem = false);
+		int send(BYTE* msg, size_t size, bool free_mem = false);
+		int send(BYTE* msg, size_t size, uint8_t types, bool free_mem = false);
 
 		void	set_connections(uint8_t connections) { m_desired_connections = connections; }
 		void	set_reconnect(bool reconnect)		 { m_reconnect = reconnect; }
@@ -50,7 +50,7 @@ namespace havroc
 		bool	get_reconnect()						 { return m_reconnect; }
 
 		template<class T>
-		void register_sent_callback(void(T::*sent_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void register_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -59,23 +59,23 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_sent_event().connect(boost::bind(sent_callback, obj, _1, _2));
+				m_tcp_server->register_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_sent_event().connect(boost::bind(sent_callback, obj, _1, _2));
+				m_tcp_client->register_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_sent_event().connect(boost::bind(sent_callback, obj, _1, _2));
+				m_udp_server->register_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_sent_event().connect(boost::bind(sent_callback, obj, _1, _2));
+				m_udp_client->register_sent_callback<T>(sent_callback, obj);
 			}
 		}
 
-		void register_sent_callback(void(*sent_callback)(char* msg, size_t size), uint8_t types = 0)
+		void register_sent_callback(void(*sent_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -84,24 +84,24 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_sent_event().connect(sent_callback);
+				m_tcp_server->register_sent_callback(sent_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_sent_event().connect(sent_callback);
+				m_tcp_client->register_sent_callback(sent_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_sent_event().connect(sent_callback);
+				m_udp_server->register_sent_callback(sent_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_sent_event().connect(sent_callback);
+				m_udp_client->register_sent_callback(sent_callback);
 			}
 		}
 
 		template<class T>
-		void register_receive_callback(void(T::*receive_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void register_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -110,23 +110,23 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_receive_event().connect(boost::bind(receive_callback, obj, _1, _2));
+				m_tcp_server->register_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_receive_event().connect(boost::bind(receive_callback, obj, _1, _2));
+				m_tcp_client->register_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_receive_event().connect(boost::bind(receive_callback, obj, _1, _2));
+				m_udp_server->register_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_receive_event().connect(boost::bind(receive_callback, obj, _1, _2));
+				m_udp_client->register_receive_callback<T>(receive_callback, obj);
 			}
 		}
 
-		void register_receive_callback(void(*receive_callback)(char* msg, size_t size), uint8_t types = 0)
+		void register_receive_callback(void(*receive_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -135,19 +135,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_receive_event().connect(receive_callback);
+				m_tcp_server->register_receive_callback(receive_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_receive_event().connect(receive_callback);
+				m_tcp_client->register_receive_callback(receive_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_receive_event().connect(receive_callback);
+				m_udp_server->register_receive_callback(receive_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_receive_event().connect(receive_callback);
+				m_udp_client->register_receive_callback(receive_callback);
 			}
 		}
 
@@ -161,19 +161,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_connect_event().connect(boost::bind(connect_callback, obj));
+				m_tcp_server->register_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_connect_event().connect(boost::bind(connect_callback, obj));
+				m_tcp_client->register_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_connect_event().connect(boost::bind(connect_callback, obj));
+				m_udp_server->register_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_connect_event().connect(boost::bind(connect_callback, obj));
+				m_udp_client->register_connect_callback<T>(connect_callback, obj);
 			}
 		}
 
@@ -186,19 +186,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_connect_event().connect(connect_callback);
+				m_tcp_server->register_connect_callback(connect_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_connect_event().connect(connect_callback);
+				m_tcp_client->register_connect_callback(connect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_connect_event().connect(connect_callback);
+				m_udp_server->register_connect_callback(connect_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_connect_event().connect(connect_callback);
+				m_udp_client->register_connect_callback(connect_callback);
 			}
 		}
 
@@ -212,19 +212,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_disconnect_event().connect(boost::bind(disconnect_callback, obj));
+				m_tcp_server->register_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_disconnect_event().connect(boost::bind(disconnect_callback, obj));
+				m_tcp_client->register_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_disconnect_event().connect(boost::bind(disconnect_callback, obj));
+				m_udp_server->register_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_disconnect_event().connect(boost::bind(disconnect_callback, obj));
+				m_udp_client->register_disconnect_callback<T>(disconnect_callback, obj);
 			}
 		}
 
@@ -237,24 +237,24 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_disconnect_event().connect(disconnect_callback);
+				m_tcp_server->register_disconnect_callback(disconnect_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_disconnect_event().connect(disconnect_callback);
+				m_tcp_client->register_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_disconnect_event().connect(disconnect_callback);
+				m_udp_server->register_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_disconnect_event().connect(disconnect_callback);
+				m_udp_client->register_disconnect_callback(disconnect_callback);
 			}
 		}
 
 		template<class T>
-		void unregister_sent_callback(void(T::*sent_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void unregister_sent_callback(void(T::*sent_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -263,23 +263,23 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_sent_event().disconnect(boost::bind(sent_callback, obj, _1, _2));
+				m_tcp_server->unregister_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_sent_event().disconnect(boost::bind(sent_callback, obj, _1, _2));
+				m_tcp_client->unregister_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_sent_event().disconnect(boost::bind(sent_callback, obj, _1, _2));
+				m_udp_server->unregister_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_sent_event().disconnect(boost::bind(sent_callback, obj, _1, _2));
+				m_udp_client->unregister_sent_callback<T>(sent_callback, obj);
 			}
 		}
 
-		void unregister_sent_callback(void(*sent_callback)(char* msg, size_t size), uint8_t types = 0)
+		void unregister_sent_callback(void(*sent_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -288,24 +288,24 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_sent_event().disconnect(sent_callback);
+				m_tcp_server->unregister_sent_callback(sent_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_sent_event().disconnect(sent_callback);
+				m_tcp_client->unregister_sent_callback(sent_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_sent_event().disconnect(sent_callback);
+				m_udp_server->unregister_sent_callback(sent_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_sent_event().disconnect(sent_callback);
+				m_udp_client->unregister_sent_callback(sent_callback);
 			}
 		}
 
 		template<class T>
-		void unregister_receive_callback(void(T::*receive_callback)(char* msg, size_t size), T* obj, uint8_t types = 0)
+		void unregister_receive_callback(void(T::*receive_callback)(BYTE* msg, size_t size), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -314,23 +314,23 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_receive_event().disconnect(boost::bind(receive_callback, obj, _1, _2));
+				m_tcp_server->unregister_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_receive_event().disconnect(boost::bind(receive_callback, obj, _1, _2));
+				m_tcp_client->unregister_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_receive_event().disconnect(boost::bind(receive_callback, obj, _1, _2));
+				m_udp_server->unregister_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_receive_event().disconnect(boost::bind(receive_callback, obj, _1, _2));
+				m_udp_client->unregister_receive_callback<T>(receive_callback, obj);
 			}
 		}
 
-		void unregister_receive_callback(void(*receive_callback)(char* msg, size_t size), uint8_t types = 0)
+		void unregister_receive_callback(void(*receive_callback)(BYTE* msg, size_t size), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -339,19 +339,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_receive_event().disconnect(receive_callback);
+				m_tcp_server->unregister_receive_callback(receive_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_receive_event().disconnect(receive_callback);
+				m_tcp_client->unregister_receive_callback(receive_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_receive_event().disconnect(receive_callback);
+				m_udp_server->unregister_receive_callback(receive_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_receive_event().disconnect(receive_callback);
+				m_udp_client->unregister_receive_callback(receive_callback);
 			}
 		}
 
@@ -365,19 +365,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_connect_event().disconnect(boost::bind(connect_callback, obj));
+				m_tcp_server->unregister_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_connect_event().disconnect(boost::bind(connect_callback, obj));
+				m_tcp_client->unregister_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_connect_event().disconnect(boost::bind(connect_callback, obj));
+				m_udp_server->unregister_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_connect_event().disconnect(boost::bind(connect_callback, obj));
+				m_udp_client->unregister_connect_callback<T>(connect_callback, obj);
 			}
 		}
 
@@ -390,19 +390,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_connect_event().disconnect(connect_callback);
+				m_tcp_server->unregister_connect_callback(connect_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_connect_event().disconnect(connect_callback);
+				m_tcp_client->unregister_connect_callback(connect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_connect_event().disconnect(connect_callback);
+				m_udp_server->unregister_connect_callback(connect_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_connect_event().disconnect(connect_callback);
+				m_udp_client->unregister_connect_callback(connect_callback);
 			}
 		}
 
@@ -416,19 +416,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_disconnect_event().disconnect(boost::bind(disconnect_callback, obj));
+				m_tcp_server->unregister_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_disconnect_event().disconnect(boost::bind(disconnect_callback, obj));
+				m_tcp_client->unregister_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_disconnect_event().disconnect(boost::bind(disconnect_callback, obj));
+				m_udp_server->unregister_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_disconnect_event().disconnect(boost::bind(disconnect_callback, obj));
+				m_udp_client->unregister_disconnect_callback<T>(disconnect_callback, obj);
 			}
 		}
 
@@ -441,19 +441,19 @@ namespace havroc
 
 			if (types & TCP_SERVER)
 			{
-				m_tcp_server->get_disconnect_event().disconnect(disconnect_callback);
+				m_tcp_server->unregister_disconnect_callback(disconnect_callback);
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->get_disconnect_event().disconnect(disconnect_callback);
+				m_tcp_client->unregister_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
-				m_udp_server->get_disconnect_event().disconnect(disconnect_callback);
+				m_udp_server->unregister_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_CLIENT)
 			{
-				m_udp_client->get_disconnect_event().disconnect(disconnect_callback);
+				m_udp_client->unregister_disconnect_callback(disconnect_callback);
 			}
 		}
 

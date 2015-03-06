@@ -35,26 +35,21 @@ namespace havroc
 			{
 				command_pkg* pkg = m_pkgs.front();
 
-				switch (pkg->command)
+				switch (pkg->module)
 				{
-					case(TRACKING_CMD) :
+					case(TRACKING_MOD) :
 					{
 						m_tracking_event(pkg);
 						break;
 					}
-					case(SYSTEM_CMD) :
+					case(SYSTEM_MOD) :
 					{
 						m_system_event(pkg);
 						break;
 					}
-					case(MOTOR_CMD) :
+					case(MOTOR_MOD) :
 					{
 						m_motor_event(pkg);
-						break;
-					}
-					case(ERROR_CMD) :
-					{
-						m_error_event(pkg);
 						break;
 					}
 					default:
@@ -82,7 +77,7 @@ namespace havroc
 		}
 	}
 
-	void CommandManager::receive_handler(char* msg, size_t size)
+	void CommandManager::receive_handler(BYTE* msg, size_t size)
 	{
 		if (!CommandBuilder::is_command(msg, size))
 		{

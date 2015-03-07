@@ -2,19 +2,31 @@
 #include <Estimation.h>
 #include <IMU_Driver.h>
 
-#define DATA_POINTS_PER_TEST   1000  // Number of data points to collect per action test
-#define WAIT_TIME              20    // Time to wait between action tests
-#define NUM_OF_ACTIONS         6     // Number of actions to be completed like arm up, arm down, arm lateral, arm punch, etc...
-#define NUM_OF_IMUS            3     // Number of available IMU's
+#define DATA_POINTS_PER_TEST   1000                      // Number of data points to collect per action test
+#define DATA_POINTS_PER_PRINT  DATA_POINTS_PER_TEST / 2
+#define CALIBRATION_POINTS     1000                      // Number of data points to collect in order to set 0,0,0 position of yaw, pitch, roll
+#define READ_DELAY             10
+#define WAIT_TIME              20                        // Time to wait between action tests
+#define NUM_OF_ACTIONS         6                         // Number of actions to be completed like arm up, arm down, arm lateral, arm punch, etc...
+#define NUM_OF_IMUS            3                         // Number of available IMU's
 
 // Testing variables
 char* testQueries[NUM_OF_ACTIONS];
 char* imuQueries[NUM_OF_IMUS];
 
+// Data variables
+float yaw_offset = 0.0f;
+float pitch_offset = 0.0f;
+float roll_offset = 0.0f;
+
+float yaw_list[DATA_POINTS_PER_PRINT];
+float pitch_list[DATA_POINTS_PER_PRINT];
+float roll_list[DATA_POINTS_PER_PRINT];
+
 void setup()
 {
   //Init LED pin
-  pinMode(13, OUTPUT);
+  //pinMode(13, OUTPUT);
 
   //Setup comms
   Serial.begin(9600);
@@ -36,7 +48,7 @@ void setup()
   Serial.println("IMU Initialized");
 
   //Turn on LED to signal end of calibration
-  digitalWrite(13, HIGH);
+  //digitalWrite(13, HIGH);
   
   testQueries[0] = "Place your arm forward, parallel to the ground and keep it straight";
   testQueries[1] = "Now bend your arm until your elbow has reached 90 degrees while your upper arm remains parallel to the ground";
@@ -99,9 +111,9 @@ void grabIMUData(float* out_yaw, float* out_pitch, float* out_roll)
   yaw   *= 180.0f / PI; // + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
   roll  *= 180.0f / PI;
   
-  *out_yaw = yaw;
-  *out_pitch = pitch;
-  *out_roll = roll;
+  *out_yaw = yaw - yaw_offset;
+  *out_pitch = pitch - pitch_offset;
+  *out_roll = roll - roll_offset;
 }
 
 void printCountdown(char* msg, int timeInSeconds)
@@ -128,10 +140,42 @@ void printCountdown(char* msg, int timeInSeconds)
     Serial.print("\n");
 }
 
+void zero_yaw_pitch_roll(int sample_size)
+{
+  float yaw_accum = 0.0f;
+  float pitch_accum = 0.0f;
+  float roll_accum = 0.0f;
+  
+  float yaw;
+  float pitch;
+  float roll;
+  
+  for(int i = 0; i < sample_size; i++)
+  {  
+    grabIMUData(&yaw, &pitch, &roll);
+    delay(READ_DELAY);
+    
+    yaw_accum += yaw;
+    pitch_accum += pitch;
+    roll_accum += roll;
+  }
+  
+  yaw_offset = yaw_accum / sample_size;
+  pitch_offset = pitch_accum / sample_size;
+  roll_offset = roll_accum / sample_size;
+}
+
 void loop()
 {
   uint32_t imus_completed = 0;
   
+  Serial.print("\n\n\n\n\n");
+  
+  Serial.println("-----------------------------------------------------");
+  Serial.println("Hold your arms neutrally at your side to zero yaw, pitch, roll");
+  printCountdown("Calibrating in ", 5);
+  zero_yaw_pitch_roll(CALIBRATION_POINTS);
+  Serial.println("-----------------------------------------------------");
   Serial.print("\n\n\n\n\n");
   
   while(imus_completed < NUM_OF_IMUS)
@@ -156,20 +200,34 @@ void loop()
       
       printCountdown("Prepare to begin test in ", WAIT_TIME); 
       
-      uint32_t samples_remaining = DATA_POINTS_PER_TEST;
+      uint32_t samples_done = 0;
+      uint32_t sample_index = 0;
             
-      while(samples_remaining > 0)
+      while(samples_done < DATA_POINTS_PER_TEST)
       {
         grabIMUData(&yaw, &pitch, &roll);
+        delay(READ_DELAY);
         
-        Serial.print(yaw);
-        Serial.print(",");
-        Serial.print(pitch);
-        Serial.print(",");
-        Serial.print(roll);
-        Serial.print("\n");
+        sample_index = samples_done % DATA_POINTS_PER_PRINT;
         
-        samples_remaining--;
+        yaw_list[sample_index] = yaw;
+        pitch_list[sample_index] = pitch;
+        roll_list[sample_index] = roll;
+        
+        if(sample_index == DATA_POINTS_PER_PRINT - 1)
+        {
+          for(int i = 0; i < DATA_POINTS_PER_PRINT; i++)
+          {
+            Serial.print(yaw_list[i]);
+            Serial.print(",");
+            Serial.print(pitch_list[i]);
+            Serial.print(",");
+            Serial.print(roll_list[i]);
+            Serial.print("\n");
+          }
+        }
+        
+        samples_done++;
       }
       
       actions_completed++;

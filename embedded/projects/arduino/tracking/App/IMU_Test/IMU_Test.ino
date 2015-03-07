@@ -1,6 +1,6 @@
-#include <I2C.h>
-#include <Estimation.h>
 #include <IMU_Driver.h>
+#include <Estimation.h>
+#include <I2C.h>
 
 //#define MATLAB_OUTPUT 
 
@@ -58,6 +58,7 @@ void loop()
 {
   result = readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ);
   result = readCompassData(&magX,&magY,&magZ);
+  //readRawData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ,&magX,&magY,&magZ);
 
   now = micros();
   deltat = ((now - lastUpdate)/1000000.0f);
@@ -68,41 +69,41 @@ void loop()
   //only print every 0.5s
   delt_t = millis() - count;
 
-  if(delt_t > 500)
+  if(delt_t > 1500)
   {
-    Serial.println("Accelerometer Data");
-    Serial.print("x: ");
-    Serial.println(accelX);
-    Serial.print("y: ");
-    Serial.println(accelY);
-    Serial.print("z: ");
-    Serial.println(accelZ);
+//    Serial.println("Accelerometer Data");
+//    Serial.print("x: ");
+//    Serial.println(accelX);
+//    Serial.print("y: ");
+//    Serial.println(accelY);
+//    Serial.print("z: ");
+//    Serial.println(accelZ);
+//
+//    Serial.println("Gyroscope Data");
+//    Serial.print("x: ");
+//    Serial.println(gyroX);
+//    Serial.print("y: ");
+//    Serial.println(gyroY);
+//    Serial.print("z: ");
+//    Serial.println(gyroZ);
 
-    Serial.println("Gyroscope Data");
-    Serial.print("x: ");
-    Serial.println(gyroX);
-    Serial.print("y: ");
-    Serial.println(gyroY);
-    Serial.print("z: ");
-    Serial.println(gyroZ);
-
-    Serial.println("Compass Data");
-    Serial.print("x: ");
-    Serial.println(magX);
-    Serial.print("y: ");
-    Serial.println(magY);
-    Serial.print("z: ");
-    Serial.println(magZ);
-
-    Serial.println("Quaternion Data");
-    Serial.print("q0: ");
-    Serial.println(q[0]);
-    Serial.print("qx: "); 
-    Serial.println(q[1]); 
-    Serial.print("qy: "); 
-    Serial.println(q[2]); 
-    Serial.print("qz: "); 
-    Serial.println(q[3]); 
+//    Serial.println("Compass Data");
+//    Serial.print("x: ");
+//    Serial.println(magX);
+//    Serial.print("y: ");
+//    Serial.println(magY);
+//    Serial.print("z: ");
+//    Serial.println(magZ);
+//
+//    Serial.println("Quaternion Data");
+//    Serial.print("q0: ");
+//    Serial.println(q[0]);
+//    Serial.print("qx: "); 
+//    Serial.println(q[1]); 
+//    Serial.print("qy: "); 
+//    Serial.println(q[2]); 
+//    Serial.print("qz: "); 
+//    Serial.println(q[3]); 
 
     // Convert quaternion orientation to euler angles in aircraft orientation.
     // Positive z-axis is down toward Earth. 
@@ -126,8 +127,8 @@ void loop()
     Serial.print("Roll: ");
     Serial.println(roll);
 
-    Serial.print("Update Rate (Hz) = ");
-    Serial.println((float)1.0f/deltat, 2);
+//    Serial.print("Update Rate (Hz) = ");
+//    Serial.println((float)1.0f/deltat, 2);
 
 #ifdef MATLAB_OUTPUT
     Serial.print(yaw); Serial.print("\n");

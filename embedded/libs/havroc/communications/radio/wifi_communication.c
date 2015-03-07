@@ -1,5 +1,13 @@
-#include "havroc/communications/radio/wifi_communication.h"
+/* Standard C Includes */
 #include "stdint.h"
+#include "stdbool.h"
+
+/* XDC Tools Header Files */
+#include <xdc/runtime/System.h>
+#include <xdc/runtime/Timestamp.h>
+#include <xdc/runtime/Types.h>
+/* HaVRoc Library Includes */
+#include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include <havroc/error.h>
 
@@ -13,9 +21,13 @@ static unsigned char g_ucConnectionBSSID[BSSID_LEN_MAX]; //Connection BSSID
 static unsigned long IP_Address = 0;
 static char TCP_SendBuffer[BUFF_SIZE];
 static int sendIndex = 0;
+static int sendCount = 0;
 static char TCP_ReceiveBuffer[BUFF_SIZE];
 static long connected_SockID = 0;
 static long iSockID = 0;
+static bool newData = false;
+static Task_Handle task0;
+static bool isActive = false;
 
 //*****************************************************************************
 // SimpleLink Asynchronous Event Handlers -- Start
@@ -463,38 +475,120 @@ static int Setup_Socket(unsigned short usPort) {
 		}
 	}
 
+	iStatus = sl_SetSockOpt(connected_SockID, SL_SOL_SOCKET, SL_SO_NONBLOCKING,
+				&lNonBlocking, sizeof(lNonBlocking));
+	if (iStatus < 0) {
+		ASSERT_ON_ERROR(sl_Close(connected_SockID));
+		ASSERT_ON_ERROR(sl_Close(iSockID));
+		ASSERT_ON_ERROR(TCP_SERVER_FAILED);
+	}
+
 	return connected_SockID;
 }
 
-static void WiFiRun(UArg arg0, UArg arg1)
+int WiFiStartup(void)
 {
-	int iStatus;
+	if(WlanInit() != 0)
+	{
+		UART_PRINT("Failed to start WiFi radio \n\r");
+		return WiFi_START_FAIL;
+	}
+
+	UART_PRINT("Connecting to AP: %s ...\r\n", SSID_NAME);
+
+	// Connecting to WLAN AP
+	if (WlanConnect() < 0)
+	{
+		UART_PRINT("Failed to establish connection w/ an AP \n\r");
+		return WiFi_START_FAIL;
+	}
+
+	UART_PRINT("Connected to AP: %s \n\r", SSID_NAME);
+
+	UART_PRINT("Device IP: %d.%d.%d.%d\n\r\n\r", SL_IPV4_BYTE(IP_Address, 3),
+			SL_IPV4_BYTE(IP_Address, 2), SL_IPV4_BYTE(IP_Address, 1),
+			SL_IPV4_BYTE(IP_Address, 0));
+
+	if (Setup_Socket(PORT_NUM_TCP) < 0)
+	{
+		UART_PRINT("TCP socket setup failed\n\r");
+		return WiFi_START_FAIL;
+	}
+
+	return SUCCESS;
+}
+
+void WiFiRun(UArg arg0, UArg arg1)
+{
+	int iStatus = 100;
+	int recvStatus = 0;
 	int buff_index = 0;
+	int returnValue = 0;
+	long result = WiFiStartup();
+	float prev = 0;
+	float now = 0;
+	Types_FreqHz freq;
+
+	if(result != 0)
+	{
+		Task_exit();
+	}
+
+	isActive = true;
+
+	UART_PRINT("Startup WiFi successfully \n\r");
+	Timestamp_getFreq(&freq);
 
 	while (1)
 	{
-		iStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
-		while (iStatus <= 0)
+		returnValue = Task_getPri(task0);
+
+		prev = Timestamp_get32()/(1.0*freq.lo);
+
+		System_printf("In Task 1 - priority %i\n", returnValue);
+		System_flush();
+		//UART_PRINT("In WiFi Task \n\r");
+
+		recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
+
+		//UART_PRINT("Receiving Data over WiFi, recvStatus %d \n\r", recvStatus);
+
+		if (recvStatus <= 0 && recvStatus != -11)
 		{
-			// error, keep restarting
-			WlanOff();
-			iStatus = WlanStartup();
+			while(iStatus != 0)
+			{
+				WlanOff();
+				iStatus = WiFiStartup();
+			}
 		}
 
 		buff_index = 0;
 
-		while (buff_index < BUFF_SIZE)
+		if(recvStatus > 0)
 		{
-			if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
+			while (buff_index < recvStatus)
 			{
-				buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
+				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
+				{
+					buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
+				}
 			}
 		}
 
-		WiFiSend();
+		if(newData)
+		{
+			UART_PRINT("WiFi Sending Data \n\r");
+			WiFiSend();
+		}
+
+		now = Timestamp_get32()/(1.0*freq.lo);
+
+		System_printf("This is Task 1 - Elapsed Time is %.04f\n", now-prev);
+		System_flush();
+
+		Task_sleep(10);
 	}
 }
-
 int WiFiSendEnQ(sendMessage message)
 {
 	char temp = SYNC_START_CODE_BYTE;
@@ -506,6 +600,8 @@ int WiFiSendEnQ(sendMessage message)
 		memcpy(&TCP_SendBuffer[sendIndex], message.data, (sizeof *(message.data))*message.length);
 
 		sendIndex += 4*message.length;
+		sendCount += 4*message.length + 3;
+		newData = true;
 	}
 	else
 	{
@@ -524,13 +620,12 @@ static void WiFiSend()
 	while (lLoopCount < TCP_PACKET_COUNT)
 	{
 		// sending packet
-
-		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, BUFF_SIZE, 0);
+		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 		while (iStatus <= 0)
 		{
 			// error
 			WlanOff();
-			iStatus = WlanStartup();
+			iStatus = WiFiStartup();
 
 			if (iStatus > 0)
 			{
@@ -542,6 +637,8 @@ static void WiFiSend()
 	}
 
 	sendIndex = 0;
+	sendCount = 0;
+	newData = false;
 
 	Report("TCP sent %i bytes successful\n\r", iStatus);
 }
@@ -580,43 +677,25 @@ static long WlanConnect()
 	return SUCCESS;
 }
 
-static int WlanStartup()
+int WlanStartTask()
 {
-	if(WlanInit() != 0)
-	{
-		UART_PRINT("Failed to start WiFi radio \n\r");
-		return WiFi_START_FAIL;
-	}
+	Task_Params params;
 
-	UART_PRINT("Connecting to AP: %s ...\r\n", SSID_NAME);
+	Task_Params_init(&params);
+	params.instance->name = "WiFiRun_Task";
+	params.priority = 10;
 
-	// Connecting to WLAN AP
-	if (WlanConnect() < 0)
-	{
-		UART_PRINT("Failed to establish connection w/ an AP \n\r");
-		return WiFi_START_FAIL;
-	}
-
-	UART_PRINT("Connected to AP: %s \n\r", SSID_NAME);
-
-	UART_PRINT("Device IP: %d.%d.%d.%d\n\r\n\r", SL_IPV4_BYTE(IP_Address, 3),
-			SL_IPV4_BYTE(IP_Address, 2), SL_IPV4_BYTE(IP_Address, 1),
-			SL_IPV4_BYTE(IP_Address, 0));
-
-	if (Setup_Socket(PORT_NUM_TCP) < 0)
-	{
-		UART_PRINT("TCP socket setup failed\n\r");
-		return WiFi_START_FAIL;
-	}
-
-	Task_Handle task0;
-
-	task0 = Task_create((Task_FuncPtr)WiFiRun, NULL, NULL);
+	task0 = Task_create((Task_FuncPtr)WiFiRun, &params, NULL);
 	if (task0 == NULL) {
 		return WiFi_START_FAIL;
 	}
 
 	return SUCCESS;
+}
+
+bool isWiFiActive()
+{
+	return isActive;
 }
 
 static int WlanOff()

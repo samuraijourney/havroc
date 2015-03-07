@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <math.h>
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Timestamp.h>
 #include <xdc/runtime/Types.h>
+#include <xdc/runtime/Timestamp.h>
 
 #include <havroc/tracking/estimation.h>
 #include <havroc/tracking/imu_driver.h>
@@ -18,7 +18,7 @@ typedef struct _IMU
     int id;
     float q[4];
     float eInt[3];
-    UInt32 lastUpdate;
+    float lastUpdate;
 } IMU;
 
 static IMU IMU_array[6];
@@ -223,7 +223,7 @@ int startIMU()
   int i = 0;
   int j = 0;
 
-  for(i = SHOULDER_IMU_ID; i <= WRIST_IMU_ID; i++)
+  for(i = SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
   {
 	IMU_array[i].q[0] = 1.0f;
 
@@ -250,6 +250,26 @@ int startIMU()
   return SUCCESS;
 }
 
+int startIMU_Raw()
+{
+  int i = 0;
+
+  for(i = SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
+  {
+    if(initMPU(i) == IMU_MPU_START_FAIL)
+    {
+      return IMU_MPU_START_FAIL;
+    }
+
+    if(initCompass(i) == IMU_COMPASS_START_FAIL)
+    {
+      return IMU_COMPASS_START_FAIL;
+    }
+  }
+
+  return SUCCESS;
+}
+
 int returnEstimate(int id, float * yaw, float * pitch, float * roll)
 {
   float gyroX = 0;
@@ -262,7 +282,7 @@ int returnEstimate(int id, float * yaw, float * pitch, float * roll)
   float magY = 0;
   float magZ = 0;
   float delt_t = 0;
-  UInt32 now = 0;
+  float now = 0;
   Types_FreqHz freq;
 
   Timestamp_getFreq(&freq);

@@ -26,6 +26,7 @@ extern "C"
 	static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat);
 	static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat);
 	int startIMU();
+	int startIMU_Raw();
 	int returnEstimate(int id, float * yaw, float * pitch, float * roll);
 
 #ifdef __cplusplus 

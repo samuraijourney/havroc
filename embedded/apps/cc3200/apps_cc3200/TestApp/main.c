@@ -60,6 +60,15 @@ Event_Handle   Timer_Event;
 #define 	   EventReceived 	1
 #define 	   Passed_5ms 		2
 
+unsigned long millis ()
+{
+	Types_FreqHz freq;
+
+	Timestamp_getFreq(&freq);
+
+	return (Timestamp_get32()*1000.0/(1.0*freq.lo));
+}
+
 static void BoardInit(void)
 {
     // Enable Processor
@@ -111,10 +120,7 @@ void Fxn3()
 {
 	float prev = 0;
 	float now = 0;
-	Types_FreqHz freq;
 	UInt events;
-
-	Timestamp_getFreq(&freq);
 
 	while(1)
 	{
@@ -122,7 +128,7 @@ void Fxn3()
 
 		if(events & Passed_5ms)
 		{
-			now = Timestamp_get32()/(1.0*freq.lo);
+			now = millis();
 
 			System_printf("This is Task 3 - Elapsed Time is %.04f\n", now-prev);
 			System_flush();

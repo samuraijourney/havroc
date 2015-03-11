@@ -223,7 +223,7 @@ int startIMU()
   int i = 0;
   int j = 0;
 
-  for(i = SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
+  for(i = R_SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
   {
 	IMU_array[i].q[0] = 1.0f;
 
@@ -254,7 +254,7 @@ int startIMU_Raw()
 {
   int i = 0;
 
-  for(i = SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
+  for(i = R_SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
   {
     if(initMPU(i) == IMU_MPU_START_FAIL)
     {

@@ -144,8 +144,8 @@ void ServiceRun_Raw(void)
 
 		while ((attempts < MAX_ATTEMPTS))
 		{
-			if ((readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, SHOULDER_IMU_ID) != SUCCESS)
-				 || (readCompassData(&magX,&magY,&magZ, SHOULDER_IMU_ID)!= SUCCESS))
+			if ((readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, R_SHOULDER_IMU_ID) != SUCCESS)
+				 || (readCompassData(&magX,&magY,&magZ, R_SHOULDER_IMU_ID)!= SUCCESS))
 			{
 				attempts++;
 			}
@@ -315,7 +315,7 @@ void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
 
 int get_shoulder_imu(float* s_yaw, float* s_pitch, float* s_roll)
 {
-	return returnEstimate(SHOULDER_IMU_ID, s_yaw, s_pitch, s_roll);
+	return returnEstimate(R_SHOULDER_IMU_ID, s_yaw, s_pitch, s_roll);
 }
 
 //int get_elbow_imu(float* e_yaw, float* e_pitch, float* e_roll)

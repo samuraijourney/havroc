@@ -8,28 +8,21 @@
 #endif
 
 #include <havroc/tracking/service.h>
-#include <havroc/tracking/imu_driver.h>
-#include <havroc/tracking/estimation.h>
+#include "havroc/tracking/Estimation.h"
+#include "havroc/tracking/IMU_Math.h"
+#include "havroc/tracking/MPU9250_Driver.h"
 #include <havroc/eventmgr/eventmgr.h>
 #include <havroc/communications/radio/wifi_communication.h>
 
-#define MAX_ATTEMPTS 100
+#define MAX_ATTEMPTS 		100
+#define Passed_5ms 			1
 
-static float _s_yaw;
-static float _s_pitch;
-static float _s_roll;
-static float _e_yaw;
-static float _e_pitch;
-static float _e_roll;
-static float _w_yaw;
-static float _w_pitch;
-static float _w_roll;
 static volatile int active = false;
 static Event_Handle   Timer_Event;
 static Clock_Handle   clkHandle;
 
-
-#define Passed_5ms 1
+static IMU imu_object[IMU_ID_MAX];                                      // the IMU object
+static fusion fusion_object[IMU_ID_MAX];                                // the fusion object
 
 void PostTimer()
 {
@@ -107,20 +100,11 @@ void ServiceRun_Raw(void)
 	int result;
 	float prev = 0;
 	float now = 0;
-	float gyroX = 0;
-	float gyroY = 0;
-	float gyroZ = 0;
-	float accelX = 0;
-	float accelY = 0;
-	float accelZ = 0;
-	float magX = 0;
-	float magY = 0;
-	float magZ = 0;
 	Types_FreqHz freq;
 
 	Timestamp_getFreq(&freq);
 
-	result = startIMU_Raw();
+	result = startIMU_Raw(R_SHOULDER_IMU_ID);
 
 	InitTerm();
 
@@ -144,15 +128,14 @@ void ServiceRun_Raw(void)
 
 		while ((attempts < MAX_ATTEMPTS))
 		{
-			if ((readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, R_SHOULDER_IMU_ID) != SUCCESS)
-				 || (readCompassData(&magX,&magY,&magZ, R_SHOULDER_IMU_ID)!= SUCCESS))
-			{
-				attempts++;
-			}
-			else
+			if (IMURead(&imu_object[R_WRIST_IMU_ID]))
 			{
 				attempts = 0;
 				break;
+			}
+			else
+			{
+				attempts++;
 			}
 		}
 
@@ -162,8 +145,9 @@ void ServiceRun_Raw(void)
 			ServiceEnd();
 		}
 
-		ServicePublish_Raw(accelX,accelY, accelZ, gyroX,gyroY,
-			gyroZ, magX, magY, magZ);
+		ServicePublish_Raw(imu_object[R_WRIST_IMU_ID].m_accel.m_data[0],imu_object[R_WRIST_IMU_ID].m_accel.m_data[1], imu_object[R_WRIST_IMU_ID].m_accel.m_data[2],
+				imu_object[R_WRIST_IMU_ID].m_gyro.m_data[0],imu_object[R_WRIST_IMU_ID].m_gyro.m_data[1], imu_object[R_WRIST_IMU_ID].m_gyro.m_data[2],
+				imu_object[R_WRIST_IMU_ID].m_compass.m_data[0], imu_object[R_WRIST_IMU_ID].m_compass.m_data[1], imu_object[R_WRIST_IMU_ID].m_compass.m_data[2]);
 
 		now = Timestamp_get32()/(1.0*freq.lo);
 
@@ -177,6 +161,27 @@ void ServiceRun_Raw(void)
 	Task_exit();
 }
 
+int startIMU()
+{
+	int i;
+	for(i = 0; i < IMU_ID_MAX; i++)
+	{
+		NewIMU(&imu_object[i], i);                        // create the imu object
+		IMUInit(&imu_object[i]);
+		reset(&fusion_object[i]);
+	}
+
+	return SUCCESS;
+
+}
+
+int startIMU_Raw(int imu_index)
+{
+	NewIMU(&imu_object[imu_index], imu_index);                        // create the imu object
+	IMUInit(&imu_object[imu_index]);
+	return SUCCESS;
+}
+
 void ServiceRun(void)
 {
 	int attempts = 0;
@@ -185,6 +190,24 @@ void ServiceRun(void)
 	float prev = 0;
 	float now = 0;
 	Types_FreqHz freq;
+	float _r_s_yaw;
+	float _r_s_pitch;
+	float _r_s_roll;
+	float _r_e_yaw;
+	float _r_e_pitch;
+	float _r_e_roll;
+	float _r_w_yaw;
+	float _r_w_pitch;
+	float _r_w_roll;
+	float _l_s_yaw;
+	float _l_s_pitch;
+	float _l_s_roll;
+	float _l_e_yaw;
+	float _l_e_pitch;
+	float _l_e_roll;
+	float _l_w_yaw;
+	float _l_w_pitch;
+	float _l_w_roll;
 
 	Timestamp_getFreq(&freq);
 
@@ -220,9 +243,12 @@ void ServiceRun(void)
 
 		while ((attempts < MAX_ATTEMPTS) && (events & Passed_5ms))
 		{
-			if (!(!get_shoulder_imu(&_s_yaw, &_s_pitch, &_s_roll)
-					//&& !get_elbow_imu(&_e_yaw, &_e_pitch, &_e_roll)
-					//&& !get_wrist_imu(&_w_yaw, &_w_pitch, &_w_roll)))
+			if (!(!get_r_shoulder_imu(&_r_s_yaw, &_r_s_pitch, &_r_s_roll)
+					//&& !get_r_elbow_imu(&_r_e_yaw, &_r_e_pitch, &_r_e_roll)
+					//&& !get_r_wrist_imu(&_r_w_yaw, &_r_w_pitch, &_r_w_roll)
+					//&& !get_l_shoulder_imu(&_l_e_yaw, &_l_e_pitch, &_l_e_roll)
+					//&& !get_l_elbow_imu(&_l_e_yaw, &_l_e_pitch, &_l_e_roll)
+					//&& !get_l_wrist_imu(&_l_e_yaw, &_l_e_pitch, &_l_e_roll)))
 					))
 			{
 				attempts++;
@@ -240,8 +266,9 @@ void ServiceRun(void)
 			ServiceEnd();
 		}
 
-		ServicePublish(_s_yaw, _s_pitch, _s_roll, _e_yaw, _e_pitch,
-			_e_roll, _w_yaw, _w_pitch, _w_roll);
+		ServicePublish(_r_s_yaw, _r_s_pitch, _r_s_roll, _r_e_yaw, _r_e_pitch,
+			_r_e_roll, _r_w_yaw, _r_w_pitch, _r_w_roll, _l_s_yaw, _l_s_pitch,
+			_l_s_roll, _l_e_yaw, _l_e_pitch, _l_e_roll, _l_w_yaw, _l_w_pitch, _l_w_roll);
 
 		now = Timestamp_get32()/(1.0*freq.lo);
 
@@ -255,23 +282,35 @@ void ServiceRun(void)
 	Task_exit();
 }
 
-void ServicePublish(float s_yaw, float s_pitch, float s_roll, float e_yaw,
-		float e_pitch, float e_roll, float w_yaw, float w_pitch, float w_roll)
+void ServicePublish(float r_s_yaw, float r_s_pitch, float r_s_roll, float r_e_yaw,
+		float r_e_pitch, float r_e_roll, float r_w_yaw, float r_w_pitch, float r_w_roll,
+		float l_s_yaw, float l_s_pitch, float l_s_roll, float l_e_yaw,
+		float l_e_pitch, float l_e_roll, float l_w_yaw, float l_w_pitch, float l_w_roll)
 {
 	sendMessage message;
 
-	message.command = TRACKING_CMD;
+	message.module = TRACKING_CMD;
+	message.command = DATA_CMD;
 	message.length = 0x24;
 	message.data = (float*)malloc(sizeof(float)*message.length);
-	message.data[0] = s_yaw;
-	message.data[1] = s_pitch;
-	message.data[2] = s_roll;
-//	message.data[3] = e_yaw;
-//	message.data[4] = e_pitch;
-//	message.data[5] = e_roll;
-//	message.data[6] = w_yaw;
-//	message.data[7] = w_pitch;
-//	message.data[8] = w_roll;
+	message.data[0] = r_s_yaw;
+	message.data[1] = r_s_pitch;
+	message.data[2] = r_s_roll;
+//	message.data[3] = r_e_yaw;
+//	message.data[4] = r_e_pitch;
+//	message.data[5] = r_e_roll;
+//	message.data[6] = r_w_yaw;
+//	message.data[7] = r_w_pitch;
+//	message.data[8] = r_w_roll;
+//	message.data[9] = l_s_yaw;
+//	message.data[10] = l_s_pitch;
+//	message.data[11] = l_s_roll;
+//	message.data[12] = l_e_yaw;
+//	message.data[13] = l_e_pitch;
+//	message.data[14] = l_e_roll;
+//	message.data[15] = l_w_yaw;
+//	message.data[16] = l_w_pitch;
+//	message.data[17] = l_w_roll;
 
 	UART_PRINT("Data being broadcast: Yaw: %.1f, Pitch: %.1f, Yaw: %.1f \n\r", message.data[0], message.data[1],
 			message.data[2]);
@@ -313,17 +352,87 @@ void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
 	free(message.data);
 }
 
-int get_shoulder_imu(float* s_yaw, float* s_pitch, float* s_roll)
+int get_r_shoulder_imu(float* yaw, float* pitch, float* roll)
 {
-	return returnEstimate(R_SHOULDER_IMU_ID, s_yaw, s_pitch, s_roll);
+	if(IMURead(&imu_object[R_SHOULDER_IMU_ID]))
+	{
+		newIMUData(imu_object[R_SHOULDER_IMU_ID].m_gyro, imu_object[R_SHOULDER_IMU_ID].m_accel, imu_object[R_SHOULDER_IMU_ID].m_compass, imu_object[R_SHOULDER_IMU_ID].m_timestamp, &fusion_object[R_SHOULDER_IMU_ID]);
+
+		*roll = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
 }
 
-//int get_elbow_imu(float* e_yaw, float* e_pitch, float* e_roll)
-//{
-//	return returnEstimate(ELBOW_IMU_ID, e_yaw, e_pitch, e_roll);
-//}
-//
-//int get_wrist_imu(float* w_yaw, float* w_pitch, float* w_roll)
-//{
-//	return returnEstimate(WRIST_IMU_ID, w_yaw, w_pitch, w_roll);
-//}
+int get_l_shoulder_imu(float* yaw, float* pitch, float* roll)
+{
+	if(IMURead(&imu_object[L_SHOULDER_IMU_ID]))
+	{
+		newIMUData(imu_object[L_SHOULDER_IMU_ID].m_gyro, imu_object[L_SHOULDER_IMU_ID].m_accel, imu_object[L_SHOULDER_IMU_ID].m_compass, imu_object[L_SHOULDER_IMU_ID].m_timestamp, &fusion_object[L_SHOULDER_IMU_ID]);
+
+		*roll = fusion_object[L_SHOULDER_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[L_SHOULDER_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[L_SHOULDER_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
+}
+
+int get_r_elbow_imu(float* yaw, float* pitch, float* roll)
+{
+	if(IMURead(&imu_object[R_ELBOW_IMU_ID]))
+	{
+		newIMUData(imu_object[R_ELBOW_IMU_ID].m_gyro, imu_object[R_ELBOW_IMU_ID].m_accel, imu_object[R_ELBOW_IMU_ID].m_compass, imu_object[R_ELBOW_IMU_ID].m_timestamp, &fusion_object[R_ELBOW_IMU_ID]);
+
+		*roll = fusion_object[R_ELBOW_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[R_ELBOW_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[R_ELBOW_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
+}
+
+int get_l_elbow_imu(float* yaw, float* pitch, float* roll)
+{
+	if(IMURead(&imu_object[L_ELBOW_IMU_ID]))
+	{
+		newIMUData(imu_object[L_ELBOW_IMU_ID].m_gyro, imu_object[L_ELBOW_IMU_ID].m_accel, imu_object[L_ELBOW_IMU_ID].m_compass, imu_object[L_ELBOW_IMU_ID].m_timestamp, &fusion_object[L_ELBOW_IMU_ID]);
+
+		*roll = fusion_object[L_ELBOW_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[L_ELBOW_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[L_ELBOW_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
+}
+
+int get_r_wrist_imu(float* yaw, float* pitch, float* roll)
+{
+	if(IMURead(&imu_object[R_WRIST_IMU_ID]))
+	{
+		newIMUData(imu_object[R_WRIST_IMU_ID].m_gyro, imu_object[R_WRIST_IMU_ID].m_accel, imu_object[R_WRIST_IMU_ID].m_compass, imu_object[R_WRIST_IMU_ID].m_timestamp, &fusion_object[R_WRIST_IMU_ID]);
+
+		*roll = fusion_object[R_WRIST_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[R_WRIST_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[R_WRIST_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
+}
+
+int get_l_wrist_imu(float* yaw, float* pitch, float* roll)
+{
+	if(IMURead(&imu_object[L_WRIST_IMU_ID]))
+	{
+		newIMUData(imu_object[L_WRIST_IMU_ID].m_gyro, imu_object[L_WRIST_IMU_ID].m_accel, imu_object[L_WRIST_IMU_ID].m_compass, imu_object[L_WRIST_IMU_ID].m_timestamp, &fusion_object[L_WRIST_IMU_ID]);
+
+		*roll = fusion_object[L_WRIST_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+		*pitch = fusion_object[L_WRIST_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+		*yaw = fusion_object[L_WRIST_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+		return SUCCESS;
+	}
+	return IMU_MPU_READ_FAIL;
+}

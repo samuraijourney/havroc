@@ -1,56 +1,27 @@
-////////////////////////////////////////////////////////////////////////////
-//
-//  This file is part of RTIMULib-Arduino
-//
-//  Copyright (c) 2014, richards-tech
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a copy of
-//  this software and associated documentation files (the "Software"), to deal in
-//  the Software without restriction, including without limitation the rights to use,
-//  copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
-//  Software, and to permit persons to whom the Software is furnished to do so,
-//  subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-//  INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-//  PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-//  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-//  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#ifndef _MPU9250_DRIVER_H
+#define _MPU9250_DRIVER_H
 
-#ifndef _RTIMUMPU9250_H
-#define	_RTIMUMPU9250_H
-
-#include "havroc/tracking/RTIMULib/RTIMUSettings.h"
-#include "havroc/tracking/RTIMULib/RTMath.h"
-#include "havroc/tracking/RTIMULib/RTIMULibDefs.h"
-#include <havroc/communications/suit/suit_i2c.h>
-
-class RTIMUSettings;
+#include "havroc/tracking/IMU_Math.h"
 
 //  this sets the learning rate for compass running average calculation
 
-#define COMPASS_ALPHA                   (RTFLOAT)0.2
+#define COMPASS_ALPHA                   (float)0.2
 
 //  this defines the accelerometer noise level
 
-#define RTIMU_FUZZY_GYRO_ZERO           (RTFLOAT)0.20
+#define RTIMU_FUZZY_GYRO_ZERO           (float)0.20
 
 #define RTIMU_FUZZY_GYRO_ZERO_SQUARED   (RTIMU_FUZZY_GYRO_ZERO * RTIMU_FUZZY_GYRO_ZERO)
 
 //  this defines the accelerometer noise level
 
-#define RTIMU_FUZZY_ACCEL_ZERO          (RTFLOAT)0.05
+#define RTIMU_FUZZY_ACCEL_ZERO          (float)0.05
 
 #define RTIMU_FUZZY_ACCEL_ZERO_SQUARED   (RTIMU_FUZZY_ACCEL_ZERO * RTIMU_FUZZY_ACCEL_ZERO)
 
 //  MPU9250 I2C Slave Addresses
 
 #define MPU9250_ADDRESS0            0x68
-#define MPU9250_ADDRESS1            0x69
 #define MPU9250_ID                  0x71
 
 #define AK8963_ADDRESS              0x0c
@@ -147,55 +118,9 @@ class RTIMUSettings;
 
 #define MPU9250_FIFO_CHUNK_SIZE     12                      // gyro and accels take 12 bytes
 
-class RTIMUMPU9250
+typedef struct _IMU
 {
-public:
-    RTIMUMPU9250(RTIMUSettings *settings, int imu_index);
-    ~RTIMUMPU9250();
-
-    bool setGyroLpf(unsigned char lpf);
-    bool setAccelLpf(unsigned char lpf);
-    bool setSampleRate(int rate);
-    bool setCompassRate(int rate);
-    bool setGyroFsr(unsigned char fsr);
-    bool setAccelFsr(unsigned char fsr);
-
-    const char *IMUName() { return "MPU-9250"; }
-    int IMUType() { return RTIMU_TYPE_MPU9250; }
-    bool IMUInit();
-    bool IMURead();
-    int IMUGetPollInterval();
-    bool IMUCompassCalValid() {return m_calibrationValid;}
-    void setCalibrationMode(bool enable) { m_calibrationMode = enable; }
-
-    //  setCalibrationData configured the cal data and also enables use if valid
-
-    void setCalibrationData();
-
-    //  getCalibrationValid() returns true if the calibration data is being used
-
-    bool getCalibrationValid() { return !m_calibrationMode && m_calibrationValid; }
-    bool IMUGyroBiasValid();
-
-    inline const RTVector3& getGyro() { return m_gyro; }            // gets gyro rates in radians/sec
-    inline RTVector3& getAccel() { return m_accel; }          // get accel data in gs
-    inline RTVector3& getCompass() { return m_compass; }      // gets compass data in uT
-    inline unsigned long getTimestamp() { return m_timestamp; }     // and the timestamp for it
-
-private:
-    bool setGyroConfig();
-    bool setAccelConfig();
-    bool setSampleRate();
-    bool compassSetup();
-    bool setCompassRate();
-    bool resetFifo();
-    bool bypassOn();
-    bool bypassOff();
-    void handleGyroBias();                                  // adjust gyro for bias
-    void gyroBiasInit();                                    // sets up gyro bias calculation
-    void calibrateAverageCompass();                         // calibrate and smooth compass
-
-    bool m_firstTime;                                       // if first sample
+	bool m_firstTime;                                       // if first sample
     bool m_calibrationMode;                                 // true if cal mode so don't use cal data!
     bool m_calibrationValid;                                // tru if call data is valid and can be used
 
@@ -206,35 +131,85 @@ private:
     unsigned char m_accelLpf;                               // accel low pass filter setting
     int m_compassRate;                                      // compass sample rate in Hz
     int m_sampleRate;                                       // samples per second
-    int m_imu_index;
     uint64_t m_sampleInterval;                              // interval between samples in microseonds
     unsigned char m_gyroFsr;
     unsigned char m_accelFsr;
 
-    RTFLOAT m_gyroScale;
-    RTFLOAT m_accelScale;
-    RTFLOAT m_compassAdjust[3];                             // the compass fuse ROM values converted for use
-    RTFLOAT m_gyroAlpha;                                    // gyro bias learning rate
+    float m_gyroScale;
+    float m_accelScale;
+    float m_compassAdjust[3];                             // the compass fuse ROM values converted for use
+    float m_gyroAlpha;                                    // gyro bias learning rate
 
-    RTVector3 m_gyro;                                       // the gyro readings
-    RTVector3 m_accel;                                      // the accel readings
-    RTVector3 m_compass;                                    // the compass readings
+    Vector3 m_gyro;                                       // the gyro readings in radians/sec
+    Vector3 m_accel;                                      // the accel readings in gs
+    Vector3 m_compass;                                    // the compass readings in uT
     unsigned long m_timestamp;                              // the timestamp
-
-    RTIMUSettings *m_settings;                              // the settings object pointer
 
     int m_gyroSampleCount;                                  // number of gyro samples used
     bool m_gyroBiasValid;                                   // true if the recorded gyro bias is valid
-    RTVector3 m_gyroBias;                                   // the recorded gyro bias
+    Vector3 m_gyroBias;                                   // the recorded gyro bias
 
-    RTVector3 m_previousAccel;                              // previous step accel for gyro learning
+    Vector3 m_previousAccel;                              // previous step accel for gyro learning
 
     float m_compassCalOffset[3];
     float m_compassCalScale[3];
-    RTVector3 m_compassAverage;                             // a running average to smooth the mag outputs
+    Vector3 m_compassAverage;                             // a running average to smooth the mag outputs
 
-    static float m_axisRotation[9];                         // axis rotation matrix
+    float m_axisRotation[9];						        // axis rotation matrix
 
-};
+    //  IMU-specific vars
+    //  MPU9250
 
-#endif // _RTIMUMPU9250_H
+    int m_MPU9250GyroAccelSampleRate;                       // the sample rate (samples per second) for gyro and accel
+    int m_MPU9250CompassSampleRate;                         // same for the compass
+    int m_MPU9250GyroLpf;                                   // low pass filter code for the gyro
+    int m_MPU9250AccelLpf;                                  // low pass filter code for the accel
+    int m_MPU9250GyroFsr;                                   // FSR code for the gyro
+    int m_MPU9250AccelFsr;                                  // FSR code for the accel
+
+    int m_imu_index;
+}IMU;
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+void NewIMU(IMU* imu_object, int imu_index);
+
+bool setGyroConfig(IMU* imu_object);
+bool setAccelConfig(IMU* imu_object);
+bool setSampleRate(IMU* imu_object);
+bool compassSetup(IMU* imu_object);
+bool setCompassRate(IMU* imu_object);
+bool resetFifo(IMU* imu_object);
+bool bypassOn(IMU* imu_object);
+bool bypassOff(IMU* imu_object);
+void handleGyroBias(IMU* imu_object);                                  		// adjust gyro for bias
+void gyroBiasInit(IMU* imu_object);                                    		// sets up gyro bias calculation
+void calibrateAverageCompass(IMU* imu_object);                         		// calibrate and smooth compass
+
+bool setGyroLpf(IMU* imu_object, unsigned char lpf);
+bool setAccelLpf(IMU* imu_object, unsigned char lpf);
+bool setSampleVar(IMU* imu_object, int rate);
+bool setCompassVar(IMU* imu_object, int rate);
+bool setGyroFsr(IMU* imu_object, unsigned char fsr);
+bool setAccelFsr(IMU* imu_object, unsigned char fsr);
+
+int IMUInit(IMU* imu_object);
+bool IMURead(IMU* imu_object);
+int IMUGetPollInterval(IMU* imu_object);
+
+//  setCalibrationData configured the cal data and also enables use if valid
+
+void setCalibrationData(IMU* imu_object);
+
+//  getCalibrationValid() returns true if the calibration data is being used
+
+bool IMUGyroBiasValid(IMU* imu_object);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif //_MPU9250_DRIVER_H

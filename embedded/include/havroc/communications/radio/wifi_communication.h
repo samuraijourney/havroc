@@ -55,6 +55,7 @@ typedef enum{
 
 typedef struct _sendMessage
 {
+	char module;
 	char command;
 	char length;
 	float* data;

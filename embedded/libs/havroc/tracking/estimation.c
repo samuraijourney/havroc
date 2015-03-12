@@ -1,326 +1,142 @@
-#include <stdint.h>
-#include <math.h>
-#include <xdc/runtime/System.h>
-#include <xdc/runtime/Types.h>
-#include <xdc/runtime/Timestamp.h>
+#include "havroc/tracking/Estimation.h"
 
-#include <havroc/tracking/estimation.h>
-#include <havroc/tracking/imu_driver.h>
-#include <havroc/error.h>
-#include <havroc/id.h>
-#include "common.h"
+//  The QVALUE affects the gyro response.
 
-#define MAGDWICK
-//#define MAHONY
+#define QVALUE	0.001f
 
-typedef struct _IMU
+//  The RVALUE controls the influence of the accels and compass.
+//  The bigger the value, the more sluggish the response.
+
+#define RVALUE	0.0005f
+
+void reset(fusion* fusion_object)
 {
-    int id;
-    float q[4];
-    float eInt[3];
-    float lastUpdate;
-} IMU;
-
-static IMU IMU_array[6];
-
-// Implementation of Sebastian Madgwick's "...efficient orientation filter for... inertial/magnetic sensor arrays"
-// (see http://www.x-io.co.uk/category/open-source/ for examples and more details)
-// which fuses acceleration, rotation rate, and magnetic moments to produce a quaternion-based estimate of absolute
-// device orientation -- which can be converted to yaw, pitch, and roll. Useful for stabilizing quadcopters, etc.
-// The performance of the orientation filter is at least as good as conventional Kalman-based filtering algorithms
-// but is much less computationally intensive---it can be performed on a 3.3 V Pro Mini operating at 8 MHz!
-
-#ifdef MAGDWICK
-static void MadgwickQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float deltat)
-{
-    float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
-    float norm;
-    float hx, hy, _2bx, _2bz;
-    float s1, s2, s3, s4;
-    float qDot1, qDot2, qDot3, qDot4;
-
-    // Auxiliary variables to avoid repeated arithmetic
-    float _2q1mx;
-    float _2q1my;
-    float _2q1mz;
-    float _2q2mx;
-    float _4bx;
-    float _4bz;
-    float _2q1 = 2.0f * q1;
-    float _2q2 = 2.0f * q2;
-    float _2q3 = 2.0f * q3;
-    float _2q4 = 2.0f * q4;
-    float _2q1q3 = 2.0f * q1 * q3;
-    float _2q3q4 = 2.0f * q3 * q4;
-    float q1q1 = q1 * q1;
-    float q1q2 = q1 * q2;
-    float q1q3 = q1 * q3;
-    float q1q4 = q1 * q4;
-    float q2q2 = q2 * q2;
-    float q2q3 = q2 * q3;
-    float q2q4 = q2 * q4;
-    float q3q3 = q3 * q3;
-    float q3q4 = q3 * q4;
-    float q4q4 = q4 * q4;
-
-    // Normalise accelerometer measurement
-    norm = sqrt(ax * ax + ay * ay + az * az);
-    if (norm == 0.0f) return; // handle NaN
-    norm = 1.0f/norm;
-    ax *= norm;
-    ay *= norm;
-    az *= norm;
-
-    // Normalise magnetometer measurement
-    norm = sqrt(mx * mx + my * my + mz * mz);
-    if (norm == 0.0f) return; // handle NaN
-    norm = 1.0f/norm;
-    mx *= norm;
-    my *= norm;
-    mz *= norm;
-
-    // Reference direction of Earth's magnetic field
-    _2q1mx = 2.0f * q1 * mx;
-    _2q1my = 2.0f * q1 * my;
-    _2q1mz = 2.0f * q1 * mz;
-    _2q2mx = 2.0f * q2 * mx;
-    hx = mx * q1q1 - _2q1my * q4 + _2q1mz * q3 + mx * q2q2 + _2q2 * my * q3 + _2q2 * mz * q4 - mx * q3q3 - mx * q4q4;
-    hy = _2q1mx * q4 + my * q1q1 - _2q1mz * q2 + _2q2mx * q3 - my * q2q2 + my * q3q3 + _2q3 * mz * q4 - my * q4q4;
-    _2bx = sqrt(hx * hx + hy * hy);
-    _2bz = -_2q1mx * q3 + _2q1my * q2 + mz * q1q1 + _2q2mx * q4 - mz * q2q2 + _2q3 * my * q4 - mz * q3q3 + mz * q4q4;
-    _4bx = 2.0f * _2bx;
-    _4bz = 2.0f * _2bz;
-
-    // Gradient decent algorithm corrective step
-    s1 = -_2q3 * (2.0f * q2q4 - _2q1q3 - ax) + _2q2 * (2.0f * q1q2 + _2q3q4 - ay) - _2bz * q3 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q4 + _2bz * q2) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q3 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-    s2 = _2q4 * (2.0f * q2q4 - _2q1q3 - ax) + _2q1 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q2 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + _2bz * q4 * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q3 + _2bz * q1) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q4 - _4bz * q2) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-    s3 = -_2q1 * (2.0f * q2q4 - _2q1q3 - ax) + _2q4 * (2.0f * q1q2 + _2q3q4 - ay) - 4.0f * q3 * (1.0f - 2.0f * q2q2 - 2.0f * q3q3 - az) + (-_4bx * q3 - _2bz * q1) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (_2bx * q2 + _2bz * q4) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + (_2bx * q1 - _4bz * q3) * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-    s4 = _2q2 * (2.0f * q2q4 - _2q1q3 - ax) + _2q3 * (2.0f * q1q2 + _2q3q4 - ay) + (-_4bx * q4 + _2bz * q2) * (_2bx * (0.5f - q3q3 - q4q4) + _2bz * (q2q4 - q1q3) - mx) + (-_2bx * q1 + _2bz * q3) * (_2bx * (q2q3 - q1q4) + _2bz * (q1q2 + q3q4) - my) + _2bx * q2 * (_2bx * (q1q3 + q2q4) + _2bz * (0.5f - q2q2 - q3q3) - mz);
-    norm = sqrt(s1 * s1 + s2 * s2 + s3 * s3 + s4 * s4);    // normalise step magnitude
-    norm = 1.0f/norm;
-    s1 *= norm;
-    s2 *= norm;
-    s3 *= norm;
-    s4 *= norm;
-
-    // Compute rate of change of quaternion
-    qDot1 = 0.5f * (-q2 * gx - q3 * gy - q4 * gz) - beta * s1;
-    qDot2 = 0.5f * (q1 * gx + q3 * gz - q4 * gy) - beta * s2;
-    qDot3 = 0.5f * (q1 * gy - q2 * gz + q4 * gx) - beta * s3;
-    qDot4 = 0.5f * (q1 * gz + q2 * gy - q3 * gx) - beta * s4;
-
-    // Integrate to yield quaternion
-    q1 += qDot1 * deltat;
-    q2 += qDot2 * deltat;
-    q3 += qDot3 * deltat;
-    q4 += qDot4 * deltat;
-    norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise quaternion
-    norm = 1.0f/norm;
-    q[0] = q1 * norm;
-    q[1] = q2 * norm;
-    q[2] = q3 * norm;
-    q[3] = q4 * norm;
+	fusion_object->m_Q = QVALUE;
+    fusion_object->m_R = RVALUE;
+	fusion_object->m_firstTime = true;
+	Vector_Init(&(fusion_object->m_fusionPose), 0, 0, 0);
+	fromEuler(fusion_object->m_fusionPose, &(fusion_object->m_fusionQPose));
+	Vector_Init(&(fusion_object->m_measuredPose), 0, 0, 0);
+	fromEuler(fusion_object->m_measuredPose, &(fusion_object->m_measuredQPose));
 }
-#endif
 
-// Similar to Madgwick scheme but uses proportional and integral filtering on the error between estimated reference vectors and
-// measured ones. 
-#ifdef MAHONY
-static void MahonyQuaternionUpdate(float ax, float ay, float az, float gx, float gy, float gz, float mx, float my, float mz, float * q, float * eInt, float deltat)
+void newIMUData(const Vector3 gyro, const Vector3 accel, const Vector3 compass, unsigned long timestamp, fusion* fusion_object)
 {
-  float q1 = q[0], q2 = q[1], q3 = q[2], q4 = q[3];   // short name local variable for readability
-  float norm;
-  float hx, hy, bx, bz;
-  float vx, vy, vz, wx, wy, wz;
-  float ex, ey, ez;
-  float pa, pb, pc;
-
-  // Auxiliary variables to avoid repeated arithmetic
-  float q1q1 = q1 * q1;
-  float q1q2 = q1 * q2;
-  float q1q3 = q1 * q3;
-  float q1q4 = q1 * q4;
-  float q2q2 = q2 * q2;
-  float q2q3 = q2 * q3;
-  float q2q4 = q2 * q4;
-  float q3q3 = q3 * q3;
-  float q3q4 = q3 * q4;
-  float q4q4 = q4 * q4;   
-
-  // Normalise accelerometer measurement
-  norm = sqrt(ax * ax + ay * ay + az * az);
-  if (norm == 0.0f) return; // handle NaN
-  norm = 1.0f / norm;        // use reciprocal for division
-  ax *= norm;
-  ay *= norm;
-  az *= norm;
-
-  // Normalise magnetometer measurement
-  norm = sqrt(mx * mx + my * my + mz * mz);
-  if (norm == 0.0f) return; // handle NaN
-  norm = 1.0f / norm;        // use reciprocal for division
-  mx *= norm;
-  my *= norm;
-  mz *= norm;
-
-  // Reference direction of Earth's magnetic field
-  hx = 2.0f * mx * (0.5f - q3q3 - q4q4) + 2.0f * my * (q2q3 - q1q4) + 2.0f * mz * (q2q4 + q1q3);
-  hy = 2.0f * mx * (q2q3 + q1q4) + 2.0f * my * (0.5f - q2q2 - q4q4) + 2.0f * mz * (q3q4 - q1q2);
-  bx = sqrt((hx * hx) + (hy * hy));
-  bz = 2.0f * mx * (q2q4 - q1q3) + 2.0f * my * (q3q4 + q1q2) + 2.0f * mz * (0.5f - q2q2 - q3q3);
-
-  // Estimated direction of gravity and magnetic field
-  vx = 2.0f * (q2q4 - q1q3);
-  vy = 2.0f * (q1q2 + q3q4);
-  vz = q1q1 - q2q2 - q3q3 + q4q4;
-  wx = 2.0f * bx * (0.5f - q3q3 - q4q4) + 2.0f * bz * (q2q4 - q1q3);
-  wy = 2.0f * bx * (q2q3 - q1q4) + 2.0f * bz * (q1q2 + q3q4);
-  wz = 2.0f * bx * (q1q3 + q2q4) + 2.0f * bz * (0.5f - q2q2 - q3q3);  
-
-  // Error is cross product between estimated direction and measured direction of gravity
-  ex = (ay * vz - az * vy) + (my * wz - mz * wy);
-  ey = (az * vx - ax * vz) + (mz * wx - mx * wz);
-  ez = (ax * vy - ay * vx) + (mx * wy - my * wx);
-  if (Ki > 0.0f)
-  {
-      eInt[0] += ex;      // accumulate integral error
-      eInt[1] += ey;
-      eInt[2] += ez;
-  }
-  else
-  {
-      eInt[0] = 0.0f;     // prevent integral wind up
-      eInt[1] = 0.0f;
-      eInt[2] = 0.0f;
-  }
-
-  // Apply feedback terms
-  gx = gx + Kp * ex + Ki * eInt[0];
-  gy = gy + Kp * ey + Ki * eInt[1];
-  gz = gz + Kp * ez + Ki * eInt[2];
-
-  // Integrate rate of change of quaternion
-  pa = q2;
-  pb = q3;
-  pc = q4;
-  q1 = q1 + (-q2 * gx - q3 * gy - q4 * gz) * (0.5f * deltat);
-  q2 = pa + (q1 * gx + pb * gz - pc * gy) * (0.5f * deltat);
-  q3 = pb + (q1 * gy - pa * gz + pc * gx) * (0.5f * deltat);
-  q4 = pc + (q1 * gz + pa * gy - pb * gx) * (0.5f * deltat);
-
-  // Normalise quaternion
-  norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);
-  norm = 1.0f / norm;
-  q[0] = q1 * norm;
-  q[1] = q2 * norm;
-  q[2] = q3 * norm;
-  q[3] = q4 * norm;
-}
-#endif
-
-int startIMU()
-{
-  int i = 0;
-  int j = 0;
-
-  for(i = R_SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
-  {
-	IMU_array[i].q[0] = 1.0f;
-
-	for(j = 0; j < 3; j++)
+	if (fusion_object->m_firstTime) 
 	{
-	  IMU_array[i].q[j+1] = 0.0f;
-	  IMU_array[i].eInt[j] = 0.0f;
+		fusion_object->m_lastFusionTime = timestamp;
+
+		calculatePose(fusion_object, accel, compass);
+
+        //  initialize the poses
+
+		fromEuler(fusion_object->m_measuredPose, &(fusion_object->m_fusionQPose));
+		fusion_object->m_fusionPose = fusion_object->m_measuredPose;
+		fusion_object->m_firstTime = false;
+	} 
+	else 
+	{
+		fusion_object->m_timeDelta = (float)(timestamp - fusion_object->m_lastFusionTime) / (float)1000;
+		fusion_object->m_lastFusionTime = timestamp;
+		if (fusion_object->m_timeDelta <= 0)
+			return;
+
+		calculatePose(fusion_object, accel, compass);
+        //Serial.print("qs "); Serial.println(fusion_object->m_measuredQPose.scalar());
+
+		//  predict();
+
+		float x2, y2, z2;
+		float qs, qx, qy,qz;
+
+		qs = fusion_object->m_fusionQPose.m_data[0];
+		qx = fusion_object->m_fusionQPose.m_data[1];
+		qy = fusion_object->m_fusionQPose.m_data[2];
+		qz = fusion_object->m_fusionQPose.m_data[3];
+
+//	    Serial.print("qs "); Serial.println(qs);
+
+		x2 = gyro.m_data[0] / (float)2.0;
+		y2 = gyro.m_data[1] / (float)2.0;
+		z2 = gyro.m_data[2] / (float)2.0;
+
+        // Predict new state
+
+		fusion_object->m_fusionQPose.m_data[0] = (qs + (-x2 * qx - y2 * qy - z2 * qz) * fusion_object->m_timeDelta);
+		fusion_object->m_fusionQPose.m_data[1] = (qx + (x2 * qs + z2 * qy - y2 * qz) * fusion_object->m_timeDelta);
+		fusion_object->m_fusionQPose.m_data[2] = (qy + (y2 * qs - z2 * qx + x2 * qz) * fusion_object->m_timeDelta);
+		fusion_object->m_fusionQPose.m_data[3] = (qz + (z2 * qs + y2 * qx - x2 * qy) * fusion_object->m_timeDelta);
+
+		// update();
+
+		fusion_object->m_stateQError = subtractQuaternion(fusion_object->m_measuredQPose, fusion_object->m_fusionQPose);
+
+        // make new state estimate
+
+		float qt = fusion_object->m_Q * fusion_object->m_timeDelta;
+
+		fusion_object->m_fusionQPose = addQuaternion(fusion_object->m_fusionQPose, multiplyQuaternion2val(fusion_object->m_stateQError, (qt / (qt + fusion_object->m_R))));
+
+		normalizeQuaternion(&(fusion_object->m_fusionQPose));
+
+		toEuler(&(fusion_object->m_fusionPose), fusion_object->m_fusionQPose);
 	}
-
-    IMU_array[i].id = i;
-    IMU_array[i].lastUpdate = 0;
-
-    if(initMPU(i) == IMU_MPU_START_FAIL)
-    {
-      return IMU_MPU_START_FAIL;
-    }
-
-    if(initCompass(i) == IMU_COMPASS_START_FAIL)
-    {
-      return IMU_COMPASS_START_FAIL;
-    }
-  }
-
-  return SUCCESS;
 }
 
-int startIMU_Raw()
+void calculatePose(fusion* fusion_object, Vector3 accel, const Vector3 mag)
 {
-  int i = 0;
+    Quaternion m;
+    Quaternion q;
+    int i;
 
-  for(i = R_SHOULDER_IMU_ID; i < IMU_ID_MAX; i++)
-  {
-    if(initMPU(i) == IMU_MPU_START_FAIL)
-    {
-      return IMU_MPU_START_FAIL;
+    accelToEuler(&accel, &(fusion_object->m_measuredPose));
+    
+    float cosX2 = cos(fusion_object->m_measuredPose.m_data[0] / 2.0f);
+    float sinX2 = sin(fusion_object->m_measuredPose.m_data[0] / 2.0f);
+    float cosY2 = cos(fusion_object->m_measuredPose.m_data[1] / 2.0f);
+    float sinY2 = sin(fusion_object->m_measuredPose.m_data[1] / 2.0f);
+
+    q.m_data[0] = (cosX2 * cosY2);
+    q.m_data[1] = (sinX2 * cosY2);
+    q.m_data[2] =(cosX2 * sinY2);
+    q.m_data[3] = ( - sinX2 * sinY2);
+    
+    //   normalize();
+
+    m.m_data[0] = (0);
+    m.m_data[1] = (mag.m_data[0]);
+    m.m_data[2] = (mag.m_data[1]);
+    m.m_data[3] = (mag.m_data[2]);
+
+    m = multiplyQuaternion(multiplyQuaternion(q, m), conjugate(q));
+    //Serial.print("mag"); Serial.println(mag.z());
+
+    fusion_object->m_measuredPose.m_data[2]= -atan2(m.m_data[2], m.m_data[1]);
+ 
+    fromEuler(fusion_object->m_measuredPose, &(fusion_object->m_measuredQPose));
+
+    //  check for quaternion aliasing. If the quaternion has the wrong sign
+    //  the kalman filter will be very unhappy.
+
+    int maxIndex = -1;
+    float maxVal = -1000;
+
+    for (i = 0; i < 4; i++) {
+        if (fabs(fusion_object->m_measuredQPose.m_data[i]) > maxVal) {
+            maxVal = fabs(fusion_object->m_measuredQPose.m_data[i]);
+            maxIndex = i;
+        }
     }
 
-    if(initCompass(i) == IMU_COMPASS_START_FAIL)
-    {
-      return IMU_COMPASS_START_FAIL;
+    //  if the biggest component has a different sign in the measured and kalman poses,
+    //  change the sign of the measured pose to match.
+
+    if (((fusion_object->m_measuredQPose.m_data[maxIndex] < 0) && (fusion_object->m_fusionQPose.m_data[maxIndex] > 0)) ||
+            ((fusion_object->m_measuredQPose.m_data[maxIndex] > 0) && (fusion_object->m_fusionQPose.m_data[maxIndex] < 0))) {
+        fusion_object->m_measuredQPose.m_data[0] = (-(fusion_object->m_measuredQPose.m_data[0]));
+        fusion_object->m_measuredQPose.m_data[1] = (-(fusion_object->m_measuredQPose.m_data[1]));
+        fusion_object->m_measuredQPose.m_data[2] = (-(fusion_object->m_measuredQPose.m_data[2]));
+        fusion_object->m_measuredQPose.m_data[3] = (-(fusion_object->m_measuredQPose.m_data[3]));
+        toEuler(&(fusion_object->m_measuredPose), fusion_object->m_measuredQPose);
     }
-  }
-
-  return SUCCESS;
-}
-
-int returnEstimate(int id, float * yaw, float * pitch, float * roll)
-{
-  float gyroX = 0;
-  float gyroY = 0;
-  float gyroZ = 0;
-  float accelX = 0;
-  float accelY = 0;
-  float accelZ = 0;
-  float magX = 0;
-  float magY = 0;
-  float magZ = 0;
-  float delt_t = 0;
-  float now = 0;
-  Types_FreqHz freq;
-
-  Timestamp_getFreq(&freq);
-
-  if(readMPUData(&accelX,&accelY,&accelZ,&gyroX,&gyroY,&gyroZ, id) != SUCCESS)
-  {
-    return IMU_MPU_READ_FAIL;
-  }
-
-  if(readCompassData(&magX,&magY,&magZ, id) != SUCCESS)
-  {
-    return IMU_COMPASS_READ_FAIL;
-  }
-
-  now = Timestamp_get32();
-  delt_t = (now - IMU_array[id].lastUpdate)/(1.0*freq.lo);
-  IMU_array[id].lastUpdate = now;
-
-#ifdef MAGDWICK
-  MadgwickQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[id].q[0], delt_t);
-#endif
-
-#ifdef MAHONY
-  MahonyQuaternionUpdate(accelX, accelY, accelZ, gyroX*PI/180.0f, gyroY*PI/180.0f, gyroZ*PI/180.0f, magY, magX, magZ, &IMU_array[id].q[0], &IMU_array[id].eInt[0], delt_t);
-#endif
-  // Convert quaternion orientation to euler angles in aircraft orientation.
-  // Positive z-axis is down toward Earth. 
-  // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
-  // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
-  // Roll is angle between sensor y-axis and Earth ground plane, y-axis up is positive roll.
-  // The correct order which for this configuration is yaw, pitch, and then roll.
-
-  *yaw   = atan2(2.0f * (IMU_array[id].q[1] * IMU_array[id].q[2] + IMU_array[id].q[0] * IMU_array[id].q[3]), IMU_array[id].q[0] * IMU_array[id].q[0] + IMU_array[id].q[1] * IMU_array[id].q[1] - IMU_array[id].q[2] * IMU_array[id].q[2] - IMU_array[id].q[3] * IMU_array[id].q[3]);
-  *pitch = -asin(2.0f * (IMU_array[id].q[1] * IMU_array[id].q[3] - IMU_array[id].q[0] * IMU_array[id].q[2]));
-  *roll  = atan2(2.0f * (IMU_array[id].q[0] * IMU_array[id].q[1] + IMU_array[id].q[2] * IMU_array[id].q[3]), IMU_array[id].q[0] * IMU_array[id].q[0] - IMU_array[id].q[1] * IMU_array[id].q[1] - IMU_array[id].q[2] * IMU_array[id].q[2] + IMU_array[id].q[3] * IMU_array[id].q[3]);
-  *pitch *= 180.0f / PI;
-  *yaw   *= 180.0f / PI;// + 9.4; // Waterloo, ON magnetic declination: 9, 38.58 W
-  *roll  *= 180.0f / PI;
-
-  return SUCCESS;
 }

@@ -1,69 +1,72 @@
+#include <xdc/std.h>
+#include <xdc/runtime/IHeap.h>
 #include <xdc/runtime/System.h>
-#include <ti/drivers/I2C.h>
-#include <havroc/communications/suit/suit_i2c.h>
+#include <xdc/runtime/Memory.h>
+#include "havroc/communications/suit/suit_i2c.h"
 
-void suit_i2c_transfer( uint32_t i2cIndex,
-					    uint8_t addr,
-					    uint8_t txBuff[],
-					    size_t writeCount,
-					    uint8_t rxBuff[],
-					    size_t readCount )
+SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
+									uint8_t writeBuff[],
+									size_t writeCount, 
+									uint8_t readBuff[], 
+									size_t readCount)
 {
     I2C_Handle      i2c;
     I2C_Params      i2cParams;
     I2C_Transaction i2cTransaction;
-
-    i2cIndex = 0;
+    SuitI2CErrorCode retVal = SUIT_I2C_E_SUCCESS;
 
     /* Create I2C for usage */
 
     I2C_Params_init(&i2cParams);
-    i2cParams.bitRate = I2C_400kHz;
+    i2cParams.bitRate = SUIT_I2C_BITRATE;
 
-    i2c = I2C_open(i2cIndex, &i2cParams);
+    i2c = I2C_open(SUIT_I2C_INDEX, &i2cParams);
 
     if (i2c == NULL)
-    {
-        System_abort("Error Initializing I2C\n");
-    }
-    else
-    {
-        //System_printf("I2C Initialized!\n");
-    }
+        retVal = SUIT_I2C_E_INIT_FAIL;
 
     i2cTransaction.slaveAddress = addr;
-    i2cTransaction.writeBuf = &(txBuff[0]);
+    i2cTransaction.writeBuf = writeBuff;
     i2cTransaction.writeCount = writeCount;
-    i2cTransaction.readBuf = &(rxBuff[0]);
+    i2cTransaction.readBuf = readBuff;
     i2cTransaction.readCount = readCount;
 
 	if (!(I2C_transfer(i2c, &i2cTransaction)))
-	{
-		System_printf("I2C Bus fault\n");
-	}
-
-	System_flush();
+		retVal = SUIT_I2C_E_BUS_FAULT;
 
     /* Deinitialized I2C */
     I2C_close(i2c);
+
+    return retVal;
 }
 
-void suit_i2c_read(uint32_t i2cIndex, uint8_t addr, uint8_t reg_addr, uint8_t rxBuff[], size_t readCount)
+SuitI2CErrorCode suit_i2c_read(uint8_t addr, 
+							 	uint8_t regAddr, 
+							 	uint8_t readBuff[], 
+							 	size_t readCount)
 {
-	uint8_t txBuff[1];
-	txBuff[0] = reg_addr;
+	uint8_t writeBuff[1];
+	writeBuff[0] = regAddr;
 
-	suit_i2c_transfer(i2cIndex, addr, txBuff, 1, rxBuff, readCount);
+	return suit_i2c_transfer(addr, writeBuff, 1, readBuff, readCount);
 }
 
-void suit_i2c_write(uint32_t i2cIndex, uint8_t addr, uint8_t reg_addr, uint8_t txBuff[], size_t writeCount)
+SuitI2CErrorCode suit_i2c_write(uint8_t addr, 
+								uint8_t regAddr, 
+								uint8_t writeBuff[], 
+								size_t writeCount)
 {
-	uint8_t* writeBuff = (uint8_t*)malloc(sizeof(uint8_t)*(writeCount+1));
-	writeBuff[0] = reg_addr;
+	SuitI2CErrorCode retVal;
+	uint8_t* writeBuff2;
 
-	memcpy (&writeBuff[1], txBuff, writeCount*sizeof(uint8_t));
+	writeBuff2 = Memory_alloc(NULL, writeCount + 1, 0, NULL);
 
-	suit_i2c_transfer(i2cIndex, addr, writeBuff, writeCount+1, NULL, 0);
+	writeBuff2[0] = regAddr;
 
-	free(writeBuff);
+	memcpy (&(writeBuff2[1]), writeBuff, writeCount);
+
+	retVal = suit_i2c_transfer(addr, writeBuff, writeCount + 1, NULL, 0);
+
+	Memory_free(NULL, writeBuff2, writeCount + 1);
+	return retVal;
 }

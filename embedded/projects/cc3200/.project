@@ -72,6 +72,11 @@
 			<locationURI>HAVROC_LOC/libs/havroc/communications</locationURI>
 		</link>
 		<link>
+			<name>modules/service</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/libs/havroc/service</locationURI>
+		</link>
+		<link>
 			<name>modules/tracking</name>
 			<type>2</type>
 			<locationURI>HAVROC_LOC/libs/havroc/tracking</locationURI>

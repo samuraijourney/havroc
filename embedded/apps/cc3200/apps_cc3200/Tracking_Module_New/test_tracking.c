@@ -5,7 +5,6 @@
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
 #include <xdc/runtime/System.h>
-#include <ti/sysbios/knl/Event.h>
 
 
 /* BIOS Header files */
@@ -18,40 +17,65 @@
 
 /* Board Header file */
 #include <Board.h>
+#include <utils.h>
 
-#include "havroc/tracking/RTIMULib/RTIMUSettings.h"
-#include "havroc/tracking/RTIMULib/RTFusionRTQF.h"
-#include "havroc/tracking/CalLib/Calibration.h"
+#include "havroc/tracking/Estimation.h"
+#include "havroc/tracking/IMU_Math.h"
+#include "havroc/tracking/MPU9250_Driver.h"
 
-RTIMUMPU9250 *imu;                                           // the IMU object
-RTFusionRTQF fusion;                                  // the fusion object
-RTIMUSettings settings;                               // the settings object
+#include "uart_if.h"
+#include "common.h"
+
+IMU test_imu_object;                                      // the IMU object
+fusion test_fusion_object;                                // the fusion object
+
+#define OFFSET_COUNT 1000.0
 
 Void testFxn(UArg arg0, UArg arg1)
 {
 	float yaw, pitch, roll;
+	double roll_offset = 0, pitch_offset = 0, yaw_offset = 0;
 	int count = 0;
 
-	init_calib ();
-	imu = new RTIMUMPU9250(&settings);                        // create the imu object
-    imu->IMUInit();
-
-	// use of sensors in the fusion algorithm can be controlled here
-    // change any of these to false to disable that sensor
-    
-    fusion.setGyroEnable(true);
-    fusion.setAccelEnable(true);
-    fusion.setCompassEnable(true);
+	NewIMU(&test_imu_object, 0);                        // create the imu object
+	IMUInit(&test_imu_object);
+	reset(&test_fusion_object);
 
     while(1)
     {
-	    if (imu->IMURead()) 
-	    {         
-        	fusion.newIMUData(imu->getGyro(), imu->getAccel(), imu->getCompass(), imu->getTimestamp());
-        	delay(10);                       // get the latest data if ready yet
+    	if(count < OFFSET_COUNT)
+    	{
+    		if(IMURead(&test_imu_object))
+			{
+				newIMUData(test_imu_object.m_gyro, test_imu_object.m_accel, test_imu_object.m_compass, test_imu_object.m_timestamp, &test_fusion_object);
 
-            RTMath::displayRollPitchYaw("Pose:", (RTVector3&)fusion.getFusionPose()); // fused output       
-	    }
+				roll_offset += test_fusion_object.m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+				pitch_offset += test_fusion_object.m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+				yaw_offset += test_fusion_object.m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+				count++;
+			}
+
+
+    		if(count == OFFSET_COUNT)
+    		{
+    			roll_offset/=-OFFSET_COUNT;
+    			pitch_offset/=-OFFSET_COUNT;
+    			yaw_offset/=-OFFSET_COUNT;
+    		}
+    	}
+    	else
+    	{
+			if(IMURead(&test_imu_object))
+			{
+				newIMUData(test_imu_object.m_gyro, test_imu_object.m_accel, test_imu_object.m_compass, test_imu_object.m_timestamp, &test_fusion_object);
+
+				roll = test_fusion_object.m_fusionPose.m_data[0] * RAD_TO_DEGREE + roll_offset;
+				pitch = test_fusion_object.m_fusionPose.m_data[1] * RAD_TO_DEGREE + pitch_offset;
+				yaw = test_fusion_object.m_fusionPose.m_data[2] * RAD_TO_DEGREE + yaw_offset;
+
+				Report("roll: %.0f, pitch %.0f, yaw %.0f, timestamp %i \n\r", round(roll), round(pitch), round(yaw), test_imu_object.m_timestamp);
+			}
+    	}
 	}
 }
 

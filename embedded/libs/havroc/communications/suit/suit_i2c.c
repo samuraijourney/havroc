@@ -18,6 +18,7 @@ SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
     /* Create I2C for usage */
 
     I2C_Params_init(&i2cParams);
+    i2cParams.transferMode = I2C_MODE_BLOCKING;
     i2cParams.bitRate = SUIT_I2C_BITRATE;
 
     i2c = I2C_open(SUIT_I2C_INDEX, &i2cParams);

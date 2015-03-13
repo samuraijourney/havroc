@@ -119,6 +119,7 @@ namespace havroc
 		boost::shared_ptr<comm_signals_pack> get_comm_signals_pack() { return m_signals_pack; }
 
 		bool is_active() { return m_active; }
+		void cancel() { m_cancel = true; }
 
 		int end_service(int error = SUCCESS);
 		virtual int start_service() = 0;
@@ -132,6 +133,8 @@ namespace havroc
 		virtual int kill_socket() = 0;
 
 		boost::asio::io_service& m_service;
+
+		bool m_cancel;
 
 	private:
 		void init_loop();

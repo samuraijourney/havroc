@@ -21,7 +21,8 @@ void suit_i2c_transfer( uint32_t i2cIndex,
     /* Create I2C for usage */
 
     I2C_Params_init(&i2cParams);
-    i2cParams.bitRate = I2C_400kHz;
+    i2cParams.transferMode = I2C_MODE_BLOCKING;
+    i2cParams.bitRate = SUIT_I2C_BITRATE;
 
     i2c = I2C_open(i2cIndex, &i2cParams);
 

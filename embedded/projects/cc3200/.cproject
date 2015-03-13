@@ -103,7 +103,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="apps/apps_cc3200/Tracking_Module/test_tracking.c|apps/apps_cc3200/MainApp/main.c|apps/apps_cc3200/TestApp/main.c|apps/apps_cc3200/Wifi_Module/test_wifi.c|apps/apps_cc3200/Actuation_Module/test_actuation.c|apps/apps_universal|empty.c|apps/apps_universal/service_test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="apps/apps_cc3200/TestApp/main.c|apps/apps_cc3200/empty_example/main.c|apps/apps_cc3200/Tracking_Module_New/test_tracking.c|apps/apps_cc3200/Tracking_Module/test_tracking.c|apps/apps_cc3200/MainApp/main.c|apps/apps_cc3200/Wifi_Module/test_wifi.c|apps/apps_universal|empty.c|apps/apps_universal/service_test" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

@@ -10,29 +10,30 @@
 
 enum Command_Modules
 {
-	TRACKING_CMD = 1,
-	SYSTEM_CMD,
-	MOTOR_CMD,
-	CMD_MAX
+	BASE_MOD = 0,
+	TRACKING_MOD,
+	SYSTEM_MOD,
+	MOTOR_MOD,
+	MAX_MOD
 };
 
 enum Tracking_Messages
 {
-	STATE_CMD = 10,
-	DATA_CMD,
+	TRACKING_STATE_CMD = 10,
+	TRACKING_DATA_CMD,
 	TRACKING_MAX
 };
 
 enum Motor_Messages
 {
-	DATA_CMD = 20,
+	MOTOR_DATA_CMD = 20,
 	MOTOR_MAX
 };
 
 enum System_Messages
 {
-	KILL_CMD = 30,
-	MOTOR_MAX
+	SYSTEM_KILL_CMD = 30,
+	SYSTEM_MAX
 };
 
 #define ERROR_CMD		   0

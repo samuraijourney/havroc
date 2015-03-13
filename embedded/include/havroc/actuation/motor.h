@@ -37,6 +37,7 @@ typedef enum _MotorErrorCode
  */
 typedef struct _Motor
 {
+	uint8_t id;
 	MotorState state;
 	uint8_t intensity;
 	uint8_t calibrateComplete;

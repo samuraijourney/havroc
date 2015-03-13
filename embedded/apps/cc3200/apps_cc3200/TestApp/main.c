@@ -39,9 +39,9 @@
 #include <ti/sysbios/knl/Event.h>
 #include <ti/sysbios/knl/Task.h>
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Timestamp.h>
 #include <xdc/runtime/Types.h>
-#include <ti/sysbios/knl/Clock.h>
+#include <xdc/cfg/global.h>
+#include <xdc/runtime/Timestamp.h>
 
 
 /* BIOS Header files */
@@ -55,12 +55,19 @@
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/tracking/service.h"
 
+#include "uart_if.h"
+#include "common.h"
+
 Event_Handle   EventMgr_Event;
 Event_Handle   Timer_Event;
+
+Timer_Params   timerParams;
+Timer_Handle   myTimer;
+
 #define 	   EventReceived 	1
 #define 	   Passed_5ms 		2
 
-unsigned long millis ()
+unsigned long millis_main ()
 {
 	Types_FreqHz freq;
 
@@ -78,10 +85,9 @@ static void BoardInit(void)
     PRCMCC3200MCUInit();
 }
 
-void PostClock()
+void TimerISR()
 {
 	Event_post(Timer_Event, Passed_5ms);
-	Task_yield();
 }
 
 void Fxn1()
@@ -128,7 +134,7 @@ void Fxn3()
 
 		if(events & Passed_5ms)
 		{
-			now = millis();
+			now = millis_main();
 
 			System_printf("This is Task 3 - Elapsed Time is %.04f\n", now-prev);
 			System_flush();
@@ -141,8 +147,8 @@ void Fxn3()
 }
 int main(void)
 {
-	Clock_Params   clockParams;
-	Clock_Handle   clkHandle;
+//	Clock_Params   clockParams;
+//	Clock_Handle   clkHandle;
 
     Task_Handle task1;
 	Task_Handle task2;
@@ -165,11 +171,6 @@ int main(void)
 	// Initialize I2C
     Board_initI2C();
 
-	Clock_Params_init(&clockParams);
-	clockParams.period = 10;/* every 4 Clock ticks */
-	clockParams.startFlag = TRUE;/* start immediately */
-	clkHandle = Clock_create((Clock_FuncPtr)PostClock, 1, &clockParams, NULL);
-
 	EventMgr_Event = Event_create(NULL, NULL);
 	Timer_Event = Event_create(NULL, NULL);
 
@@ -190,7 +191,7 @@ int main(void)
 		System_flush();
 	}
 
-	params.priority = 14;
+	params.priority = 15;
 
 	task3 = Task_create((Task_FuncPtr)Fxn3, &params, NULL);
 	if (task3 == NULL) {
@@ -200,6 +201,7 @@ int main(void)
 
     /* Start BIOS */
     BIOS_start();
+   // Timer_start(myTimer);
 
     return (0);
 }

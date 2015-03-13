@@ -42,12 +42,22 @@ namespace havroc
 		return m_tcp_server->start_service();
 	}
 
+	void NetworkManager::async_start_tcp_server()
+	{
+		m_async_tcp_server_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_server, this));
+	}
+
 	int NetworkManager::start_tcp_client(char* ip)
 	{
 		m_stop = false;
 
 		m_tcp_client->set_ip(ip);
 		return m_tcp_client->start_service();
+	}
+
+	void NetworkManager::async_start_tcp_client(char* ip)
+	{
+		m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, ip));
 	}
 
 	int NetworkManager::start_udp_server()
@@ -57,11 +67,21 @@ namespace havroc
 		return m_udp_server->start_service();
 	}
 
+	void NetworkManager::async_start_udp_server()
+	{
+		m_async_udp_server_connection_thread = boost::thread(boost::bind(&NetworkManager::start_udp_server, this));
+	}
+
 	int NetworkManager::start_udp_client()
 	{
 		m_stop = false;
 
 		return m_udp_client->start_service();
+	}
+
+	void NetworkManager::async_start_udp_client()
+	{
+		m_async_udp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_udp_client, this));
 	}
 
 	int NetworkManager::stop_tcp_server()
@@ -72,6 +92,12 @@ namespace havroc
 
 		if ((ret = m_tcp_server->end_service()) == NETWORK_IS_INACTIVE)
 		{
+			if (!m_async_tcp_server_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
+			{
+				m_async_tcp_server_connection_thread.interrupt();
+			}
+
+			m_tcp_server->cancel();
 			reset_tcp_server();
 		}
 
@@ -86,6 +112,12 @@ namespace havroc
 
 		if ((ret = m_tcp_client->end_service()) == NETWORK_IS_INACTIVE)
 		{
+			if (!m_async_tcp_client_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
+			{
+				m_async_tcp_client_connection_thread.interrupt();
+			}
+
+			m_tcp_client->cancel();
 			reset_tcp_client();
 		}
 
@@ -100,6 +132,12 @@ namespace havroc
 
 		if ((ret = m_udp_server->end_service()) == NETWORK_IS_INACTIVE)
 		{
+			if (!m_async_udp_server_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
+			{
+				m_async_udp_server_connection_thread.interrupt();
+			}
+
+			m_udp_server->cancel();
 			reset_udp_server();
 		}
 
@@ -114,6 +152,12 @@ namespace havroc
 
 		if ((ret = m_udp_client->end_service()) == NETWORK_IS_INACTIVE)
 		{
+			if (!m_async_udp_client_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
+			{
+				m_async_udp_client_connection_thread.interrupt();
+			}
+
+			m_udp_client->cancel();
 			reset_udp_client();
 		}
 

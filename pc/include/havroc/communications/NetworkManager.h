@@ -24,6 +24,11 @@ namespace havroc
 		int start_udp_server();
 		int start_udp_client();
 
+		void async_start_tcp_server();
+		void async_start_tcp_client(char* ip = CC3200_IP);
+		void async_start_udp_server();
+		void async_start_udp_client();
+
 		int stop_tcp_server();
 		int stop_tcp_client();
 		int stop_udp_server();
@@ -478,6 +483,11 @@ namespace havroc
 		boost::shared_ptr<TCPNetworkClient> m_tcp_client;
 		boost::shared_ptr<UDPNetworkServer> m_udp_server;
 		boost::shared_ptr<UDPNetworkClient> m_udp_client;
+
+		boost::thread m_async_tcp_server_connection_thread;
+		boost::thread m_async_tcp_client_connection_thread;
+		boost::thread m_async_udp_server_connection_thread;
+		boost::thread m_async_udp_client_connection_thread;
 
 		static NetworkManager* m_instance;
 	};

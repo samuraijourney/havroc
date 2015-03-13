@@ -35,6 +35,11 @@ extern "C"
 		return havroc::NetworkManager::get()->start_tcp_client(ip);
 	}
 
+	void CALLBACK_CONV hvr_async_start_connection(char* ip)
+	{
+		return havroc::NetworkManager::get()->async_start_tcp_client(ip);
+	}
+
 	int CALLBACK_CONV hvr_end_connection()
 	{
 		return havroc::NetworkManager::get()->stop_tcp_client();

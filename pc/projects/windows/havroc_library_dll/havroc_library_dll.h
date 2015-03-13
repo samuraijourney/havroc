@@ -31,6 +31,7 @@ extern "C"
 
 	/* Network API functions */
 	extern HAVROC_LIBRARY_DLL_API int  CALLBACK_CONV	hvr_start_connection(char* ip);
+	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_async_start_connection(char* ip);
 	extern HAVROC_LIBRARY_DLL_API int  CALLBACK_CONV	hvr_end_connection();
 	extern HAVROC_LIBRARY_DLL_API bool CALLBACK_CONV	hvr_is_network_active();
 	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_connect_callback(connect_callback callback);
@@ -52,6 +53,5 @@ extern "C"
 	/* Motor API functions */
 	extern HAVROC_LIBRARY_DLL_API int  CALLBACK_CONV	hvr_send_motor_command(BYTE* index, BYTE* intensity, int length);
 }
-
 
 #endif /* HAVROC_LIBRARY_DLL_H_ */

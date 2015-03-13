@@ -5,7 +5,8 @@ namespace havroc
 
 	Network::Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
 	: m_service(service),
-	  m_active(false)
+	  m_active(false),
+	  m_cancel(false)
 	{
 		if (signals_pack == 0)
 		{

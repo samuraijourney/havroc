@@ -34,6 +34,8 @@ namespace havroc
 	{
 		boost::system::error_code error;
 
+		m_cancel = false;
+
 		if (is_active())
 		{
 			return NETWORK_IS_ACTIVE;
@@ -46,6 +48,11 @@ namespace havroc
 
 		while (!is_active())
 		{
+			if (m_cancel)
+			{
+				return NETWORK_CONNECTION_START_CANCELLED;
+			}
+
 			if (handles == 1)
 			{
 				m_socket.async_connect(m_endpoint, boost::bind(&TCPNetworkClient::handle_accept, this,

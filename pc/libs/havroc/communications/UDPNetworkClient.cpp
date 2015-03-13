@@ -11,6 +11,8 @@ namespace havroc
 
 	int UDPNetworkClient::start_service()
 	{
+		m_cancel = false;
+
 		if (is_active())
 		{
 			return NETWORK_IS_ACTIVE;

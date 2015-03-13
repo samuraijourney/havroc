@@ -66,30 +66,58 @@ namespace havroc
 
 	int NetworkManager::stop_tcp_server()
 	{
+		int ret;
+
 		m_stop = true;
 
-		return m_tcp_server->end_service();
+		if ((ret = m_tcp_server->end_service()) == NETWORK_IS_INACTIVE)
+		{
+			reset_tcp_server();
+		}
+
+		return ret;
 	}
 
 	int NetworkManager::stop_tcp_client()
 	{
+		int ret;
+
 		m_stop = true;
 
-		return m_tcp_client->end_service();
+		if ((ret = m_tcp_client->end_service()) == NETWORK_IS_INACTIVE)
+		{
+			reset_tcp_client();
+		}
+
+		return ret;
 	}
 
 	int NetworkManager::stop_udp_server()
 	{
+		int ret;
+
 		m_stop = true;
 
-		return m_udp_server->end_service();
+		if ((ret = m_udp_server->end_service()) == NETWORK_IS_INACTIVE)
+		{
+			reset_udp_server();
+		}
+
+		return ret;
 	}
 
 	int NetworkManager::stop_udp_client()
 	{
+		int ret;
+
 		m_stop = true;
 
-		return m_udp_client->end_service();
+		if ((ret = m_udp_client->end_service()) == NETWORK_IS_INACTIVE)
+		{
+			reset_udp_client();
+		}
+
+		return ret;
 	}
 
 	int NetworkManager::send(std::string msg)
@@ -132,13 +160,7 @@ namespace havroc
 
 	void NetworkManager::network_disconnect_tcp_server()
 	{
-		_io_service_tcp_server.stop();
-		_io_service_tcp_server.reset();
-
-		auto signals_pack = m_tcp_server->get_comm_signals_pack();
-
-		m_tcp_server.reset();
-		m_tcp_server = boost::shared_ptr<TCPNetworkServer>(new TCPNetworkServer(_io_service_tcp_server, signals_pack));
+		reset_tcp_server();
 
 		if (m_reconnect && !m_stop)
 		{
@@ -147,6 +169,47 @@ namespace havroc
 	}
 
 	void NetworkManager::network_disconnect_tcp_client()
+	{
+		reset_tcp_client();
+
+		if (m_reconnect && !m_stop)
+		{
+			boost::thread(boost::bind(&TCPNetworkClient::start_service, m_tcp_client));
+		}
+	}
+
+	void NetworkManager::network_disconnect_udp_server()
+	{
+		reset_udp_server();
+
+		if (m_reconnect && !m_stop)
+		{
+			boost::thread(boost::bind(&UDPNetworkServer::start_service, m_udp_server));
+		}
+	}
+
+	void NetworkManager::network_disconnect_udp_client()
+	{
+		reset_udp_client();
+		
+		if (m_reconnect && !m_stop)
+		{
+			boost::thread(boost::bind(&UDPNetworkClient::start_service, m_udp_client));
+		}
+	}
+
+	void NetworkManager::reset_tcp_server()
+	{
+		_io_service_tcp_server.stop();
+		_io_service_tcp_server.reset();
+
+		auto signals_pack = m_tcp_server->get_comm_signals_pack();
+
+		m_tcp_server.reset();
+		m_tcp_server = boost::shared_ptr<TCPNetworkServer>(new TCPNetworkServer(_io_service_tcp_server, signals_pack));
+	}
+
+	void NetworkManager::reset_tcp_client()
 	{
 		_io_service_tcp_client.stop();
 		_io_service_tcp_client.reset();
@@ -157,14 +220,9 @@ namespace havroc
 
 		m_tcp_client.reset();
 		m_tcp_client = boost::shared_ptr<TCPNetworkClient>(new TCPNetworkClient(_io_service_tcp_client, ip, signals_pack));
-
-		if (m_reconnect && !m_stop)
-		{
-			boost::thread(boost::bind(&TCPNetworkClient::start_service, m_tcp_client));
-		}
 	}
 
-	void NetworkManager::network_disconnect_udp_server()
+	void NetworkManager::reset_udp_client()
 	{
 		_io_service_udp_server.stop();
 		_io_service_udp_server.reset();
@@ -173,14 +231,9 @@ namespace havroc
 
 		m_udp_server.reset();
 		m_udp_server = boost::shared_ptr<UDPNetworkServer>(new UDPNetworkServer(_io_service_udp_server, signals_pack));
-
-		if (m_reconnect && !m_stop)
-		{
-			boost::thread(boost::bind(&UDPNetworkServer::start_service, m_udp_server));
-		}
 	}
 
-	void NetworkManager::network_disconnect_udp_client()
+	void NetworkManager::reset_udp_server()
 	{
 		_io_service_udp_client.stop();
 		_io_service_udp_client.reset();
@@ -189,11 +242,6 @@ namespace havroc
 
 		m_udp_client.reset();
 		m_udp_client = boost::shared_ptr<UDPNetworkClient>(new UDPNetworkClient(_io_service_udp_client, signals_pack));
-		
-		if (m_reconnect && !m_stop)
-		{
-			boost::thread(boost::bind(&UDPNetworkClient::start_service, m_udp_client));
-		}
 	}
 
 }

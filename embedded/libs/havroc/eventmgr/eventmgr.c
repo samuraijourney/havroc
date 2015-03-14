@@ -112,7 +112,7 @@ int EventEnQ(char* message)
 	return buff_index;
 }
 
-int EventStart()
+void EventStart()
 {
 	Task_Handle task1 = Task_Object_get(NULL, 1);
 	Task_setPri(task1, 10);

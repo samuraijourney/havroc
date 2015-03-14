@@ -57,7 +57,8 @@ typedef struct _sendMessage
 {
 	char module;
 	char command;
-	char length;
+	char length_high;
+	char length_low;
 	float* data;
 } sendMessage;
 
@@ -66,7 +67,7 @@ typedef struct _sendMessage
 //****************************************************************************
 int WiFiSendEnQ(sendMessage message);
 int WiFiStartup();
-int WlanStartTask();
+void WlanStartTask();
 void WiFiRun(UArg arg0, UArg arg1);
 bool isWiFiActive();
 static void WiFiSend();

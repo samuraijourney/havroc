@@ -33,7 +33,7 @@ Event_Handle   		  EventMgr_Event;
 int EventRegisterCB(int32_t command, EVENT_CB Callback);
 static int EventFire(event currEvent);
 int EventEnQ(char* message);
-int EventStart();
+void EventStart();
 void EventRun (UArg arg0, UArg arg1);
 
 #endif /* EVENTMGR_H_ */

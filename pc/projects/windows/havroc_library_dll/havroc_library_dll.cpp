@@ -32,11 +32,15 @@ extern "C"
 			ip = CC3200_IP;
 		}
 
+		havroc::NetworkManager::get()->set_reconnect(true);
+
 		return havroc::NetworkManager::get()->start_tcp_client(ip);
 	}
 
 	void CALLBACK_CONV hvr_async_start_connection(char* ip)
 	{
+		havroc::NetworkManager::get()->set_reconnect(true);
+
 		return havroc::NetworkManager::get()->async_start_tcp_client(ip);
 	}
 

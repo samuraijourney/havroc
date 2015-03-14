@@ -272,6 +272,8 @@ namespace havroc
 
 			m_tcp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_server, this);
 		}
+
+		m_reset_tcp_server_event(keep);
 	}
 
 	void NetworkManager::reset_tcp_client(bool keep)
@@ -295,6 +297,8 @@ namespace havroc
 
 			m_tcp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_client, this);
 		}
+
+		m_reset_tcp_client_event(keep);
 	}
 
 	void NetworkManager::reset_udp_server(bool keep)
@@ -316,6 +320,8 @@ namespace havroc
 
 			m_udp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_server, this);
 		}
+
+		m_reset_udp_server_event(keep);
 	}
 
 	void NetworkManager::reset_udp_client(bool keep)
@@ -337,6 +343,8 @@ namespace havroc
 
 			m_udp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_client, this);
 		}
+
+		m_reset_udp_client_event(keep);
 	}
 
 }

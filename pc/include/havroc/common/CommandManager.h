@@ -107,6 +107,7 @@ namespace havroc
 	private:
 		CommandManager();
 
+		void network_reset(bool receive_attached);
 		void receive_handler(BYTE* msg, size_t size);
 		void event_loop();
 
@@ -117,6 +118,8 @@ namespace havroc
 
 		std::vector<command_pkg*> m_pkgs;
 		std::mutex m_pkg_buffer_lock;
+
+		bool m_clear_buffer;
 
 		static CommandManager* m_instance;
 

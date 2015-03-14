@@ -16,10 +16,12 @@ namespace havroc
 		return m_instance;
 	}
 
-	CommandManager::CommandManager()
+	CommandManager::CommandManager() 
+	: m_clear_buffer(false)
 	{
 		uint8_t connections = TCP_CLIENT | TCP_SERVER | UDP_CLIENT;
 
+		NetworkManager::get()->register_reset_callback<CommandManager>(&CommandManager::network_reset, this, connections);
 		NetworkManager::get()->register_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
 	
 		boost::thread(boost::bind(&CommandManager::event_loop, this));
@@ -64,11 +66,20 @@ namespace havroc
 				m_pkg_buffer_lock.unlock();
 
 				delete pkg;
+
+				if (m_clear_buffer)
+				{
+					m_pkg_buffer_lock.lock();
+					m_pkgs.clear();
+					m_pkg_buffer_lock.unlock();
+
+					m_clear_buffer = false;
+				}
 			}
 
 			if (NetworkManager::get()->is_active())
 			{
-				boost::this_thread::sleep(boost::posix_time::milliseconds(50));
+				boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 			}
 			else
 			{
@@ -92,4 +103,15 @@ namespace havroc
 		m_pkg_buffer_lock.unlock();
 	}
 
+	void CommandManager::network_reset(bool receive_attached)
+	{
+		if (!receive_attached)
+		{
+			uint8_t connections = TCP_CLIENT | TCP_SERVER | UDP_CLIENT;
+
+			NetworkManager::get()->register_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
+
+			m_clear_buffer = true;
+		}
+	}
 }

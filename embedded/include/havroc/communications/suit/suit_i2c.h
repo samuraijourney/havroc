@@ -12,7 +12,8 @@
 typedef enum _SuitI2CErrorCode
 {
 	SUIT_I2C_E_SUCCESS = 0,
-	SUIT_I2C_E_BUS_FAULT
+	SUIT_I2C_E_BUS_FAULT,
+	SUIT_I2C_E_ERROR
 } SuitI2CErrorCode;
 
 /*
@@ -39,5 +40,10 @@ SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
 									size_t writeCount,
 									uint8_t readBuff[],
 									size_t readCount);
+
+/*
+ * I2C init
+ */
+SuitI2CErrorCode suit_i2c_init();
 
 #endif /* SUIT_I2C_H */

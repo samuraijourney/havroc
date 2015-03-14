@@ -2,9 +2,9 @@
 #include <xdc/runtime/IHeap.h>
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Memory.h>
-#include "havroc/communications/suit/suit_i2c.h"
+#include <stdbool.h>
 
-#include "stdbool.h"
+#include "havroc/communications/suit/suit_i2c.h"
 
 SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
 									uint8_t writeBuff[],
@@ -36,6 +36,9 @@ SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
 		}
 	}
 
+	if (retVal != SUIT_I2C_E_SUCCESS)
+		Report("I2C Transfer Error\n");
+
     return retVal;
 }
 
@@ -51,7 +54,9 @@ SuitI2CErrorCode suit_i2c_read(uint8_t addr,
 	if (I2C_IF_ReadFrom(addr, writeBuff, 1, readBuff, readCount) < 0)
 	{
 		retVal = SUIT_I2C_E_BUS_FAULT;
+		Report("I2C Read Error\n");
 	}
+
 
 	return retVal;
 }
@@ -71,9 +76,22 @@ SuitI2CErrorCode suit_i2c_write(uint8_t addr,
 	memcpy (&(writeBuff2[1]), writeBuff, writeCount);
 
 	if (I2C_IF_Write(addr, writeBuff2, writeCount + 1, true) < 0)
+	{
 		retVal = SUIT_I2C_E_BUS_FAULT;
+		Report("I2C Write Error\n");
+	}
 
 	Memory_free(NULL, writeBuff2, writeCount + 1);
+
+	return retVal;
+}
+
+SuitI2CErrorCode suit_i2c_init()
+{
+	SuitI2CErrorCode retVal = SUIT_I2C_E_SUCCESS;
+
+	if (I2C_IF_Open(SUIT_I2C_BITRATE) < 0)
+		retVal = SUIT_I2C_E_ERROR;
 
 	return retVal;
 }

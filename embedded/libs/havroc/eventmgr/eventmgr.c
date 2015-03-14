@@ -26,29 +26,27 @@
 
 #define EventReceived 1
 
-static EVENT_CB 	  EventList[CMD_MAX][MAX_CALLBACKS];
-static int			  callbackCounter[CMD_MAX];
-extern Event_Handle   EventMgr_Event;
-
+static EVENT_CB 	  EventList[MAX_MOD][MAX_CALLBACKS];
+static int			  callbackCounter[MAX_MOD];
 event				  eventBuff[EVENT_BUFF_SIZE];
 int				      eventFront;
 int		 		      eventBack;
 int 				  eventCount;
 
-int EventRegisterCB(int32_t command, EVENT_CB Callback)
+int EventRegisterCB(int32_t module, EVENT_CB Callback)
 {
 	int i;
 
-	if(Callback && (command >= CMD_BASE) && (command < CMD_MAX))
+	if(Callback && (module >= BASE_MOD) && (module < MAX_MOD))
 	{
-		EVENT_CB *pEntry = &EventList[command][0];
+		EVENT_CB *pEntry = &EventList[module][0];
 
 		for (i = 0; i < MAX_CALLBACKS; i++, pEntry++)
 		{
 			if (*pEntry == 0)
 			{
 				*pEntry = Callback;
-				callbackCounter[command]++;
+				callbackCounter[module]++;
 			}
 		}
 	}
@@ -64,9 +62,8 @@ static int EventFire(event currEvent)
 {
 	int i;
 
-	Report("In Event Handler: Received %i command \n\r", currEvent.command);
-
-	if((currEvent.command >= CMD_BASE) && (currEvent.command < CMD_MAX) && (callbackCounter[currEvent.command] > 0))
+	//Report("In Event Handler: Received %i command \n\r", currEvent.command);
+	if((currEvent.command >= BASE_MOD) && (currEvent.command < MAX_MOD) && (callbackCounter[currEvent.command] > 0))
 	{
 		EVENT_CB *pEntry = &EventList[currEvent.command][0];
 
@@ -106,10 +103,10 @@ int EventEnQ(char* message)
 			eventBuff[eventFront].data_buff[data_index++] = message[buff_index++];
 		}
 
-		Report("TCP received command: %i, size: %i\n\r", eventBuff[eventFront].command, eventBuff[eventFront].data_len);
+		//Report("TCP received command: %i, size: %i\n\r", eventBuff[eventFront].command, eventBuff[eventFront].data_len);
 
 		eventCount++;
-		Event_post(EventMgr_Event, EventReceived);
+		//Event_post(EventMgr_Event, EventReceived);
     }
 
 	return buff_index;
@@ -117,21 +114,8 @@ int EventEnQ(char* message)
 
 int EventStart()
 {
-	Task_Handle task0;
-	Task_Params params;
-
-	Task_Params_init(&params);
-	params.instance->name = "EventRun_Task";
-	params.priority = 10;
-
-	task0 = Task_create((Task_FuncPtr) EventRun, &params, NULL);
-	if (task0 == NULL || EventMgr_Event == NULL)
-	{
-		signal(EVENT_START_FAIL);
-		return EVENT_START_FAIL;
-	}
-
-	return SUCCESS;
+	Task_Handle task1 = Task_Object_get(NULL, 1);
+	Task_setPri(task1, 10);
 }
 
 void EventRun (UArg arg0, UArg arg1)
@@ -149,21 +133,18 @@ void EventRun (UArg arg0, UArg arg1)
 	{
 		prev = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("In Event Handler, Waiting for Event \n");
-		System_flush();
+		//events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
 
-		events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
+		//Report("In Event Handler, Event received \n\r");
 
-		System_printf("In Event Handler, Event received \n");
-		System_flush();
-
-		if(events & EventReceived)
+		if(eventBack != eventFront)
 		{
 			EventFire(eventBuff[eventBack]);
 		}
 		now = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("This is Task 2 - Elapsed Time is %.04f\n", now-prev);
-		System_flush();
+		//Report("This is Task 2 - Elapsed Time is %.04f\n\r", now-prev);
+
+		Task_yield();
 	}
 }

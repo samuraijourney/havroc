@@ -49,8 +49,6 @@
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/tracking/service.h"
 
-Event_Handle   EventMgr_Event;
-
 static void BoardInit(void)
 {
     // Enable Processor
@@ -77,11 +75,9 @@ int main(void)
 	// Initialize I2C
     Board_initI2C();
 
-	EventMgr_Event = Event_create(NULL, NULL);
-
 	WlanStartTask();
-	EventStart();
-	ServiceStart_Raw();
+	//EventStart();
+	ServiceStart();
 
     /* Start BIOS */
     BIOS_start();

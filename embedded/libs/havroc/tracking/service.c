@@ -5,6 +5,7 @@
 #include <ti/sysbios/knl/Event.h>
 #include <xdc/runtime/Timestamp.h>
 #include <xdc/runtime/Types.h>
+#include <xdc/runtime/Memory.h>
 #endif
 
 #include <havroc/tracking/service.h>
@@ -19,49 +20,24 @@
 
 static volatile int active = false;
 static Event_Handle   Timer_Event;
-static Clock_Handle   clkHandle;
 
 static IMU imu_object[IMU_ID_MAX];                                      // the IMU object
 static fusion fusion_object[IMU_ID_MAX];                                // the fusion object
 
-void PostTimer()
+void TimerISR()
 {
 	Event_post(Timer_Event, Passed_5ms);
-
-	Task_yield();
 }
 
 int ServiceStart()
 {
-	Clock_Params   clockParams;
-	Task_Handle    task0;
-	Task_Params    params;
-
 	//EventRegisterCB(TRACKING_CMD, &(ServiceEnd));
 
 	active = true;
 
-	Clock_Params_init(&clockParams);
-	clockParams.period = 10;/* every 4 Clock ticks */
-	clockParams.startFlag = FALSE;/* start immediately */
-	clkHandle = Clock_create((Clock_FuncPtr)PostTimer, 1, &clockParams, NULL);
-
-	Task_Params_init(&params);
-	params.instance->name = "TrackingBroadcast_Task";
-	params.priority = 15;
-
 	Timer_Event = Event_create(NULL, NULL);
-
-	task0 = Task_create((Task_FuncPtr) ServiceRun, &params, NULL);
-	if (task0 == NULL || clkHandle == NULL || Timer_Event == NULL)
-	{
-		signal(SERVICE_START_FAIL);
-		return SERVICE_START_FAIL;
-	}
-
-	UART_PRINT("Started service task successfully \n\r");
-
-	return SUCCESS;
+	Task_Handle task2 = Task_Object_get(NULL, 0);
+	Task_setPri(task2, 15);
 }
 
 int ServiceStart_Raw()
@@ -84,7 +60,7 @@ int ServiceStart_Raw()
 		return SERVICE_START_FAIL;
 	}
 
-	UART_PRINT("Started service task successfully \n\r");
+	//Report("Started service task successfully \n\r");
 
 	return SUCCESS;
 }
@@ -123,8 +99,7 @@ void ServiceRun_Raw(void)
 	{
 		prev = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("Innnnnnnnnnn Tracking Broadcaster\n");
-		System_flush();
+		//Report("Innnnnnnnnnn Tracking Broadcaster\n\r");
 
 		while ((attempts < MAX_ATTEMPTS))
 		{
@@ -151,8 +126,7 @@ void ServiceRun_Raw(void)
 
 		now = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("This is Task 3 - Elapsed Time is %.04f\n", now-prev);
-		System_flush();
+		//Report("This is Task 3 - Elapsed Time is %.04f\n\r", now-prev);
 
 		Task_yield();
 	}
@@ -164,7 +138,7 @@ void ServiceRun_Raw(void)
 int startIMU()
 {
 	int i;
-	for(i = 0; i < IMU_ID_MAX; i++)
+	for(i = 0; i < 1/*IMU_ID_MAX*/; i++)
 	{
 		NewIMU(&imu_object[i], i);                        // create the imu object
 		IMUInit(&imu_object[i]);
@@ -213,8 +187,6 @@ void ServiceRun(void)
 
 	result = startIMU();
 
-	InitTerm();
-
 	if ((result == IMU_MPU_START_FAIL)
 			|| (result == IMU_COMPASS_START_FAIL))
 	{
@@ -223,24 +195,16 @@ void ServiceRun(void)
 
 	while(!(isWiFiActive()))
 	{
-		Task_sleep(10);
+		Task_sleep(5);
 	}
 
-	Clock_start(clkHandle);
-	System_printf("Service Started\n");
-	System_flush();
+
+	//Report("Service Started\n\r");
 
 	while(active)
 	{
-		prev = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("Innnnnnnnnnn Tracking Broadcaster\n");
-		System_flush();
 		events = Event_pend(Timer_Event, Passed_5ms, Event_Id_NONE, BIOS_WAIT_FOREVER);
-
-		System_printf("Innnnnnnnnnnnnnn Tracking Broadcaster - Event Received\n");
-		System_flush();
-
 		while ((attempts < MAX_ATTEMPTS) && (events & Passed_5ms))
 		{
 			if (!(!get_r_shoulder_imu(&_r_s_yaw, &_r_s_pitch, &_r_s_roll)
@@ -266,14 +230,18 @@ void ServiceRun(void)
 			ServiceEnd();
 		}
 
-		ServicePublish(_r_s_yaw, _r_s_pitch, _r_s_roll, _r_e_yaw, _r_e_pitch,
-			_r_e_roll, _r_w_yaw, _r_w_pitch, _r_w_roll, _l_s_yaw, _l_s_pitch,
-			_l_s_roll, _l_e_yaw, _l_e_pitch, _l_e_roll, _l_w_yaw, _l_w_pitch, _l_w_roll);
-
 		now = Timestamp_get32()/(1.0*freq.lo);
 
-		System_printf("This is Task 3 - Elapsed Time is %.04f\n", now-prev);
-		System_flush();
+	//	if((now - prev) > 50)
+		//{
+			ServicePublish(_r_s_yaw, _r_s_pitch, _r_s_roll, _r_e_yaw, _r_e_pitch,
+			_r_e_roll, _r_w_yaw, _r_w_pitch, _r_w_roll, _l_s_yaw, _l_s_pitch,
+			_l_s_roll, _l_e_yaw, _l_e_pitch, _l_e_roll, _l_w_yaw, _l_w_pitch, _l_w_roll);
+		//}
+
+		Report("In Service, interval is %.05f\n\r", now-prev);
+
+		prev = now;
 
 		Task_yield();
 	}
@@ -289,13 +257,28 @@ void ServicePublish(float r_s_yaw, float r_s_pitch, float r_s_roll, float r_e_ya
 {
 	sendMessage message;
 
-	message.module = TRACKING_CMD;
-	message.command = DATA_CMD;
-	message.length = 0x24;
-	message.data = (float*)malloc(sizeof(float)*message.length);
+	message.module = TRACKING_MOD;
+	message.command = TRACKING_DATA_CMD;
+	message.length = 0x48;
+	message.data = (float*)malloc(message.length);
 	message.data[0] = r_s_yaw;
 	message.data[1] = r_s_pitch;
 	message.data[2] = r_s_roll;
+	message.data[3] = 0;
+	message.data[4] = 0;
+	message.data[5] = 0;
+	message.data[6] = 0;
+	message.data[7] = 0;
+	message.data[8] = 0;
+	message.data[9] = 0;
+	message.data[10] = 0;
+	message.data[11] = 0;
+	message.data[12] = 0;
+	message.data[13] = 0;
+	message.data[14] = 0;
+	message.data[15] = 0;
+	message.data[16] = 0;
+	message.data[17] = 0;
 //	message.data[3] = r_e_yaw;
 //	message.data[4] = r_e_pitch;
 //	message.data[5] = r_e_roll;
@@ -312,8 +295,7 @@ void ServicePublish(float r_s_yaw, float r_s_pitch, float r_s_roll, float r_e_ya
 //	message.data[16] = l_w_pitch;
 //	message.data[17] = l_w_roll;
 
-	UART_PRINT("Data being broadcast: Yaw: %.1f, Pitch: %.1f, Yaw: %.1f \n\r", message.data[0], message.data[1],
-			message.data[2]);
+	Report("Data being broadcast: Yaw: %.1f, Pitch: %.1f, Roll: %.1f \n\r", message.data[0], message.data[1],message.data[2]);
 
 	while(WiFiSendEnQ(message) != 0)
 	{
@@ -328,9 +310,9 @@ void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
 {
 	sendMessage message;
 
-	message.command = TRACKING_CMD;
+	message.command = TRACKING_MOD;
 	message.length = 0x24;
-	message.data = (float*)malloc(sizeof(float)*message.length);
+	message.data = (float*)Memory_alloc(NULL, sizeof(float)*message.length, 0, NULL);
 	message.data[0] = accelX;
 	message.data[1] = accelY;
 	message.data[2] = accelZ;
@@ -349,7 +331,7 @@ void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
 		Task_yield();
 	}
 
-	free(message.data);
+	Memory_free(NULL, message.data, sizeof(float)*message.length);
 }
 
 int get_r_shoulder_imu(float* yaw, float* pitch, float* roll)
@@ -361,6 +343,7 @@ int get_r_shoulder_imu(float* yaw, float* pitch, float* roll)
 		*roll = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
 		*pitch = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
 		*yaw = fusion_object[R_SHOULDER_IMU_ID].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+
 		return SUCCESS;
 	}
 	return IMU_MPU_READ_FAIL;

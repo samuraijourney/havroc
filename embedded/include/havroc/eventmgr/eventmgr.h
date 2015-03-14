@@ -10,6 +10,7 @@
 
 #if defined(CCWARE) || defined(TIVAWARE)
 #include <ti/sysbios/knl/Task.h>
+#include <ti/sysbios/knl/Event.h>
 #endif
 
 #include "stdint.h"
@@ -26,6 +27,8 @@ typedef struct _event
 } event;
 
 typedef void(*EVENT_CB)(event currEvent);
+
+Event_Handle   		  EventMgr_Event;
 
 int EventRegisterCB(int32_t command, EVENT_CB Callback);
 static int EventFire(event currEvent);

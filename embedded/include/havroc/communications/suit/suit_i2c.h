@@ -1,23 +1,43 @@
-#ifndef H_SUIT_I2C
-#define H_SUIT_I2C
+#ifndef SUIT_I2C_H
+#define SUIT_I2C_H
 
-#include <stdint.h>
-#include <stdlib.h>
+#include <xdc/runtime/System.h>
+#include <i2c_if.h>
 
-#ifdef __cplusplus
-extern "C"
+#define SUIT_I2C_BITRATE	I2C_MASTER_MODE_FST
+
+/*
+ * I2C error codes.
+ */
+typedef enum _SuitI2CErrorCode
 {
-#endif
+	SUIT_I2C_E_SUCCESS = 0,
+	SUIT_I2C_E_BUS_FAULT
+} SuitI2CErrorCode;
 
-void suit_i2c_transfer(uint32_t i2cIndex, uint8_t addr,
-		uint8_t txBuff[], size_t writeCount, uint8_t rxBuff[], size_t readCount);
+/*
+ * I2C read helper fxn
+ */
+SuitI2CErrorCode suit_i2c_read(uint8_t addr,
+							 	uint8_t regAddr,
+							 	uint8_t readBuff[],
+							 	size_t readCount);
 
-void suit_i2c_read(uint32_t i2cIndex, uint8_t addr, uint8_t reg_addr, uint8_t rxBuff[], size_t readCount);
+/*
+ * I2C write helper fxn
+ */
+SuitI2CErrorCode suit_i2c_write(uint8_t addr,
+								uint8_t regAddr,
+								uint8_t writeBuff[],
+								size_t writeCount);
 
-void suit_i2c_write(uint32_t i2cIndex, uint8_t addr, uint8_t reg_addr, uint8_t txBuff[], size_t writeCount);
+/*
+ * I2C read/write tranfer
+ */
+SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
+									uint8_t writeBuff[],
+									size_t writeCount,
+									uint8_t readBuff[],
+									size_t readCount);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* H_SUIT_I2C */
+#endif /* SUIT_I2C_H */

@@ -265,14 +265,14 @@ int IMUInit(IMU* imu_object)
     //  reset the MPU9250
     txBuff[0] = 0x80;
 
-    suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
+    suit_i2c_write(MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
 
     delay(100);
 
     txBuff[0] = 0x00;
-    suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
+    suit_i2c_write(MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
 
-	suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_WHO_AM_I, rxBuff, 1);
+	suit_i2c_read(MPU9250_ADDRESS0, MPU9250_WHO_AM_I, rxBuff, 1);
 
     if (rxBuff[0] != MPU9250_ID) {
          return false;
@@ -297,12 +297,12 @@ int IMUInit(IMU* imu_object)
     // get fuse ROM data
 
     txBuff[0] = 0x00;
-	suit_i2c_write(imu_object->m_imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	suit_i2c_write(AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
 
 	txBuff[0] = 0x0f;
-	suit_i2c_write(imu_object->m_imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	suit_i2c_write(AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
 
-	suit_i2c_read(imu_object->m_imu_index, AK8963_ADDRESS, AK8963_ASAX, rxBuff, 3);
+	suit_i2c_read(AK8963_ADDRESS, AK8963_ASAX, rxBuff, 3);
 
     //  convert asa to usable scale factor
 
@@ -311,7 +311,7 @@ int IMUInit(IMU* imu_object)
     imu_object->m_compassAdjust[2] = ((float)rxBuff[2] - 128.0) / 256.0 + 1.0f;
 
     txBuff[0] = 0x00;
-	suit_i2c_write(imu_object->m_imu_index, AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
+	suit_i2c_write(AK8963_ADDRESS, AK8963_CNTL, txBuff, 1);
 
     if (!bypassOff(imu_object))
         return false;
@@ -319,41 +319,41 @@ int IMUInit(IMU* imu_object)
     //  now set up MPU9250 to talk to the compass chip
 
     txBuff[0] = 0x40;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_MST_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_MST_CTRL, txBuff, 1);
 
     txBuff[0] = 0x80 | AK8963_ADDRESS;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV0_ADDR, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV0_ADDR, txBuff, 1);
 
     txBuff[0] = AK8963_ST1;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV0_REG, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV0_REG, txBuff, 1);
 
 	txBuff[0] = 0x88;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV0_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV0_CTRL, txBuff, 1);
 
 	txBuff[0] = AK8963_ADDRESS;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV1_ADDR, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV1_ADDR, txBuff, 1);
 
 	txBuff[0] = AK8963_CNTL;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV1_REG, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV1_REG, txBuff, 1);
 
 	txBuff[0] = 0x81;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV1_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV1_CTRL, txBuff, 1);
 
 	txBuff[0] = 0x1;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV1_DO, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV1_DO, txBuff, 1);
 
 	txBuff[0] = 0x3;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_MST_DELAY_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_MST_DELAY_CTRL, txBuff, 1);
 
     if (!setCompassRate(imu_object))
         return false;
 
     //  enable the sensors
     txBuff[0] = 0x1;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_PWR_MGMT_1, txBuff, 1);
 
     txBuff[0] = 0x0;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_PWR_MGMT_2, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_PWR_MGMT_2, txBuff, 1);
 
     //  select the data to go into the FIFO and enable
 
@@ -369,27 +369,27 @@ bool resetFifo(IMU* imu_object)
 	uint8_t txBuff[1];
 
 	txBuff[0] = 0x0;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_INT_ENABLE, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_INT_ENABLE, txBuff, 1);
 
 	txBuff[0] = 0x0;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_FIFO_EN, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_FIFO_EN, txBuff, 1);
 
 	txBuff[0] = 0x0;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
 
 	txBuff[0] = 0x04;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
 
 	txBuff[0] = 0x60;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
 
     delay(50);
 
     txBuff[0] = 1;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_INT_ENABLE, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_INT_ENABLE, txBuff, 1);
 
     txBuff[0] = 0x78;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_FIFO_EN, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_FIFO_EN, txBuff, 1);
 
     return true;
 }
@@ -399,18 +399,18 @@ bool bypassOn(IMU* imu_object)
 	uint8_t txBuff[1];
     unsigned char userControl;
 
-    suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, &userControl, 1);
+    suit_i2c_read(MPU9250_ADDRESS0, MPU9250_USER_CTRL, &userControl, 1);
 
     userControl &= ~0x20;
     userControl |= 2;
 
     txBuff[0] = userControl;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
 
     delay(50);
 
     txBuff[0] = 0x82;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_INT_PIN_CFG, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_INT_PIN_CFG, txBuff, 1);
 
     delay(50);
     return true;
@@ -422,17 +422,17 @@ bool bypassOff(IMU* imu_object)
 	uint8_t txBuff[1];
     unsigned char userControl;
 
-    suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, &userControl, 1);
+    suit_i2c_read(MPU9250_ADDRESS0, MPU9250_USER_CTRL, &userControl, 1);
 
     userControl |= 0x20;
 
     txBuff[0] = userControl;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_USER_CTRL, txBuff, 1);
 
     delay(50);
 
     txBuff[0] = 0x80;
-    suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_INT_PIN_CFG, txBuff, 1);
+    suit_i2c_write(MPU9250_ADDRESS0, MPU9250_INT_PIN_CFG, txBuff, 1);
 
     delay(50);
     return true;
@@ -445,10 +445,10 @@ bool setGyroConfig(IMU* imu_object)
     unsigned char gyroLpf = imu_object->m_gyroLpf & 7;
 
     txBuff[0] = gyroConfig;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_GYRO_CONFIG, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_GYRO_CONFIG, txBuff, 1);
 
 	txBuff[0] = gyroLpf;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_GYRO_LPF, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_GYRO_LPF, txBuff, 1);
 	
     return true;
 }
@@ -458,10 +458,10 @@ bool setAccelConfig(IMU* imu_object)
 	uint8_t txBuff[1];
 
 	txBuff[0] = imu_object->m_accelFsr;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_ACCEL_CONFIG, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_ACCEL_CONFIG, txBuff, 1);
 
 	txBuff[0] = imu_object->m_accelLpf;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_ACCEL_LPF, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_ACCEL_LPF, txBuff, 1);
 	
     return true;
 }
@@ -474,7 +474,7 @@ bool setSampleRate(IMU* imu_object)
         return true;                                        // SMPRT not used above 1000Hz
 
     txBuff[0] = (unsigned char) (1000 / imu_object->m_sampleRate - 1);
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_SMPRT_DIV, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_SMPRT_DIV, txBuff, 1);
 
     return true;
 }
@@ -491,7 +491,7 @@ bool setCompassRate(IMU* imu_object)
         rate = 31;
 
     txBuff[0] = rate;
-	suit_i2c_write(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_I2C_SLV4_CTRL, txBuff, 1);
+	suit_i2c_write(MPU9250_ADDRESS0, MPU9250_I2C_SLV4_CTRL, txBuff, 1);
 
     return true;
 }
@@ -508,7 +508,7 @@ bool IMURead(IMU* imu_object)
     unsigned char fifoData[12];
     unsigned char compassData[8];
 
-    suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_FIFO_COUNT_H, fifoCount, 2);
+    suit_i2c_read(MPU9250_ADDRESS0, MPU9250_FIFO_COUNT_H, fifoCount, 2);
 
     count = ((unsigned int)fifoCount[0] << 8) + fifoCount[1];
 
@@ -521,7 +521,7 @@ bool IMURead(IMU* imu_object)
     if (count > MPU9250_FIFO_CHUNK_SIZE * 40) {
         // more than 40 samples behind - going too slowly so discard some samples but maintain timestamp correctly
         while (count >= MPU9250_FIFO_CHUNK_SIZE * 10) {
-            suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_FIFO_R_W, fifoData, MPU9250_FIFO_CHUNK_SIZE);
+            suit_i2c_read(MPU9250_ADDRESS0, MPU9250_FIFO_R_W, fifoData, MPU9250_FIFO_CHUNK_SIZE);
 
             count -= MPU9250_FIFO_CHUNK_SIZE;
             imu_object->m_timestamp += imu_object->m_sampleInterval;
@@ -531,9 +531,9 @@ bool IMURead(IMU* imu_object)
     if (count < MPU9250_FIFO_CHUNK_SIZE)
         return false;
 
-    suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_FIFO_R_W, fifoData, MPU9250_FIFO_CHUNK_SIZE);
+    suit_i2c_read(MPU9250_ADDRESS0, MPU9250_FIFO_R_W, fifoData, MPU9250_FIFO_CHUNK_SIZE);
 
-    suit_i2c_read(imu_object->m_imu_index, MPU9250_ADDRESS0, MPU9250_EXT_SENS_DATA_00, compassData, 8);
+    suit_i2c_read(MPU9250_ADDRESS0, MPU9250_EXT_SENS_DATA_00, compassData, 8);
 
     convertToVector(fifoData, &(imu_object->m_accel), imu_object->m_accelScale, true);
     convertToVector(fifoData + 6, &(imu_object->m_gyro), imu_object->m_gyroScale, true);

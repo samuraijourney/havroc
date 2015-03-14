@@ -20,12 +20,12 @@ namespace havroc
 		static NetworkManager* get();
 
 		int start_tcp_server();
-		int start_tcp_client(char* ip = CC3200_IP);
+		int start_tcp_client(const char* ip = CC3200_IP);
 		int start_udp_server();
 		int start_udp_client();
 
 		void async_start_tcp_server();
-		void async_start_tcp_client(char* ip = CC3200_IP);
+		void async_start_tcp_client(const char* ip = CC3200_IP);
 		void async_start_udp_server();
 		void async_start_udp_client();
 

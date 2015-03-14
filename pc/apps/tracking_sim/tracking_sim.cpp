@@ -9,7 +9,7 @@
 
 TrackingSimController* sim_controller;
 
-bool start_tracking = false;
+bool start_tracking = true;
 
 int prompt_for_action()
 {

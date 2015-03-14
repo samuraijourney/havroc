@@ -13,6 +13,10 @@
 #include "havroc/eventmgr/eventmgr.h"
 #include <havroc/error.h>
 
+#include "havroc/tracking/Estimation.h"
+#include "havroc/tracking/IMU_Math.h"
+#include "havroc/tracking/MPU9250_Driver.h"
+
 //*****************************************************************************
 //                 GLOBAL VARIABLES -- Start
 //*****************************************************************************
@@ -529,15 +533,26 @@ void WiFiRun(UArg arg0, UArg arg1)
 	float prev = 0;
 	float now = 0;
 	Types_FreqHz freq;
+	sendMessage message;
+	IMU imu_object;                                      // the IMU object
+	fusion fusion_object;                                // the fusion object
+	float yaw, pitch, roll;
+	int i = 0;
+
+	message.data = (float*)malloc(0x48);
 
 	if(result != 0)
 	{
 		Task_exit();
 	}
 
+	NewIMU(&imu_object, 0);                        // create the imu object
+	IMUInit(&imu_object);
+	reset(&fusion_object);
+
 	isActive = true;
 
-	//Report("Startup WiFi successfully \n\r");
+	Report("Startup WiFi successfully \n\r");
 	Timestamp_getFreq(&freq);
 
 	while (1)
@@ -559,43 +574,91 @@ void WiFiRun(UArg arg0, UArg arg1)
 			}
 		}
 
-		buff_index = 0;
+//		buff_index = 0;
+//
+//		if(recvStatus > 0)
+//		{
+//			while (buff_index < recvStatus)
+//			{
+//				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
+//				{
+//					//buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
+//				}
+//			}
+//		}
 
-		if(recvStatus > 0)
+//		if(newData)
+//		{
+//			Report("WiFi Sending Data \n\r");
+//			WiFiSend();
+//		}
+
+		if(IMURead(&imu_object))
 		{
-			while (buff_index < recvStatus)
+			newIMUData(imu_object.m_gyro, imu_object.m_accel, imu_object.m_compass, imu_object.m_timestamp, &fusion_object);
+
+			roll = fusion_object.m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+			pitch = fusion_object.m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+			yaw = fusion_object.m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+
+
+			if(i == 5)
 			{
-				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
-				{
-					//buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
-				}
+				message.module = TRACKING_MOD;
+				message.command = TRACKING_DATA_CMD;
+				message.length_high = 0x0;
+				message.length_low = 0x48;
+				message.data[0] = yaw;
+				message.data[1] = pitch;
+				message.data[2] = roll;
+				message.data[3] = 0;
+				message.data[4] = 0;
+				message.data[5] = 0;
+				message.data[6] = 0;
+				message.data[7] = 0;
+				message.data[8] = 0;
+				message.data[9] = 0;
+				message.data[10] = 0;
+				message.data[11] = 0;
+				message.data[12] = 0;
+				message.data[13] = 0;
+				message.data[14] = 0;
+				message.data[15] = 0;
+				message.data[16] = 0;
+				message.data[17] = 0;
+
+				Report("Data being broadcast: Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[0], message.data[1],message.data[2]);
+				WiFiSendEnQ(message);
+				WiFiSend();
+				i = 0;
 			}
+			else
+			{
+				i++;
+			}
+
 		}
 
-		if(newData)
-		{
-			Report("WiFi Sending Data \n\r");
-			WiFiSend();
-		}
+		//now = Timestamp_get32()/(1.0*freq.lo);
 
-		now = Timestamp_get32()/(1.0*freq.lo);
-
-		Task_yield();
+		//Task_yield();
 	}
 }
 int WiFiSendEnQ(sendMessage message)
 {
 	char temp = SYNC_START_CODE_BYTE;
-	if((sendIndex + 4*message.length + 4) < BUFF_SIZE)
+	uint16_t length = ((((uint16_t)message.length_high) << 8) & 0xFF00) | (((uint16_t)message.length_low) & 0x00FF);
+	if((sendIndex + 4*length + 5) < BUFF_SIZE)
 	{
 		memcpy(&TCP_SendBuffer[sendIndex++], &(temp), sizeof temp);
 		memcpy(&TCP_SendBuffer[sendIndex++], &(message.module), sizeof message.module);
 		memcpy(&TCP_SendBuffer[sendIndex++], &(message.command), sizeof message.command);
-		memcpy(&TCP_SendBuffer[sendIndex++], &(message.length), sizeof message.length);
-		memcpy(&TCP_SendBuffer[sendIndex], message.data, (sizeof *(message.data))*message.length);
+		memcpy(&TCP_SendBuffer[sendIndex++], &(message.length_high), sizeof message.length_high);
+		memcpy(&TCP_SendBuffer[sendIndex++], &(message.length_low), sizeof message.length_low);
+		memcpy(&TCP_SendBuffer[sendIndex], message.data, length);
 
-		sendIndex += 4*message.length;
-		sendCount += 4*message.length + 4;
+		sendIndex += 4*length;
+		sendCount += length + 5;
 		newData = true;
 	}
 	else
@@ -615,12 +678,12 @@ static void WiFiSend()
 	// sending multiple packets to the TCP server
 	while (lLoopCount < TCP_PACKET_COUNT)
 	{
-		Report("Data being sent, size is %i \n\r", sendCount);
+		//Report("Data being sent, size is %i \n\r", sendCount);
 
-		for(i = 0; i < sendCount; i++)
-		{
-			Report("%.01f , ", TCP_SendBuffer[i]);
-		}
+//		for(i = 0; i < sendCount; i++)
+//		{
+//			Report("%i , ", TCP_SendBuffer[i]);
+//		}
 
 		// sending packet
 		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
@@ -681,7 +744,7 @@ static long WlanConnect()
 	return SUCCESS;
 }
 
-int WlanStartTask()
+void WlanStartTask()
 {
 	Task_Handle task0 = Task_Object_get(NULL, 0);
 	Task_setPri(task0, 10);

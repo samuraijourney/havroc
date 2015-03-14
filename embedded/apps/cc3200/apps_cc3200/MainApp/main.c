@@ -77,7 +77,7 @@ int main(void)
 
 	WlanStartTask();
 	//EventStart();
-	ServiceStart();
+	//ServiceStart();
 
     /* Start BIOS */
     BIOS_start();

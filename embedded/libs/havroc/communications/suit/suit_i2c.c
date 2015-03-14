@@ -22,7 +22,7 @@ void suit_i2c_transfer( uint32_t i2cIndex,
 
     I2C_Params_init(&i2cParams);
     i2cParams.transferMode = I2C_MODE_BLOCKING;
-    i2cParams.bitRate = SUIT_I2C_BITRATE;
+    i2cParams.bitRate = I2C_400kHz;
 
     i2c = I2C_open(i2cIndex, &i2cParams);
 

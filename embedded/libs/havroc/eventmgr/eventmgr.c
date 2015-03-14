@@ -106,7 +106,7 @@ int EventEnQ(char* message)
 		//Report("TCP received command: %i, size: %i\n\r", eventBuff[eventFront].command, eventBuff[eventFront].data_len);
 
 		eventCount++;
-		//Event_post(EventMgr_Event, EventReceived);
+		Event_post(EventMgr_Event, EventReceived);
     }
 
 	return buff_index;
@@ -133,7 +133,7 @@ void EventRun (UArg arg0, UArg arg1)
 	{
 		prev = Timestamp_get32()/(1.0*freq.lo);
 
-		//events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
+		events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
 
 		//Report("In Event Handler, Event received \n\r");
 

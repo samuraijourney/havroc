@@ -6,6 +6,9 @@
 
 #include "havroc/communications/suit/suit_i2c.h"
 
+#include "uart_if.h"
+#include "common.h"
+
 SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
 									uint8_t writeBuff[],
 									size_t writeCount,

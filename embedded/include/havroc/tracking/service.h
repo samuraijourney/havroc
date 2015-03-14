@@ -13,7 +13,7 @@
 static int startIMU();
 static int startIMU_Raw(int imu_index);
 
-int ServiceStart();
+void ServiceStart();
 
 int ServiceStart_Raw();
 

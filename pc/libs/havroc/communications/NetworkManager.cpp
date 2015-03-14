@@ -47,7 +47,7 @@ namespace havroc
 		m_async_tcp_server_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_server, this));
 	}
 
-	int NetworkManager::start_tcp_client(char* ip)
+	int NetworkManager::start_tcp_client(const char* ip)
 	{
 		m_stop = false;
 
@@ -55,14 +55,16 @@ namespace havroc
 		return m_tcp_client->start_service();
 	}
 
-	void NetworkManager::async_start_tcp_client(char* ip)
+	void NetworkManager::async_start_tcp_client(const char* ip)
 	{
 		if (!ip)
 		{
-			ip = CC3200_IP;
+			m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, CC3200_IP));
 		}
-
-		m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, ip));
+		else
+		{
+			m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, ip));
+		}
 	}
 
 	int NetworkManager::start_udp_server()

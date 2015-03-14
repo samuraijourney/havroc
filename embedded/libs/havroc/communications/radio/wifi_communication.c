@@ -528,27 +528,24 @@ void WiFiRun(UArg arg0, UArg arg1)
 	int iStatus = 100;
 	int recvStatus = 0;
 	int buff_index = 0;
-	int returnValue = 0;
 	long result = WiFiStartup();
 	float prev = 0;
 	float now = 0;
 	Types_FreqHz freq;
-	sendMessage message;
-	IMU imu_object;                                      // the IMU object
-	fusion fusion_object;                                // the fusion object
-	float yaw, pitch, roll;
-	int i = 0;
-
-	message.data = (float*)malloc(0x48);
+//	sendMessage message;
+//	IMU imu_object;                                      // the IMU object
+//	fusion fusion_object;                                // the fusion object
+//	float yaw, pitch, roll;
+//	int i = 0;
 
 	if(result != 0)
 	{
 		Task_exit();
 	}
 
-	NewIMU(&imu_object, 0);                        // create the imu object
-	IMUInit(&imu_object);
-	reset(&fusion_object);
+//	NewIMU(&imu_object, 0);                        // create the imu object
+//	IMUInit(&imu_object);
+//	reset(&fusion_object);
 
 	isActive = true;
 
@@ -574,74 +571,74 @@ void WiFiRun(UArg arg0, UArg arg1)
 			}
 		}
 
-//		buff_index = 0;
-//
-//		if(recvStatus > 0)
-//		{
-//			while (buff_index < recvStatus)
-//			{
-//				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
-//				{
-//					//buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
-//				}
-//			}
-//		}
+		buff_index = 0;
 
-//		if(newData)
-//		{
-//			Report("WiFi Sending Data \n\r");
-//			WiFiSend();
-//		}
-
-		if(IMURead(&imu_object))
+		if(recvStatus > 0)
 		{
-			newIMUData(imu_object.m_gyro, imu_object.m_accel, imu_object.m_compass, imu_object.m_timestamp, &fusion_object);
-
-			roll = fusion_object.m_fusionPose.m_data[0] * RAD_TO_DEGREE;
-			pitch = fusion_object.m_fusionPose.m_data[1] * RAD_TO_DEGREE;
-			yaw = fusion_object.m_fusionPose.m_data[2] * RAD_TO_DEGREE;
-
-
-			if(i == 5)
+			while (buff_index < recvStatus)
 			{
-				message.module = TRACKING_MOD;
-				message.command = TRACKING_DATA_CMD;
-				message.length_high = 0x0;
-				message.length_low = 0x48;
-				message.data[0] = yaw;
-				message.data[1] = pitch;
-				message.data[2] = roll;
-				message.data[3] = 0;
-				message.data[4] = 0;
-				message.data[5] = 0;
-				message.data[6] = 0;
-				message.data[7] = 0;
-				message.data[8] = 0;
-				message.data[9] = 0;
-				message.data[10] = 0;
-				message.data[11] = 0;
-				message.data[12] = 0;
-				message.data[13] = 0;
-				message.data[14] = 0;
-				message.data[15] = 0;
-				message.data[16] = 0;
-				message.data[17] = 0;
-
-				Report("Data being broadcast: Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[0], message.data[1],message.data[2]);
-				WiFiSendEnQ(message);
-				WiFiSend();
-				i = 0;
+				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
+				{
+					//buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
+				}
 			}
-			else
-			{
-				i++;
-			}
-
 		}
 
-		//now = Timestamp_get32()/(1.0*freq.lo);
+		if(newData)
+		{
+			Report("WiFi Sending Data \n\r");
+			WiFiSend();
+		}
 
-		//Task_yield();
+//		if(IMURead(&imu_object))
+//		{
+//			newIMUData(imu_object.m_gyro, imu_object.m_accel, imu_object.m_compass, imu_object.m_timestamp, &fusion_object);
+//
+//			roll = fusion_object.m_fusionPose.m_data[0] * RAD_TO_DEGREE;
+//			pitch = fusion_object.m_fusionPose.m_data[1] * RAD_TO_DEGREE;
+//			yaw = fusion_object.m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+//
+//
+//			if(i == 5)
+//			{
+//				message.module = TRACKING_MOD;
+//				message.command = TRACKING_DATA_CMD;
+//				message.length_high = 0x0;
+//				message.length_low = 0x48;
+//				message.data[0] = yaw;
+//				message.data[1] = pitch;
+//				message.data[2] = roll;
+//				message.data[3] = 0;
+//				message.data[4] = 0;
+//				message.data[5] = 0;
+//				message.data[6] = 0;
+//				message.data[7] = 0;
+//				message.data[8] = 0;
+//				message.data[9] = 0;
+//				message.data[10] = 0;
+//				message.data[11] = 0;
+//				message.data[12] = 0;
+//				message.data[13] = 0;
+//				message.data[14] = 0;
+//				message.data[15] = 0;
+//				message.data[16] = 0;
+//				message.data[17] = 0;
+//
+//				Report("Data being broadcast: Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[0], message.data[1],message.data[2]);
+//				WiFiSendEnQ(message);
+//				WiFiSend();
+//				i = 0;
+//			}
+//			else
+//			{
+//				i++;
+//			}
+//
+//		}
+
+		now = Timestamp_get32()/(1.0*freq.lo);
+
+		Task_yield();
 	}
 }
 int WiFiSendEnQ(sendMessage message)
@@ -678,13 +675,6 @@ static void WiFiSend()
 	// sending multiple packets to the TCP server
 	while (lLoopCount < TCP_PACKET_COUNT)
 	{
-		//Report("Data being sent, size is %i \n\r", sendCount);
-
-//		for(i = 0; i < sendCount; i++)
-//		{
-//			Report("%i , ", TCP_SendBuffer[i]);
-//		}
-
 		// sending packet
 		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 
@@ -707,7 +697,7 @@ static void WiFiSend()
 	sendCount = 0;
 	newData = false;
 
-	//Report("TCP sent %i bytes successful\n\r", iStatus);
+	Report("TCP sent %i bytes successful\n\r", iStatus);
 }
 
 //****************************************************************************

@@ -59,7 +59,7 @@ typedef struct _sendMessage
 	char command;
 	char length_high;
 	char length_low;
-	float* data;
+	float data[18];
 } sendMessage;
 
 //****************************************************************************

@@ -29,7 +29,7 @@ void TimerISR()
 	Event_post(Timer_Event, Passed_5ms);
 }
 
-int ServiceStart()
+void ServiceStart()
 {
 	//EventRegisterCB(TRACKING_CMD, &(ServiceEnd));
 
@@ -40,99 +40,9 @@ int ServiceStart()
 	Task_setPri(task2, 15);
 }
 
-int ServiceStart_Raw()
-{
-	Task_Handle    task0;
-	Task_Params    params;
-
-	//EventRegisterCB(TRACKING_CMD, &(ServiceEnd));
-
-	active = true;
-
-	Task_Params_init(&params);
-	params.instance->name = "TrackingBroadcast_Task";
-	params.priority = 10;
-
-	task0 = Task_create((Task_FuncPtr) ServiceRun_Raw, &params, NULL);
-	if (task0 == NULL)
-	{
-		signal(SERVICE_START_FAIL);
-		return SERVICE_START_FAIL;
-	}
-
-	//Report("Started service task successfully \n\r");
-
-	return SUCCESS;
-}
-
 void ServiceEnd()
 {
 	active = false;
-}
-
-void ServiceRun_Raw(void)
-{
-	int attempts = 0;
-	int result;
-	float prev = 0;
-	float now = 0;
-	Types_FreqHz freq;
-
-	Timestamp_getFreq(&freq);
-
-	result = startIMU_Raw(R_SHOULDER_IMU_ID);
-
-	InitTerm();
-
-	if ((result == IMU_MPU_START_FAIL)
-			|| (result == IMU_COMPASS_START_FAIL))
-	{
-		signal(result);
-	}
-
-	while(!(isWiFiActive()))
-	{
-		Task_sleep(10);
-	}
-
-	while(active)
-	{
-		prev = Timestamp_get32()/(1.0*freq.lo);
-
-		//Report("Innnnnnnnnnn Tracking Broadcaster\n\r");
-
-		while ((attempts < MAX_ATTEMPTS))
-		{
-			if (IMURead(&imu_object[R_WRIST_IMU_ID]))
-			{
-				attempts = 0;
-				break;
-			}
-			else
-			{
-				attempts++;
-			}
-		}
-
-		if (attempts == MAX_ATTEMPTS)
-		{
-			signal(SERVICE_READ_FAIL);
-			ServiceEnd();
-		}
-
-		ServicePublish_Raw(imu_object[R_WRIST_IMU_ID].m_accel.m_data[0],imu_object[R_WRIST_IMU_ID].m_accel.m_data[1], imu_object[R_WRIST_IMU_ID].m_accel.m_data[2],
-				imu_object[R_WRIST_IMU_ID].m_gyro.m_data[0],imu_object[R_WRIST_IMU_ID].m_gyro.m_data[1], imu_object[R_WRIST_IMU_ID].m_gyro.m_data[2],
-				imu_object[R_WRIST_IMU_ID].m_compass.m_data[0], imu_object[R_WRIST_IMU_ID].m_compass.m_data[1], imu_object[R_WRIST_IMU_ID].m_compass.m_data[2]);
-
-		now = Timestamp_get32()/(1.0*freq.lo);
-
-		//Report("This is Task 3 - Elapsed Time is %.04f\n\r", now-prev);
-
-		Task_yield();
-	}
-
-	signal(SERVICE_EXIT);
-	Task_exit();
 }
 
 int startIMU()
@@ -147,13 +57,6 @@ int startIMU()
 
 	return SUCCESS;
 
-}
-
-int startIMU_Raw(int imu_index)
-{
-	NewIMU(&imu_object[imu_index], imu_index);                        // create the imu object
-	IMUInit(&imu_object[imu_index]);
-	return SUCCESS;
 }
 
 void ServiceRun(void)
@@ -259,8 +162,8 @@ void ServicePublish(float r_s_yaw, float r_s_pitch, float r_s_roll, float r_e_ya
 
 	message.module = TRACKING_MOD;
 	message.command = TRACKING_DATA_CMD;
-	message.length = 0x48;
-	message.data = (float*)malloc(message.length);
+	message.length_high = 0x0;
+	message.length_low = 0x48;
 	message.data[0] = r_s_yaw;
 	message.data[1] = r_s_pitch;
 	message.data[2] = r_s_roll;
@@ -301,37 +204,6 @@ void ServicePublish(float r_s_yaw, float r_s_pitch, float r_s_roll, float r_e_ya
 	{
 		Task_yield();
 	}
-
-	free(message.data);
-}
-
-void ServicePublish_Raw(float accelX, float accelY, float accelZ, float gyroX,
-		float gyroY, float gyroZ, float magX, float magY, float magZ)
-{
-	sendMessage message;
-
-	message.command = TRACKING_MOD;
-	message.length = 0x24;
-	message.data = (float*)Memory_alloc(NULL, sizeof(float)*message.length, 0, NULL);
-	message.data[0] = accelX;
-	message.data[1] = accelY;
-	message.data[2] = accelZ;
-	message.data[3] = gyroX;
-	message.data[4] = gyroY;
-	message.data[5] = gyroZ;
-	message.data[6] = magX;
-	message.data[7] = magY;
-	message.data[8] = magZ;
-
-	UART_PRINT("Data being broadcast: AccelX: %.1f, AccelY: %.1f, AccelZ: %.1f GyroX: %.1f, GyroY: %.1f, GyroZ: %.1f MagX: %.1f, MagY: %.1f, MagZ: %.1f \n\r", message.data[0], message.data[1],
-			message.data[2], message.data[3], message.data[4], message.data[5], message.data[6], message.data[7], message.data[8]);
-
-	while(WiFiSendEnQ(message) != 0)
-	{
-		Task_yield();
-	}
-
-	Memory_free(NULL, message.data, sizeof(float)*message.length);
 }
 
 int get_r_shoulder_imu(float* yaw, float* pitch, float* roll)

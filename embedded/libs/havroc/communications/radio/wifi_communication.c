@@ -537,7 +537,7 @@ void WiFiRun(UArg arg0, UArg arg1)
 
 	isActive = true;
 
-	//Report("Startup WiFi successfully \n\r");
+	Report("Startup WiFi successfully \n\r");
 	Timestamp_getFreq(&freq);
 
 	while (1)
@@ -548,7 +548,7 @@ void WiFiRun(UArg arg0, UArg arg1)
 
 		recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
 
-		//Report("Receiving Data over WiFi, recvStatus %d \n\r", recvStatus);
+		Report("Receiving Data over WiFi, recvStatus %d \n\r", recvStatus);
 
 		if (recvStatus <= 0 && recvStatus != -11)
 		{

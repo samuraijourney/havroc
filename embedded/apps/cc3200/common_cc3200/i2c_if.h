@@ -1,7 +1,7 @@
 //*****************************************************************************
-// rom_pin_mux_config.c
+// i2c_if.h
 //
-// configure the device pins for different signals
+// Defines and Macros for the I2C interface.
 //
 // Copyright (C) 2014 Texas Instruments Incorporated - http://www.ti.com/ 
 // 
@@ -36,51 +36,64 @@
 //
 //*****************************************************************************
 
-// This file was automatically generated on 7/29/2014 at 9:57:43 AM
-// by TI PinMux version 3.0.321 
+#ifndef __I2C_IF_H__
+#define __I2C_IF_H__
 
+//*****************************************************************************
+//
+// If building with a C++ compiler, make all of the definitions in this header
+// have a C binding.
 //
 //*****************************************************************************
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-#include "pin_mux_config.h"
-#include "hw_types.h"
-#include "hw_memmap.h"
-#include "hw_gpio.h"
-#include "pin.h"
-#include "gpio.h"
-#include "prcm.h"
-#include "rom.h"
-#include "rom_map.h"
+#define I2C_MRIS_CLKTOUT        0x2
+//*****************************************************************************
+//
+// I2C transaction time-out value. 
+// Set to value 0x7D. (@100KHz it is 20ms, @400Khz it is 5 ms)
+//
+//*****************************************************************************
+#define I2C_TIMEOUT_VAL         0x7D
 
 //*****************************************************************************
-void PinMuxConfig(void)
-{
-	//
-    // Enable Peripheral Clocks 
-    //
-	MAP_PRCMPeripheralClkEnable(PRCM_GPIOA1, PRCM_RUN_MODE_CLK);
-	MAP_PRCMPeripheralClkEnable(PRCM_GPIOA2, PRCM_RUN_MODE_CLK);
-	MAP_PRCMPeripheralClkEnable(PRCM_I2CA0, PRCM_RUN_MODE_CLK);
+//
+// Values that can be passed to I2COpen as the ulMode parameter.
+//
+//*****************************************************************************
+#define I2C_MASTER_MODE_STD     0
+#define I2C_MASTER_MODE_FST     1
 
-	//
-    // Configure PIN_64 for GPIO Output
-    //
-	MAP_PinTypeGPIO(PIN_64, PIN_MODE_0, false);
-	MAP_GPIODirModeSet(GPIOA1_BASE, 0x2, GPIO_DIR_MODE_OUT);
+//*****************************************************************************
+//
+// API Function prototypes
+//
+//*****************************************************************************
+extern int I2C_IF_Open(unsigned long ulMode);
+extern int I2C_IF_Close();
+extern int I2C_IF_Write(unsigned char ucDevAddr,
+             unsigned char *pucData,
+             unsigned char ucLen, 
+             unsigned char ucStop);
+extern int I2C_IF_Read(unsigned char ucDevAddr,
+            unsigned char *pucData,
+            unsigned char ucLen);
+extern int I2C_IF_ReadFrom(unsigned char ucDevAddr,
+            unsigned char *pucWrDataBuf,
+            unsigned char ucWrLen,
+            unsigned char *pucRdDataBuf,
+            unsigned char ucRdLen);
 
-	//
-    // Configure PIN_15 for GPIO Input
-    //
-	MAP_PinTypeGPIO(PIN_15, PIN_MODE_0, false);
-	MAP_GPIODirModeSet(GPIOA2_BASE, 0x40, GPIO_DIR_MODE_IN);
-
-	//
-    // Configure PIN_01 for I2C0 I2C_SCL
-    //
-	MAP_PinTypeI2C(PIN_01, PIN_MODE_1);
-
-	//
-    // Configure PIN_02 for I2C0 I2C_SDA
-    //
-	MAP_PinTypeI2C(PIN_02, PIN_MODE_1);
+//*****************************************************************************
+//
+// Mark the end of the C bindings section for C++ compilers.
+//
+//*****************************************************************************
+#ifdef __cplusplus
 }
+#endif
+
+#endif //  __I2C_IF_H__

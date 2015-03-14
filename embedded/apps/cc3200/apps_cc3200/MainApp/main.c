@@ -48,6 +48,7 @@
 #include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/tracking/service.h"
+#include "havroc/communications/suit/suit_i2c.h"
 
 static void BoardInit(void)
 {
@@ -72,8 +73,12 @@ int main(void)
 	// Configuring UART
 	InitTerm();
 
-	// Initialize I2C
-    Board_initI2C();
+	// Initialize I2C (suit_i2c module)
+    if (suit_i2c_init() != SUIT_I2C_E_SUCCESS)
+    {
+    	Report("I2C init error!\n");
+    	System_flush();
+    }
 
 	WlanStartTask();
 	//EventStart();

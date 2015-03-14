@@ -36,7 +36,7 @@ int ServiceStart()
 	active = true;
 
 	Timer_Event = Event_create(NULL, NULL);
-	Task_Handle task2 = Task_Object_get(NULL, 0);
+	Task_Handle task2 = Task_Object_get(NULL, 1);
 	Task_setPri(task2, 15);
 }
 

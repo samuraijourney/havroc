@@ -57,6 +57,11 @@ namespace havroc
 
 	void NetworkManager::async_start_tcp_client(char* ip)
 	{
+		if (!ip)
+		{
+			ip = CC3200_IP;
+		}
+
 		m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, ip));
 	}
 

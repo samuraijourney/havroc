@@ -34,10 +34,10 @@ namespace havroc
 		int stop_udp_server();
 		int stop_udp_client();
 
-		void reset_tcp_server();
-		void reset_tcp_client();
-		void reset_udp_server();
-		void reset_udp_client();
+		void reset_tcp_server(bool keep);
+		void reset_tcp_client(bool keep);
+		void reset_udp_server(bool keep);
+		void reset_udp_client(bool keep);
 
 		bool is_tcp_server_active() { return m_tcp_server->is_active(); }
 		bool is_tcp_client_active() { return m_tcp_client->is_active(); }

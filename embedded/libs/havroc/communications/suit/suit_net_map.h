@@ -16,8 +16,6 @@
 #define NUM_MOTOR_NODES		4
 #define NUM_NODES 			(NUM_IMU_NODES + NUM_MOTOR_NODES)
 
-#define IMU_INDEX_0			4
-
 //motors list
 Motor motors[NUM_MOTOR_NODES] = {
 	{MOTOR_STATE_OFF, 0, 0},

@@ -58,7 +58,9 @@ extern "C"
 // SimpleLink device will connect to following AP when application is executed
 //
   
-#define SSID_NAME           "AndroidAP"    /* AP SSID */
+//#define SSID_NAME           "AndroidAP"    /* AP SSID */
+#define SSID_NAME           "AkramAP"    /* AP SSID */
+
 //#define SSID_NAME			"AkramAsylum"
 #define SECURITY_TYPE       SL_SEC_TYPE_OPEN/* Security type (OPEN or WEP or WPA*/
 #define SECURITY_USER		0

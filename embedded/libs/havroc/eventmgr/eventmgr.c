@@ -12,8 +12,6 @@
 #include <ti/sysbios/knl/Event.h>
 #include <ti/sysbios/BIOS.h>
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Timestamp.h>
-#include <xdc/runtime/Types.h>
 
 /* Driverlib Includes */
 #include "uart_if.h"
@@ -22,6 +20,7 @@
 /* HaVRoc library includes */
 #include "havroc/command.h"
 #include "havroc/eventmgr/eventmgr.h"
+#include "havroc/communications/radio/wifi_communication.h"
 #include <havroc/error.h>
 
 #define EventReceived 1
@@ -32,6 +31,7 @@ event				  eventBuff[EVENT_BUFF_SIZE];
 int				      eventFront;
 int		 		      eventBack;
 int 				  eventCount;
+Event_Handle		  Command_Received_Handle;
 
 int EventRegisterCB(int32_t module, EVENT_CB Callback)
 {
@@ -63,11 +63,11 @@ static int EventFire(event currEvent)
 	int i;
 
 	//Report("In Event Handler: Received %i command \n\r", currEvent.command);
-	if((currEvent.command >= BASE_MOD) && (currEvent.command < MAX_MOD) && (callbackCounter[currEvent.command] > 0))
+	if((currEvent.module >= BASE_MOD) && (currEvent.module < MAX_MOD) && (callbackCounter[currEvent.module] > 0))
 	{
-		EVENT_CB *pEntry = &EventList[currEvent.command][0];
+		EVENT_CB *pEntry = &EventList[currEvent.module][0];
 
-		for (i = 0; i < callbackCounter[currEvent.command]; i++, pEntry++)
+		for (i = 0; i < callbackCounter[currEvent.module]; i++, pEntry++)
 		{
             (*pEntry)(currEvent);
 		}
@@ -92,6 +92,7 @@ int EventEnQ(char* message)
     {
     	eventFront = event_index;
 
+    	eventBuff[eventFront].module = message[buff_index++];
 		eventBuff[eventFront].command = message[buff_index++];
 		eventBuff[eventFront].data_len = message[buff_index++];
 		eventBuff[eventFront].data_len <<= 8;
@@ -103,10 +104,10 @@ int EventEnQ(char* message)
 			eventBuff[eventFront].data_buff[data_index++] = message[buff_index++];
 		}
 
-		//Report("TCP received command: %i, size: %i\n\r", eventBuff[eventFront].command, eventBuff[eventFront].data_len);
+		Report("TCP received module %i, command: %i, size: %i\n\r", eventBuff[eventFront].module, eventBuff[eventFront].command, eventBuff[eventFront].data_len);
 
 		eventCount++;
-		Event_post(EventMgr_Event, EventReceived);
+		Event_post(Command_Received_Handle, EventReceived);
     }
 
 	return buff_index;
@@ -116,34 +117,25 @@ void EventStart()
 {
 	Task_Handle task1 = Task_Object_get(NULL, 1);
 	Task_setPri(task1, 10);
+
+	Command_Received_Handle = Event_Object_get(NULL, 0);
 }
 
 void EventRun (UArg arg0, UArg arg1)
 {
-	UInt events;
-	float prev = 0;
-	float now = 0;
-	Types_FreqHz freq;
-
-	Timestamp_getFreq(&freq);
-
-	InitTerm();
-
 	while(1)
 	{
-		prev = Timestamp_get32()/(1.0*freq.lo);
+		while(!(isWiFiActive()))
+		{
+			Task_sleep(5);
+		}
 
-		events = Event_pend(EventMgr_Event, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
-
-		//Report("In Event Handler, Event received \n\r");
+		Event_pend(Command_Received_Handle, EventReceived, Event_Id_NONE, BIOS_WAIT_FOREVER);
 
 		if(eventBack != eventFront)
 		{
 			EventFire(eventBuff[eventBack]);
 		}
-		now = Timestamp_get32()/(1.0*freq.lo);
-
-		//Report("This is Task 2 - Elapsed Time is %.04f\n\r", now-prev);
 
 		Task_yield();
 	}

@@ -38,6 +38,7 @@
 #include "havroc/command.h"
 #include "pin_mux_config.h"
 #include <ti/sysbios/BIOS.h>
+#include "stdbool.h"
 
 #define IP_ADDR           			0xc0a8006E /* 192.168.0.110 */
 #define PORT_NUM_TCP        		13
@@ -57,8 +58,7 @@ typedef struct _sendMessage
 {
 	char module;
 	char command;
-	char length_high;
-	char length_low;
+	uint16_t length;
 	float data[18];
 } sendMessage;
 

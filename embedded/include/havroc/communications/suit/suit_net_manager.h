@@ -72,4 +72,21 @@ SuitNetErrorCode suitNetManager_clearNodeSelect(SuitNet_Node *node);
 //Deselects all supernodes
 SuitNetErrorCode suitNetManager_resetSelect();
 
+SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
+											bool isMagnetometer,
+											uint8_t writeBuff[],
+											size_t writeCount,
+											uint8_t readBuff[],
+											size_t readCount);
+SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,
+											bool isMagnetometer,
+											uint8_t regAddr,
+											uint8_t readBuff[],
+											size_t readCount);
+SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
+											bool isMagnetometer,
+											uint8_t regAddr,
+											uint8_t writeBuff[],
+											size_t writeCount);
+
 #endif /* SUIT_NET_H_ */

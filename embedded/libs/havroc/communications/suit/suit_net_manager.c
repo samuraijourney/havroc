@@ -45,7 +45,8 @@ static void processMotorDataCmd(uint8_t* data, uint16_t length)
 	}
 }
 
-SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,	
+SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
+											bool isMagnetometer,
 											uint8_t writeBuff[],
 											size_t writeCount,
 											uint8_t readBuff[],
@@ -59,7 +60,8 @@ SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
 	
 		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
 		{
-			if (!suit_i2c_transfer(IMU_ADDR, writeBuff, writeCount,
+			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
+			if (!suit_i2c_transfer(addr, writeBuff, writeCount,
 								  readBuff, readCount))
 			{
 				retVal = SUITNET_E_I2C_ERROR;
@@ -71,6 +73,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
 }
 
 SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,	
+											bool isMagnetometer,
 											uint8_t regAddr,
 											uint8_t readBuff[],
 											size_t readCount)
@@ -84,7 +87,8 @@ SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,
 	
 		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
 		{
-			if (!suit_i2c_read(IMU_ADDR, regAddr, readBuff, readCount))
+			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
+			if (!suit_i2c_read(addr, regAddr, readBuff, readCount))
 			{
 				retVal = SUITNET_E_I2C_ERROR;
 			}
@@ -95,6 +99,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,
 }
 
 SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
+											bool isMagnetometer,
 											uint8_t regAddr,
 											uint8_t writeBuff[],
 											size_t writeCount)
@@ -108,7 +113,8 @@ SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
 	
 		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
 		{
-			if (!suit_i2c_write(IMU_ADDR, regAddr, writeBuff, writeCount))
+			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
+			if (!suit_i2c_write(addr, regAddr, writeBuff, writeCount))
 			{
 				retVal = SUITNET_E_I2C_ERROR;
 			}

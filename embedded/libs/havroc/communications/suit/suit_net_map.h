@@ -4,7 +4,9 @@
 #include "havroc/communications/suit/suit_net_manager.h"
 #include "havroc/actuation/motor.h"
 
-#define IMU_ADDR				0x68
+#define IMU_MPU_ADDR			0x68
+#define IMU_MAG_ADDR			0x0C
+
 #define MUX_BASE_ADDR			0x70
 #define PRIMARY_MUX_ADDR		MUX_BASE_ADDR
 

@@ -101,6 +101,11 @@ int main()
 		{
 			int choice = prompt_for_action();
 
+			while (!n_manager->is_active())
+			{
+				boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+			}
+
 			if (start_tracking)
 			{
 				sim_controller->change(true, choice != ACTIONS_COUNT ? choice : -1);

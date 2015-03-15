@@ -76,7 +76,7 @@ SuitI2CErrorCode suit_i2c_write(uint8_t addr,
 
 	writeBuff2[0] = regAddr;
 
-	memcpy (&(writeBuff2[1]), writeBuff, writeCount);
+	memcpy(writeBuff2 + 1, writeBuff, writeCount);
 
 	if (I2C_IF_Write(addr, writeBuff2, writeCount + 1, true) < 0)
 	{

@@ -20,12 +20,12 @@ namespace havroc
 		static NetworkManager* get();
 
 		int start_tcp_server();
-		int start_tcp_client(const char* ip = CC3200_IP);
+		int start_tcp_client(std::string ip = CC3200_IP);
 		int start_udp_server();
 		int start_udp_client();
 
 		void async_start_tcp_server();
-		void async_start_tcp_client(const char* ip = CC3200_IP);
+		void async_start_tcp_client(std::string ip = CC3200_IP);
 		void async_start_udp_server();
 		void async_start_udp_client();
 
@@ -467,6 +467,109 @@ namespace havroc
 			}
 		}
 
+
+		template<class T>
+		void register_reset_callback(void(T::*reset_callback)(bool keep), T* obj, uint8_t types = 0)
+		{
+			if (types == 0)
+			{
+				types = m_desired_connections;
+			}
+
+			if (types & TCP_SERVER)
+			{
+				m_reset_tcp_server_event.connect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & TCP_CLIENT)
+			{
+				m_reset_tcp_client_event.connect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & UDP_SERVER)
+			{
+				m_reset_udp_server_event.connect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & UDP_CLIENT)
+			{
+				m_reset_udp_client_event.connect(boost::bind(reset_callback, obj, _1));
+			}
+		}
+
+		void register_reset_callback(void(*reset_callback)(bool keep), uint8_t types = 0)
+		{
+			if (types == 0)
+			{
+				types = m_desired_connections;
+			}
+
+			if (types & TCP_SERVER)
+			{
+				m_reset_tcp_server_event.connect(reset_callback);
+			}
+			if (types & TCP_CLIENT)
+			{
+				m_reset_tcp_client_event.connect(reset_callback);
+			}
+			if (types & UDP_SERVER)
+			{
+				m_reset_udp_server_event.connect(reset_callback);
+			}
+			if (types & UDP_CLIENT)
+			{
+				m_reset_udp_client_event.connect(reset_callback);
+			}
+		}
+
+		template<class T>
+		void unregister_reset_callback(void(T::*reset_callback)(bool keep), T* obj, uint8_t types = 0)
+		{
+			if (types == 0)
+			{
+				types = m_desired_connections;
+			}
+
+			if (types & TCP_SERVER)
+			{
+				m_reset_tcp_server_event.disconnect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & TCP_CLIENT)
+			{
+				m_reset_tcp_client_event.disconnect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & UDP_SERVER)
+			{
+				m_reset_udp_server_event.disconnect(boost::bind(reset_callback, obj, _1));
+			}
+			if (types & UDP_CLIENT)
+			{
+				m_reset_udp_client_event.disconnect(boost::bind(reset_callback, obj, _1));
+			}
+		}
+
+		void unregister_reset_callback(void(*reset_callback)(bool keep), uint8_t types = 0)
+		{
+			if (types == 0)
+			{
+				types = m_desired_connections;
+			}
+
+			if (types & TCP_SERVER)
+			{
+				m_reset_tcp_server_event.disconnect(reset_callback);
+			}
+			if (types & TCP_CLIENT)
+			{
+				m_reset_tcp_client_event.disconnect(reset_callback);
+			}
+			if (types & UDP_SERVER)
+			{
+				m_reset_udp_server_event.disconnect(reset_callback);
+			}
+			if (types & UDP_CLIENT)
+			{
+				m_reset_udp_client_event.disconnect(reset_callback);
+			}
+		}
+
 	private:
 		NetworkManager();
 
@@ -488,6 +591,11 @@ namespace havroc
 		boost::thread m_async_tcp_client_connection_thread;
 		boost::thread m_async_udp_server_connection_thread;
 		boost::thread m_async_udp_client_connection_thread;
+
+		boost::signals2::signal<void(bool)> m_reset_tcp_server_event;
+		boost::signals2::signal<void(bool)> m_reset_tcp_client_event;
+		boost::signals2::signal<void(bool)> m_reset_udp_server_event;
+		boost::signals2::signal<void(bool)> m_reset_udp_client_event;
 
 		static NetworkManager* m_instance;
 	};

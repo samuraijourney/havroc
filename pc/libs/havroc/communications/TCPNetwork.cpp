@@ -81,6 +81,7 @@ namespace havroc
 			}
 			else
 			{
+				std::cerr << error.message() << std::endl;
 				end_service(NETWORK_DATA_RECEIVE_FAILURE);
 			}
 		}

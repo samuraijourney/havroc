@@ -47,7 +47,7 @@ namespace havroc
 		m_async_tcp_server_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_server, this));
 	}
 
-	int NetworkManager::start_tcp_client(const char* ip)
+	int NetworkManager::start_tcp_client(std::string ip)
 	{
 		m_stop = false;
 
@@ -55,9 +55,9 @@ namespace havroc
 		return m_tcp_client->start_service();
 	}
 
-	void NetworkManager::async_start_tcp_client(const char* ip)
+	void NetworkManager::async_start_tcp_client(std::string ip)
 	{
-		if (!ip)
+		if (ip == "")
 		{
 			m_async_tcp_client_connection_thread = boost::thread(boost::bind(&NetworkManager::start_tcp_client, this, CC3200_IP));
 		}
@@ -269,7 +269,11 @@ namespace havroc
 		else
 		{
 			m_tcp_server = boost::shared_ptr<TCPNetworkServer>(new TCPNetworkServer(_io_service_tcp_server));
+
+			m_tcp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_server, this);
 		}
+
+		m_reset_tcp_server_event(keep);
 	}
 
 	void NetworkManager::reset_tcp_client(bool keep)
@@ -290,10 +294,14 @@ namespace havroc
 		else
 		{
 			m_tcp_client = boost::shared_ptr<TCPNetworkClient>(new TCPNetworkClient(_io_service_tcp_client, ip));
+
+			m_tcp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_tcp_client, this);
 		}
+
+		m_reset_tcp_client_event(keep);
 	}
 
-	void NetworkManager::reset_udp_client(bool keep)
+	void NetworkManager::reset_udp_server(bool keep)
 	{
 		_io_service_udp_server.stop();
 		_io_service_udp_server.reset();
@@ -309,10 +317,14 @@ namespace havroc
 		else
 		{
 			m_udp_server = boost::shared_ptr<UDPNetworkServer>(new UDPNetworkServer(_io_service_udp_server));
+
+			m_udp_server->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_server, this);
 		}
+
+		m_reset_udp_server_event(keep);
 	}
 
-	void NetworkManager::reset_udp_server(bool keep)
+	void NetworkManager::reset_udp_client(bool keep)
 	{
 		_io_service_udp_client.stop();
 		_io_service_udp_client.reset();
@@ -328,7 +340,11 @@ namespace havroc
 		else
 		{
 			m_udp_client = boost::shared_ptr<UDPNetworkClient>(new UDPNetworkClient(_io_service_udp_client));
+
+			m_udp_client->register_disconnect_callback<NetworkManager>(&NetworkManager::network_disconnect_udp_client, this);
 		}
+
+		m_reset_udp_client_event(keep);
 	}
 
 }

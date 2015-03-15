@@ -55,7 +55,7 @@ void tracking_start_handler()
 		int choice = prompt_for_action();
 		sim_controller->play(true, choice != ACTIONS_COUNT ? choice : -1);
 
-		start_tracking = true;
+		//start_tracking = true;
 	}
 }
 
@@ -67,7 +67,7 @@ void tracking_end_handler()
 
 		sim_controller->stop();
 
-		start_tracking = false;
+		//start_tracking = false;
 	}
 }
 
@@ -100,6 +100,11 @@ int main()
 		if (start_tracking)
 		{
 			int choice = prompt_for_action();
+
+			while (!n_manager->is_active())
+			{
+				boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+			}
 
 			if (start_tracking)
 			{

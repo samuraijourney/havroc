@@ -41,6 +41,11 @@ extern "C"
 	{
 		havroc::NetworkManager::get()->set_reconnect(true);
 
+		if (!ip)
+		{
+			ip = "";
+		}
+
 		return havroc::NetworkManager::get()->async_start_tcp_client(ip);
 	}
 

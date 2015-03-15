@@ -1,9 +1,6 @@
 #ifndef H_ID
 #define H_ID
 
-// Tracking identifiers
-//#define IMU_ID_BASE 		0
-
 enum IMU_ID
 {
 	R_SHOULDER_IMU_ID = 0,

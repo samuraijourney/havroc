@@ -2,6 +2,9 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#include "uart_if.h"
+#include "common.h"
+
 /* XDC Tools Header Files */
 #include <xdc/runtime/System.h>
 #include <xdc/runtime/Timestamp.h>
@@ -619,11 +622,7 @@ static void WiFiSend()
 	while (lLoopCount < TCP_PACKET_COUNT)
 	{
 		// sending packet
-		iStatus = -11;
-		while(iStatus == -11)
-		{
-			iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
-		}
+		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 
 		while (iStatus <= 0)
 		{
@@ -643,7 +642,6 @@ static void WiFiSend()
 	sendIndex = 0;
 	sendCount = 0;
 	newData = false;
-
 	//Report("TCP sent %i bytes successful\n\r", iStatus);
 }
 

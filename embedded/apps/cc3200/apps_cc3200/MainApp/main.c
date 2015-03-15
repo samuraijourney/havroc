@@ -42,6 +42,8 @@
 
 /* Example/Board Header files */
 #include <Board.h>
+#include "uart_if.h"
+#include "common.h"
 
 /* HaVRoC library files */
 #include "havroc/communications/radio/wifi_communication.h"

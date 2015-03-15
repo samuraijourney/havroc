@@ -31,9 +31,6 @@
 // common interface includes
 #include "udma_if.h"
 #include "common.h"
-#ifndef NOTERM
-#include "uart_if.h"
-#endif
 
 #include "havroc/command.h"
 #include "pin_mux_config.h"

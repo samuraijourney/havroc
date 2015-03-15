@@ -16,7 +16,6 @@ SuitI2CErrorCode suit_i2c_transfer(uint8_t addr,
 									size_t readCount)
 {
 	SuitI2CErrorCode retVal = SUIT_I2C_E_SUCCESS;
-	uint8_t stopCond = false;
 
 	if (readBuff == NULL || readCount == 0)
 	{

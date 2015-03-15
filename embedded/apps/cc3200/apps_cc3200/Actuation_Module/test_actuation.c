@@ -17,26 +17,17 @@
 /* Board Header file */
 #include <Board.h>
 
+/* HaVRoC library files */
+#include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/communications/suit/suit_i2c.h"
 
-#define MUX_ADDR			0x77
-
-Void testFxn(UArg arg0, UArg arg1)
+static void BoardInit(void)
 {
-	uint8_t readBuff[1], writeBuff[3];
-	readBuff[0] = 0;
+    // Enable Processor
+    MAP_IntMasterEnable();
+    MAP_IntEnable(FAULT_SYSTICK);
 
-	int i;
-	for(i = 0; i < 5; i++)
-	{
-		writeBuff[0] = 1 << i;
-		suit_i2c_transfer(MUX_ADDR, writeBuff, 1, NULL, 0);
-		suit_i2c_read(0x5A, 0, readBuff, 1);
-		System_printf("Motor%d Status: 0x%x\n",i ,readBuff[0]);
-		readBuff[0] = 0xff;
-	}
-
-	System_flush();
+    PRCMCC3200MCUInit();
 }
 
 /*
@@ -44,20 +35,28 @@ Void testFxn(UArg arg0, UArg arg1)
  */
 int main(void)
 {
-	Task_Handle task0;
-	Task_Params params;
+	/* Call board init functions. */
+	Board_initGeneral();
 
-	Task_Params_init(&params);
-	params.priority = 5;
-	task0 = Task_create((Task_FuncPtr)testFxn, &params, NULL);
-	if (task0 == NULL) {
-		System_printf("Task create failed.");
-	}
+    // Board Initialization
+	BoardInit();
 
-    /* Call board init functions */
-    Board_initGeneral();
-    Board_initGPIO();
-    Board_initI2C();
+	// Initialize the uDMA
+	UDMAInit();
+
+	// Configuring UART
+	InitTerm();
+
+	// Initialize I2C
+    if (suit_i2c_init() != SUIT_I2C_E_SUCCESS)
+    {
+    	Report("I2C init error!\n");
+    	System_flush();
+    }
+
+	WlanStartTask();
+	//EventStart();
+	//ServiceStart();
 
     /* Start BIOS */
     BIOS_start();

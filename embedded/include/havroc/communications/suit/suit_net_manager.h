@@ -1,14 +1,7 @@
-#ifndef SUIT_NET_H_
-#define SUIT_NET_H_
+#ifndef SUIT_NET_MANAGER_H_
+#define SUIT_NET_MANAGER_H_
 
 #include "havroc/actuation/motor.h"
-
-#define MUX_ADDR			0x70
-#define MUX_INACTIVE		-1
-
-#define NUM_SUPER_NODES		2
-#define NUM_NODES 			5
-#define NUM_MOTORS			NUM_NODES
 
 /*
  * Enum statuses of supernodes
@@ -26,7 +19,8 @@ typedef enum _SuitNetSuperNodeStatus
 typedef enum _SuitNetErrorCode
 {
 	SUITNET_E_SUCCESS = 0,
-	SUITNET_E_I2C_ERROR
+	SUITNET_E_I2C_ERROR,
+	SUITNET_E_FAIL
 } SuitNetErrorCode;
 
 /*
@@ -35,6 +29,7 @@ typedef enum _SuitNetErrorCode
 typedef enum _SuitNetNodeType
 {
 	SUITNET_N_MOTOR = 0,
+	SUITNET_N_IMU,
 	SUITNET_N_UNKNOWN
 } SuitNetNodeType;
 
@@ -43,11 +38,13 @@ typedef enum _SuitNetNodeType
  */
 typedef struct _SuitNet_Node
 {
-	//node type: motor, other
+	//node type: motor, IMU
 	SuitNetNodeType nodeType;
 	//supernodeId which this node belongs to
 	uint8_t superNodeId;
-	//Motor object of node
+	//mux channel of this node
+	uint8_t muxChannel;
+	//Motor object of node; NULL if type IMU
 	Motor *motor;
 } SuitNet_Node;
 
@@ -56,8 +53,8 @@ typedef struct _SuitNet_Node
  */
 typedef struct _SuitNet_SuperNode
 {	
-	//last muxed channel of supernode; -1 if inactive
-	int8_t muxedChannel;
+	//primary mux line that supernode is on; -1 to bypass primary mux
+	int8_t primaryMuxLine;
 	//keeps status of supernode: active or irresponsive
 	SuitNetSuperNodeStatus status;
 	//list of nodes
@@ -68,15 +65,11 @@ typedef struct _SuitNet_SuperNode
 	uint8_t addr;
 } SuitNet_SuperNode;
 
-extern SuitNet_SuperNode superNodes[NUM_SUPER_NODES];
-extern SuitNet_Node nodes[NUM_NODES];
-extern Motor motors[NUM_MOTORS];
-
 //Selects supernode and opens channel
-SuitNetErrorCode suitnet_superNodeSelect(uint8_t superNodeId, uint8_t channel);
+SuitNetErrorCode suitNetManager_nodeSelect(SuitNet_Node *node);
 //Deselects supernode
-SuitNetErrorCode suitnet_clearSuperNodeSelect(uint8_t superNodeId);
+SuitNetErrorCode suitNetManager_clearNodeSelect(SuitNet_Node *node);
 //Deselects all supernodes
-SuitNetErrorCode suitnet_resetAllSuperNodes();
+SuitNetErrorCode suitNetManager_resetSelect();
 
 #endif /* SUIT_NET_H_ */

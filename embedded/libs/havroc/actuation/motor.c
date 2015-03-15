@@ -1,15 +1,15 @@
 #include "havroc/actuation/motor.h"
 #include "stdbool.h"
 
-#define DRV2604L_ADDR 		0x5A
+#define DRV2604L_ADDR 			0x5A
 
-#define MOTOR_SPEED_CTL_REG		0x02
-#define MOTOR_SPEED_STOP		0x81
-#define MOTOR_SPEED_MAX			0x7F
+#define MOTOR_RTP_REG			0x02
 
-#define MOTOR_CTL_RTP_REG		0x01
-#define MOTOR_CTL_RTP_VAL		0x05
+#define MOTOR_MODE_REG			0x01
+#define MOTOR_MODE_REG_VAL		0x05
 
+#define MOTOR_CTL3_REG			0x1D
+#define MOTOR_CTL3_REG_VAL		0x88
 
 MotorErrorCode motor_run(Motor *motor, int8_t intensity)
 {
@@ -30,24 +30,9 @@ MotorErrorCode motor_run(Motor *motor, int8_t intensity)
 		motor->intensity = intensity;
 
 		writeBuff[0] = intensity;
-		if (suit_i2c_write(DRV2604L_ADDR, MOTOR_CTL_RTP_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
+		if (suit_i2c_write(DRV2604L_ADDR, MOTOR_RTP_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
 			retVal = MOTOR_E_I2C_ERROR;
 	}
-
-	return retVal;
-}
-
-MotorErrorCode motor_stop(Motor *motor)
-{
-	uint8_t writeBuff[1];
-	MotorErrorCode retVal = MOTOR_E_SUCCESS;
-
-	motor->state = MOTOR_STATE_OFF;
-	motor->intensity = 0;
-
-	writeBuff[0] = MOTOR_SPEED_STOP;
-	if (suit_i2c_write(DRV2604L_ADDR, MOTOR_CTL_RTP_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
-		retVal = MOTOR_E_I2C_ERROR;
 
 	return retVal;
 }
@@ -105,14 +90,14 @@ MotorErrorCode motor_calibrate(Motor *motor, uint8_t forceRecalibrate)
 	if (suit_i2c_read(DRV2604L_ADDR, 0x00, readBuff, 1) != SUIT_I2C_E_SUCCESS)
 		retVal = MOTOR_E_CALIBRATE_FAIL;
 	
-	//set RTP reg to read from SPEED CTRL REG
-	writeBuff[0] = MOTOR_CTL_RTP_VAL;
-	if (suit_i2c_write(DRV2604L_ADDR, MOTOR_CTL_RTP_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
+	//set Mode reg to read from SPEED CTRL REG
+	writeBuff[0] = MOTOR_MODE_REG_VAL;
+	if (suit_i2c_write(DRV2604L_ADDR, MOTOR_MODE_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
 		retVal = MOTOR_E_I2C_ERROR;
 
-	//set RTP reg to read from SPEED CTRL REG
-	writeBuff[0] = MOTOR_CTL_RTP_VAL;
-	if (suit_i2c_write(DRV2604L_ADDR, MOTOR_CTL_RTP_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
+	//set CTL3 reg to do unsigned speeds values
+	writeBuff[0] = MOTOR_CTL3_REG_VAL;
+	if (suit_i2c_write(DRV2604L_ADDR, MOTOR_CTL3_REG, writeBuff, 1) != SUIT_I2C_E_SUCCESS)
 		retVal = MOTOR_E_I2C_ERROR;
 
 	if (retVal == MOTOR_E_SUCCESS)

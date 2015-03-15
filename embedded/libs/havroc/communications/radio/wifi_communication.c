@@ -662,10 +662,15 @@ static void WiFiSend()
 //****************************************************************************
 static long WlanConnect()
 {
+	SlSecParams_t secParams = {0};
 	long lRetVal = 0;
 
-	lRetVal = sl_WlanConnect((signed char*) SSID_NAME, strlen(SSID_NAME), 0, 0,
-			0);
+	secParams.Key = (signed char*)SECURITY_KEY;
+	secParams.KeyLen = strlen(SECURITY_KEY);
+	secParams.Type = SECURITY_TYPE;
+
+	lRetVal = sl_WlanConnect((signed char*)SSID_NAME, strlen(SSID_NAME), 0, &secParams, 0);
+
 	ASSERT_ON_ERROR(lRetVal);
 
 	while ((!IS_CONNECTED(g_ulStatus)))

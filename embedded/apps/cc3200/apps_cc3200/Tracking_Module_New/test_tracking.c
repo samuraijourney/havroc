@@ -24,6 +24,7 @@
 #include "havroc/tracking/Estimation.h"
 #include "havroc/tracking/IMU_Math.h"
 #include "havroc/tracking/MPU9250_Driver.h"
+#include "havroc/communications/suit/suit_i2c.h"
 
 #include "uart_if.h"
 #include "common.h"
@@ -43,6 +44,11 @@ Void testFxn(UArg arg0, UArg arg1)
 	Types_FreqHz freq;
 	float now = 0, prev = 0;
 	Timestamp_getFreq(&freq);
+
+	uint8_t writeBuff[1], readBuff[1];
+	writeBuff[0] = 1 << 4;
+	int val = I2C_IF_Write(0x77, writeBuff, 1, true);
+	val = I2C_IF_Read(0x77, readBuff, 1);
 
 	NewIMU(&test_imu_object, 0);                        // create the imu object
 	IMUInit(&test_imu_object);
@@ -109,8 +115,17 @@ int main(void)
 
     /* Call board init functions */
     Board_initGeneral();
-    Board_initGPIO();
-    Board_initI2C();
+    //Board_initGPIO();
+    //Board_initI2C();
+
+    // Configuring UART
+	InitTerm();
+
+	// Initialize I2C (suit_i2c module)
+	if (suit_i2c_init() != SUIT_I2C_E_SUCCESS)
+	{
+		Report("I2C init error!\n");
+	}
 
     /* Start BIOS */
     BIOS_start();

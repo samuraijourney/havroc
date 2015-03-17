@@ -36,18 +36,18 @@
 /* XDCtools Header files */
 #include <xdc/std.h>
 #include <xdc/cfg/global.h>
-#include <ti/sysbios/knl/Event.h>
 
 /* BIOS Header files */
 #include <ti/sysbios/BIOS.h>
 
 /* Example/Board Header files */
 #include <Board.h>
+#include "uart_if.h"
+#include "common.h"
 
 /* HaVRoC library files */
 #include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/eventmgr/eventmgr.h"
-#include "havroc/tracking/service.h"
 #include "havroc/communications/suit/suit_i2c.h"
 
 static void BoardInit(void)
@@ -81,8 +81,7 @@ int main(void)
     }
 
 	WlanStartTask();
-	//EventStart();
-	//ServiceStart();
+	EventStart();
 
     /* Start BIOS */
     BIOS_start();

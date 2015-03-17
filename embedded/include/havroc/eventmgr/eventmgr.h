@@ -21,14 +21,13 @@
 
 typedef struct _event
 {
-    int8_t 	    command;
+    int8_t 	    module;
+    uint8_t		command;
     uint16_t 	data_len;
     uint8_t*    data_buff;
 } event;
 
 typedef void(*EVENT_CB)(event currEvent);
-
-Event_Handle   		  EventMgr_Event;
 
 int EventRegisterCB(int32_t command, EVENT_CB Callback);
 static int EventFire(event currEvent);

@@ -1,4 +1,6 @@
 #include "stdbool.h"
+#include "uart_if.h"
+
 #include "havroc/communications/suit/suit_net_manager.h"
 #include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/eventmgr/eventmgr.h"
@@ -8,6 +10,8 @@
 #include "suit_net_map.h"
 
 #define SELECTED_SNODE_NONE		0xFF
+
+#define ACTUATION_TIME			300
 
 /*STATIC FXN DEFINITIONS*/
 static void motorEventCallback(event currEvent);
@@ -33,15 +37,26 @@ static void motorEventCallback(event currEvent)
 
 static void processMotorDataCmd(uint8_t* data, uint16_t length)
 {
+	uint8_t motorId, intensity;
 	uint16_t i;
+
 	for (i = 0; i < length; i+=3)
 	{
-		uint8_t motorId, intensity;
 		motorId = data[i]; 
 		intensity = data[i+1];
 
 		//run motor
 		motor_run(&(motors[motorId]), intensity);
+
+	}
+
+	Task_sleep(ACTUATION_TIME);
+
+	for (i = 0; i < length; i+=3)
+	{
+		motorId = data[i];
+		//stop motor
+		motor_run(&(motors[motorId]), 0);
 	}
 }
 

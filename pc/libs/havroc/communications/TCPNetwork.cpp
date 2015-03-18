@@ -5,7 +5,7 @@ namespace havroc
 {
 
 	TCPNetwork::TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
-		: Network(service, signals_pack), m_socket(service){}
+		: Network(service, signals_pack), m_socket(service), m_port(DEFAULT_TCP_PORT){}
 
 	TCPNetwork::~TCPNetwork(){}
 

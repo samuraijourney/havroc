@@ -8,6 +8,18 @@ namespace havroc
 
 	TCPNetworkServer::~TCPNetworkServer(){}
 
+	int TCPNetworkServer::set_port(int port)
+	{
+		if (!is_active())
+		{
+			m_port = port;
+
+			return SUCCESS;
+		}
+
+		return NETWORK_IS_ACTIVE;
+	}
+
 	int TCPNetworkServer::start_service()
 	{
 		boost::system::error_code error;
@@ -19,7 +31,7 @@ namespace havroc
 			return NETWORK_IS_ACTIVE;
 		}
 
-		tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), TCP_PORT);
+		tcp::endpoint endpoint = tcp::endpoint(tcp::v4(), m_port);
 
 		m_acceptor.open(endpoint.protocol(), error);
 		if (error)
@@ -39,10 +51,14 @@ namespace havroc
 
 		m_service.reset();
 
+		m_connecting = true;
+
 		while (!is_active())
 		{
 			if (m_cancel)
 			{
+				m_connecting = false;
+
 				return NETWORK_CONNECTION_START_CANCELLED;
 			}
 
@@ -56,11 +72,15 @@ namespace havroc
 			handles = m_service.poll(error);
 			if (error)
 			{
+				m_connecting = false;
+
 				return NETWORK_CONNECTION_START_FAILED;
 			}
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(50));
 		}
+
+		m_connecting = false;
 
 		return SUCCESS;
 	}

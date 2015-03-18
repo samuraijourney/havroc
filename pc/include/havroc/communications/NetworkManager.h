@@ -9,6 +9,9 @@
 #define UDP_CLIENT 0x01 << 2
 #define UDP_SERVER 0x01 << 3
 
+#define TCP_CLIENT_PORT_R	13
+#define TCP_CLIENT_PORT_L	14
+
 namespace havroc
 {
 
@@ -20,12 +23,12 @@ namespace havroc
 		static NetworkManager* get();
 
 		int start_tcp_server();
-		int start_tcp_client(std::string ip = CC3200_IP);
+		int start_tcp_client(std::string ip = CC3200_IP_R);
 		int start_udp_server();
 		int start_udp_client();
 
 		void async_start_tcp_server();
-		void async_start_tcp_client(std::string ip = CC3200_IP);
+		void async_start_tcp_client(std::string ip = CC3200_IP_R);
 		void async_start_udp_server();
 		void async_start_udp_client();
 
@@ -34,13 +37,8 @@ namespace havroc
 		int stop_udp_server();
 		int stop_udp_client();
 
-		void reset_tcp_server(bool keep);
-		void reset_tcp_client(bool keep);
-		void reset_udp_server(bool keep);
-		void reset_udp_client(bool keep);
-
 		bool is_tcp_server_active() { return m_tcp_server->is_active(); }
-		bool is_tcp_client_active() { return m_tcp_client->is_active(); }
+		bool is_tcp_client_active() { return m_tcp_client_right->is_active() || m_tcp_client_left->is_active(); }
 		bool is_udp_server_active() { return m_udp_server->is_active(); }
 		bool is_udp_client_active() { return m_udp_client->is_active(); }
 		bool is_active()			{ return is_tcp_server_active() || 
@@ -73,7 +71,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_sent_callback<T>(sent_callback, obj);
+				m_tcp_client_right->register_sent_callback<T>(sent_callback, obj);
+				m_tcp_client_left->register_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -98,7 +97,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_sent_callback(sent_callback);
+				m_tcp_client_right->register_sent_callback(sent_callback);
+				m_tcp_client_left->register_sent_callback(sent_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -124,7 +124,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_receive_callback<T>(receive_callback, obj);
+				m_tcp_client_right->register_receive_callback<T>(receive_callback, obj);
+				m_tcp_client_left->register_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -149,7 +150,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_receive_callback(receive_callback);
+				m_tcp_client_right->register_receive_callback(receive_callback);
+				m_tcp_client_left->register_receive_callback(receive_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -162,7 +164,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void register_connect_callback(void(T::*connect_callback)(), T* obj, uint8_t types = 0)
+		void register_connect_callback(void(T::*connect_callback)(Network* network), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -175,7 +177,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_connect_callback<T>(connect_callback, obj);
+				m_tcp_client_right->register_connect_callback<T>(connect_callback, obj);
+				m_tcp_client_left->register_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -187,7 +190,7 @@ namespace havroc
 			}
 		}
 
-		void register_connect_callback(void(*connect_callback)(), uint8_t types = 0)
+		void register_connect_callback(void(*connect_callback)(Network* network), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -200,7 +203,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_connect_callback(connect_callback);
+				m_tcp_client_right->register_connect_callback(connect_callback);
+				m_tcp_client_left->register_connect_callback(connect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -213,7 +217,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void register_disconnect_callback(void(T::*disconnect_callback)(), T* obj, uint8_t types = 0)
+		void register_disconnect_callback(void(T::*disconnect_callback)(Network* network), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -226,7 +230,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_disconnect_callback<T>(disconnect_callback, obj);
+				m_tcp_client_right->register_disconnect_callback<T>(disconnect_callback, obj);
+				m_tcp_client_left->register_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -238,7 +243,7 @@ namespace havroc
 			}
 		}
 
-		void register_disconnect_callback(void(*disconnect_callback)(), uint8_t types = 0)
+		void register_disconnect_callback(void(*disconnect_callback)(Network* network), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -251,7 +256,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->register_disconnect_callback(disconnect_callback);
+				m_tcp_client_right->register_disconnect_callback(disconnect_callback);
+				m_tcp_client_left->register_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -277,7 +283,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_sent_callback<T>(sent_callback, obj);
+				m_tcp_client_right->unregister_sent_callback<T>(sent_callback, obj);
+				m_tcp_client_left->unregister_sent_callback<T>(sent_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -302,7 +309,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_sent_callback(sent_callback);
+				m_tcp_client_right->unregister_sent_callback(sent_callback);
+				m_tcp_client_left->unregister_sent_callback(sent_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -328,7 +336,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_receive_callback<T>(receive_callback, obj);
+				m_tcp_client_right->unregister_receive_callback<T>(receive_callback, obj);
+				m_tcp_client_left->unregister_receive_callback<T>(receive_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -353,7 +362,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_receive_callback(receive_callback);
+				m_tcp_client_right->unregister_receive_callback(receive_callback);
+				m_tcp_client_left->unregister_receive_callback(receive_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -366,7 +376,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void unregister_connect_callback(void(T::*connect_callback)(), T* obj, uint8_t types = 0)
+		void unregister_connect_callback(void(T::*connect_callback)(Network* network), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -379,7 +389,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_connect_callback<T>(connect_callback, obj);
+				m_tcp_client_right->unregister_connect_callback<T>(connect_callback, obj);
+				m_tcp_client_left->unregister_connect_callback<T>(connect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -391,7 +402,7 @@ namespace havroc
 			}
 		}
 
-		void unregister_connect_callback(void(*connect_callback)(), uint8_t types = 0)
+		void unregister_connect_callback(void(*connect_callback)(Network* network), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -404,7 +415,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_connect_callback(connect_callback);
+				m_tcp_client_right->unregister_connect_callback(connect_callback);
+				m_tcp_client_left->unregister_connect_callback(connect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -417,7 +429,7 @@ namespace havroc
 		}
 
 		template<class T>
-		void unregister_disconnect_callback(void(T::*disconnect_callback)(), T* obj, uint8_t types = 0)
+		void unregister_disconnect_callback(void(T::*disconnect_callback)(Network* network), T* obj, uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -430,7 +442,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_disconnect_callback<T>(disconnect_callback, obj);
+				m_tcp_client_right->unregister_disconnect_callback<T>(disconnect_callback, obj);
+				m_tcp_client_left->unregister_disconnect_callback<T>(disconnect_callback, obj);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -442,7 +455,7 @@ namespace havroc
 			}
 		}
 
-		void unregister_disconnect_callback(void(*disconnect_callback)(), uint8_t types = 0)
+		void unregister_disconnect_callback(void(*disconnect_callback)(Network* network), uint8_t types = 0)
 		{
 			if (types == 0)
 			{
@@ -455,7 +468,8 @@ namespace havroc
 			}
 			if (types & TCP_CLIENT)
 			{
-				m_tcp_client->unregister_disconnect_callback(disconnect_callback);
+				m_tcp_client_right->unregister_disconnect_callback(disconnect_callback);
+				m_tcp_client_left->unregister_disconnect_callback(disconnect_callback);
 			}
 			if (types & UDP_SERVER)
 			{
@@ -573,22 +587,29 @@ namespace havroc
 	private:
 		NetworkManager();
 
-		void network_disconnect_tcp_server();
-		void network_disconnect_tcp_client();
-		void network_disconnect_udp_server();
-		void network_disconnect_udp_client();
+		void reset_tcp_server(boost::shared_ptr<TCPNetworkServer> network, bool keep);
+		void reset_tcp_client(boost::shared_ptr<TCPNetworkClient> network, bool keep);
+		void reset_udp_server(boost::shared_ptr<UDPNetworkServer> network, bool keep);
+		void reset_udp_client(boost::shared_ptr<UDPNetworkClient> network, bool keep);
+
+		void network_disconnect_tcp_server(Network* network);
+		void network_disconnect_tcp_client(Network* network);
+		void network_disconnect_udp_server(Network* network);
+		void network_disconnect_udp_client(Network* network);
 
 		uint8_t m_desired_connections = 0;
 		bool    m_reconnect;
 		bool	m_stop;
 
 		boost::shared_ptr<TCPNetworkServer> m_tcp_server;
-		boost::shared_ptr<TCPNetworkClient> m_tcp_client;
+		boost::shared_ptr<TCPNetworkClient> m_tcp_client_left;
+		boost::shared_ptr<TCPNetworkClient> m_tcp_client_right;
 		boost::shared_ptr<UDPNetworkServer> m_udp_server;
 		boost::shared_ptr<UDPNetworkClient> m_udp_client;
 
 		boost::thread m_async_tcp_server_connection_thread;
-		boost::thread m_async_tcp_client_connection_thread;
+		boost::thread m_async_tcp_client_left_connection_thread;
+		boost::thread m_async_tcp_client_right_connection_thread;
 		boost::thread m_async_udp_server_connection_thread;
 		boost::thread m_async_udp_client_connection_thread;
 

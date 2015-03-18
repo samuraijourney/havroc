@@ -109,6 +109,7 @@ namespace havroc
 		{
 			uint8_t connections = TCP_CLIENT | TCP_SERVER | UDP_CLIENT;
 
+			NetworkManager::get()->unregister_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
 			NetworkManager::get()->register_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
 
 			m_clear_buffer = true;

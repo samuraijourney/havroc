@@ -66,7 +66,7 @@ namespace havroc
 				end_service(NETWORK_UNEXPECTED_EVENT_LOOP_FAILURE);
 			}
 
-			boost::this_thread::sleep(boost::posix_time::milliseconds(10));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 		}
 	}
 

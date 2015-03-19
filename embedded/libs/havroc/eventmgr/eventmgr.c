@@ -104,7 +104,7 @@ int EventEnQ(char* message)
 			eventBuff[eventFront].data_buff[data_index++] = message[buff_index++];
 		}
 
-		Report("TCP received module %i, command: %i, size: %i\n\r", eventBuff[eventFront].module, eventBuff[eventFront].command, eventBuff[eventFront].data_len);
+		//Report("TCP received module %i, command: %i, size: %i\n\r", eventBuff[eventFront].module, eventBuff[eventFront].command, eventBuff[eventFront].data_len);
 
 		eventCount++;
 		Event_post(Command_Received_Handle, EventReceived);

@@ -1,5 +1,8 @@
 #include "havroc/tracking/Estimation.h"
 
+#include "uart_if.h"
+#include "common.h"
+
 //  The QVALUE affects the gyro response.
 
 #define QVALUE	0.001f
@@ -39,7 +42,10 @@ void newIMUData(const Vector3 gyro, const Vector3 accel, const Vector3 compass, 
 		fusion_object->m_timeDelta = (float)(timestamp - fusion_object->m_lastFusionTime) / (float)1000;
 		fusion_object->m_lastFusionTime = timestamp;
 		if (fusion_object->m_timeDelta <= 0)
+		{
+			Report("in return \n\r");
 			return;
+		}
 
 		calculatePose(fusion_object, accel, compass);
         //Serial.print("qs "); Serial.println(fusion_object->m_measuredQPose.scalar());

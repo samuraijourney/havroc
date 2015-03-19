@@ -4,7 +4,7 @@
 #include <xdc/runtime/System.h>
 #include <i2c_if.h>
 
-#define SUIT_I2C_BITRATE	I2C_MASTER_MODE_STD
+#define SUIT_I2C_BITRATE	I2C_MASTER_MODE_FST
 
 /*
  * I2C error codes.

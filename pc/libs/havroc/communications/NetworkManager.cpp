@@ -150,24 +150,13 @@ namespace havroc
 		return ret;
 	}
 
-	int NetworkManager::stop_tcp_client()
+	int NetworkManager::stop_tcp_client_left()
 	{
-		int ret1 = 0;
-		int ret2 = 0;
+		int ret = 0;
 
 		m_stop = true;
 
-		if ((ret1 = m_tcp_client_right->end_service()) == NETWORK_IS_INACTIVE)
-		{
-			if (!m_async_tcp_client_right_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
-			{
-				m_async_tcp_client_right_connection_thread.interrupt();
-			}
-
-			m_tcp_client_right->cancel();
-		}
-
-		if ((ret2 = m_tcp_client_left->end_service()) == NETWORK_IS_INACTIVE)
+		if ((ret = m_tcp_client_left->end_service()) == NETWORK_IS_INACTIVE)
 		{
 			if (!m_async_tcp_client_left_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
 			{
@@ -177,13 +166,34 @@ namespace havroc
 			m_tcp_client_left->cancel();
 		}
 
-		m_async_tcp_client_right_connection_thread.join();
 		m_async_tcp_client_left_connection_thread.join();
 
-		reset_tcp_client_right(false);
 		reset_tcp_client_left(false);
 
-		return ret1 > ret2 ? ret1 : ret2;
+		return ret;
+	}
+
+	int NetworkManager::stop_tcp_client_right()
+	{
+		int ret = 0;
+
+		m_stop = true;
+
+		if ((ret = m_tcp_client_right->end_service()) == NETWORK_IS_INACTIVE)
+		{
+			if (!m_async_tcp_client_right_connection_thread.timed_join(boost::posix_time::milliseconds(0)))
+			{
+				m_async_tcp_client_right_connection_thread.interrupt();
+			}
+
+			m_tcp_client_right->cancel();
+		}
+
+		m_async_tcp_client_right_connection_thread.join();
+
+		reset_tcp_client_right(false);
+
+		return ret;
 	}
 
 	int NetworkManager::stop_udp_server()

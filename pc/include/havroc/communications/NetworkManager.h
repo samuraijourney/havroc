@@ -38,7 +38,8 @@ namespace havroc
 		void async_start_udp_client();
 
 		int stop_tcp_server();
-		int stop_tcp_client();
+		int stop_tcp_client_right();
+		int stop_tcp_client_left();
 		int stop_udp_server();
 		int stop_udp_client();
 

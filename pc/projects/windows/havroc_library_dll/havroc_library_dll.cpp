@@ -53,7 +53,10 @@ extern "C"
 
 	int CALLBACK_CONV hvr_end_connection()
 	{
-		return havroc::NetworkManager::get()->stop_tcp_client();
+		int ret1 = havroc::NetworkManager::get()->stop_tcp_client_left();
+		int ret2 = havroc::NetworkManager::get()->stop_tcp_client_right();
+
+		return ret1 > ret2 ? ret1 : ret2;
 	}
 
 	bool CALLBACK_CONV hvr_is_network_active()

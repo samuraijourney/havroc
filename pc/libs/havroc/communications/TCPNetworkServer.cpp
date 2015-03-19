@@ -38,7 +38,7 @@ namespace havroc
 		{
 			return NETWORK_CONNECTION_START_FAILED;
 		}
-		m_acceptor.bind(endpoint);
+		m_acceptor.bind(endpoint, error);
 		if (error)
 		{
 			return NETWORK_CONNECTION_START_FAILED;

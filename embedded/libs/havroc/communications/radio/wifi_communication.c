@@ -542,7 +542,7 @@ void WiFiRun(UArg arg0, UArg arg1)
 		Task_exit();
 	}
 
-	Setup_IMUs(IMU_SELECT);
+	Setup_IMUs(IMU_SELECT, 2);
 
 	isActive = true;
 

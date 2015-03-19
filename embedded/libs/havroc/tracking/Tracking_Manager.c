@@ -26,12 +26,12 @@ static unsigned long millis ()
 	return (Timestamp_get32()*1000.0/(1.0*freq.lo));
 }
 
-void Setup_IMUs(int imu_index)
+void Setup_IMUs(int imu_start, int count)
 {
 	int i;
 	int retVal;
 
-	for(i = 0; i <= imu_index; i++)
+	for(i = imu_start; i < count; i++)
 	{
 		NewIMU(&imu_object[i], i);                        // create the imu object
 		retVal = IMUInit(&imu_object[i]);

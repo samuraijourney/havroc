@@ -8,7 +8,7 @@
 
 #include <xdc/runtime/Timestamp.h>
 #include <xdc/runtime/Types.h>
-#include <ti/sysbios/knl/Clock.h>
+//#include <ti/sysbios/knl/Clock.h>
 
 #include "uart_if.h"
 #include "common.h"
@@ -32,7 +32,7 @@ void NewIMU(IMU* imu_object, int imu_index)
     //  MPU9250 defaults
 
     imu_object->m_MPU9250GyroAccelSampleRate = 80;
-    imu_object->m_MPU9250CompassSampleRate = 40;
+    imu_object->m_MPU9250CompassSampleRate = 80;
     imu_object->m_MPU9250GyroLpf = MPU9250_GYRO_LPF_41;
     imu_object->m_MPU9250AccelLpf = MPU9250_ACCEL_LPF_41;
     imu_object->m_MPU9250GyroFsr = MPU9250_GYROFSR_1000;
@@ -250,6 +250,8 @@ int IMUInit(IMU* imu_object)
 {
     uint8_t txBuff[1];
     uint8_t rxBuff[1];
+    int retVal = SUCCESS;
+
     imu_object->m_firstTime = true;
     //  configure IMU
 
@@ -265,44 +267,44 @@ int IMUInit(IMU* imu_object)
     //  reset the MPU9250
     txBuff[0] = 0x80;
 
-    suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
 
     delay(100);
 
     txBuff[0] = 0x00;
-    suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
 
-	suitNetManager_imu_i2c_read(imu_object->m_imu_index, false, MPU9250_WHO_AM_I, rxBuff, 1);
+    retVal += suitNetManager_imu_i2c_read(imu_object->m_imu_index, false, MPU9250_WHO_AM_I, rxBuff, 1);
 
     if (rxBuff[0] != MPU9250_ID) {
-         return false;
+         return IMU_MPU_START_FAIL;
     }
 
     //  now configure the various components
 
     if (!setGyroConfig(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     if (!setAccelConfig(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     if (!setSampleRate(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     //  now configure compass
 
     if (!bypassOn(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     // get fuse ROM data
 
     txBuff[0] = 0x00;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
 
 	txBuff[0] = 0x0f;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
 
-	suitNetManager_imu_i2c_read(imu_object->m_imu_index, true, AK8963_ASAX, rxBuff, 3);
+	retVal += suitNetManager_imu_i2c_read(imu_object->m_imu_index, true, AK8963_ASAX, rxBuff, 3);
 
     //  convert asa to usable scale factor
 
@@ -311,57 +313,63 @@ int IMUInit(IMU* imu_object)
     imu_object->m_compassAdjust[2] = ((float)rxBuff[2] - 128.0) / 256.0 + 1.0f;
 
     txBuff[0] = 0x00;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
 
     if (!bypassOff(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     //  now set up MPU9250 to talk to the compass chip
 
     txBuff[0] = 0x40;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_MST_CTRL, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_MST_CTRL, txBuff, 1);
 
     txBuff[0] = 0x80 | AK8963_ADDRESS;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_ADDR, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_ADDR, txBuff, 1);
 
     txBuff[0] = AK8963_ST1;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_REG, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_REG, txBuff, 1);
 
 	txBuff[0] = 0x88;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_CTRL, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_CTRL, txBuff, 1);
 
 	txBuff[0] = AK8963_ADDRESS;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_ADDR, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_ADDR, txBuff, 1);
 
 	txBuff[0] = AK8963_CNTL;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_REG, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_REG, txBuff, 1);
 
 	txBuff[0] = 0x81;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_CTRL, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_CTRL, txBuff, 1);
 
 	txBuff[0] = 0x1;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_DO, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV1_DO, txBuff, 1);
 
 	txBuff[0] = 0x3;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_MST_DELAY_CTRL, txBuff, 1);
+	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_MST_DELAY_CTRL, txBuff, 1);
 
     if (!setCompassRate(imu_object))
-        return false;
+        return IMU_COMPASS_START_FAIL;
 
     //  enable the sensors
     txBuff[0] = 0x1;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
 
     txBuff[0] = 0x0;
-	suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_2, txBuff, 1);
+    retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_2, txBuff, 1);
 
     //  select the data to go into the FIFO and enable
 
     if (!resetFifo(imu_object))
-        return false;
+        return IMU_MPU_START_FAIL;
 
     gyroBiasInit(imu_object);
-    return true;
+
+    if(retVal > 0)
+    {
+    	return IMU_MPU_START_FAIL;
+    }
+
+    return SUCCESS;
 }
 
 bool resetFifo(IMU* imu_object)

@@ -36,6 +36,8 @@ static long iSockID = 0;
 static bool newData = false;
 static bool isActive = false;
 
+#define IMU_SELECT				R_SHOULDER_IMU_ID
+
 //*****************************************************************************
 // SimpleLink Asynchronous Event Handlers -- Start
 //*****************************************************************************
@@ -540,18 +542,38 @@ void WiFiRun(UArg arg0, UArg arg1)
 		Task_exit();
 	}
 
-	Setup_IMUs(R_SHOULDER_IMU_ID);
+	Setup_IMUs(IMU_SELECT);
 
 	isActive = true;
 
 	while (1)
 	{
+		Tracking_Update(IMU_SELECT);
+
+		if(i == 5)
+		{
+			Tracking_Publish(IMU_SELECT);
+
+			if(newData)
+			{
+				WiFiSend();
+			}
+
+			i = 0;
+		}
+		else
+		{
+			i++;
+		}
+
 		recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
 
 		if (recvStatus <= 0 && recvStatus != -11)
 		{
 			while(iStatus != 0)
 			{
+				Report("Disconnecting on error: %d at I2C_Receive()\n\r", recvStatus);
+
 				WlanOff();
 				iStatus = WiFiStartup();
 			}
@@ -568,22 +590,6 @@ void WiFiRun(UArg arg0, UArg arg1)
 					buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
 				}
 			}
-		}
-
-		Tracking_Update(R_SHOULDER_IMU_ID);
-
-		if(i == 5)
-		{
-			Tracking_Publish(R_SHOULDER_IMU_ID);
-			if(newData)
-			{
-				WiFiSend();
-			}
-			i = 0;
-		}
-		else
-		{
-			i++;
 		}
 
 		Task_yield();
@@ -624,9 +630,10 @@ static void WiFiSend()
 		// sending packet
 		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 
-		while (iStatus <= 0)
+		while (iStatus <= 0 && iStatus != -11)
 		{
 			// error
+			Report("Disconnecting on error: %d at I2C_Send()\n\r", iStatus);
 			WlanOff();
 			iStatus = WiFiStartup();
 
@@ -634,6 +641,11 @@ static void WiFiSend()
 			{
 				lLoopCount--;
 			}
+		}
+
+		if(iStatus == -11)
+		{
+			Report("iStatus is -11 in I2C_Send()\n\r");
 		}
 
 		lLoopCount++;

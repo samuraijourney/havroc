@@ -12,6 +12,16 @@
 extern "C"
 {
 
+	/* Logging API functions */
+
+	void CALLBACK_CONV hvr_set_logging_callback(log_callback callback)
+	{
+		havroc::Logger::set_remote_print_func(callback);
+		havroc::Logger::start_logger();
+	}
+
+
+
 	/* Network API functions */
 
 	int CALLBACK_CONV hvr_start_connection(char* ip)

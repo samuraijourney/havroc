@@ -1,5 +1,6 @@
 #include <havroc/communications/TCPNetwork.h>
 #include <havroc/common/CommandBuilder.h>
+#include <havroc/common/Logger.h>
 
 namespace havroc
 {
@@ -91,7 +92,7 @@ namespace havroc
 	{
 		if (ec)
 		{
-			std::cerr << ec.message() << ". Trying again." << std::endl;
+			Logger::log << ec.message() << ". Trying again.\n";
 		}
 		else
 		{

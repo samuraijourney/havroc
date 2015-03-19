@@ -7,6 +7,7 @@
 #include <havroc/communications/NetworkManager.h>
 #include <havroc/communications/TCPNetwork.h>
 #include <havroc/common/CommandBuilder.h>
+#include <havroc/common/Logger.h>
 
 #define NUM_MOTORS 24
 
@@ -101,6 +102,8 @@ int main(int argc, char* argv[])
 		manager->register_disconnect_callback(&disconnect_handler);
 		manager->register_sent_callback(&sent_handler);
 		manager->register_receive_callback(&receive_handler);
+
+		havroc::Logger::start_logger();
 
 		char* c_ip = (char*)malloc(sizeof(char)*(ip.length() + 1));
 		strcpy(c_ip, ip.c_str());

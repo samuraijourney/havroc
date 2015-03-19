@@ -60,5 +60,13 @@
     <ClCompile Include="..\..\..\libs\havroc\tracking\TrackingManager.cpp">
       <Filter>Source Files\tracking</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\libs\havroc\common\Logger.cpp">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

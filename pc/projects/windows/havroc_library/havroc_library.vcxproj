@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\libs\havroc\common\CommandBuilder.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\common\CommandManager.cpp" />
+    <ClCompile Include="..\..\..\libs\havroc\common\Logger.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\Network.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\NetworkManager.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\TCPNetwork.cpp" />
@@ -177,6 +178,9 @@
     <ClCompile Include="..\..\..\libs\havroc\communications\UDPNetworkClient.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\communications\UDPNetworkServer.cpp" />
     <ClCompile Include="..\..\..\libs\havroc\tracking\TrackingManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

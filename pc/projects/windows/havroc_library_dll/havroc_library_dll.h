@@ -12,11 +12,13 @@
 
 #include <stdint.h>
 
+#include <havroc\common\Logger.h>
+
 // havroc_library_dll.cpp : Defines the exported functions for the DLL application.
 
 extern "C"
 {
-	typedef void(*mirror_callback)(float, float, float, uint8_t);
+	typedef havroc::RemotePrintCallback log_callback;
 	
 	/* Network API callbacks */
 	typedef void(*connect_callback)();
@@ -26,6 +28,9 @@ extern "C"
 	typedef void(*shoulder_callback)(float, float, float, uint8_t);
 	typedef void(*elbow_callback)(float, float, float, uint8_t);
 	typedef void(*wrist_callback)(float, float, float, uint8_t);
+
+	/* Logging API functions */
+	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_set_logging_callback(log_callback callback);
 
 	/* Network API functions */
 	extern HAVROC_LIBRARY_DLL_API int  CALLBACK_CONV	hvr_start_connection(char* ip);

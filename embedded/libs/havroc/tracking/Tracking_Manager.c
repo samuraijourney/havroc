@@ -13,10 +13,10 @@ static float yaw[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 static float pitch[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 static float roll[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 
-void Setup_IMUs(int imu_index)
+void Setup_IMUs(int imu_start, int count)
 {
 	int i;
-	for(i = R_SHOULDER_IMU_ID; i < imu_index+1; i++)
+	for(i = imu_start; i < count; i++)
 	{
 		NewIMU(&imu_object[i], 0);                        // create the imu object
 		IMUInit(&imu_object[i]);

@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 		tcp.register_connect_callback(&connect_handler);
 		tcp.register_disconnect_callback(&disconnect_handler);
 
-		std::cout << "Listening on port: " << TCP_PORT << std::endl;
+		std::cout << "Listening on port: " << DEFAULT_TCP_PORT << std::endl;
 		tcp.start_service();
 
 		BYTE indices[NUM_MOTORS];

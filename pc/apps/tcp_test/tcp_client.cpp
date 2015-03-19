@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		boost::asio::io_service io_service;
-		havroc::TCPNetworkClient tcp(io_service, ip);
+		havroc::TCPNetworkClient tcp(io_service, ip, DEFAULT_TCP_PORT);
 
 		tcp.register_sent_callback(&sent_handler);
 		tcp.register_receive_callback(&receive_handler);

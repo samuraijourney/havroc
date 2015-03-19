@@ -27,8 +27,6 @@ extern "C"
 	typedef void(*elbow_callback)(float, float, float, uint8_t);
 	typedef void(*wrist_callback)(float, float, float, uint8_t);
 
-	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_register_mirror_callback(mirror_callback callback);
-
 	/* Network API functions */
 	extern HAVROC_LIBRARY_DLL_API int  CALLBACK_CONV	hvr_start_connection(char* ip);
 	extern HAVROC_LIBRARY_DLL_API void CALLBACK_CONV	hvr_async_start_connection(char* ip);

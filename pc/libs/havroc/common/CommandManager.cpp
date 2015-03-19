@@ -19,7 +19,7 @@ namespace havroc
 	CommandManager::CommandManager() 
 	: m_clear_buffer(false)
 	{
-		uint8_t connections = TCP_CLIENT | TCP_SERVER | UDP_CLIENT;
+		uint8_t connections = TCP_CLIENT_RIGHT | TCP_CLIENT_LEFT | TCP_SERVER | UDP_CLIENT;
 
 		NetworkManager::get()->register_reset_callback<CommandManager>(&CommandManager::network_reset, this, connections);
 		NetworkManager::get()->register_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
@@ -107,7 +107,7 @@ namespace havroc
 	{
 		if (!receive_attached)
 		{
-			uint8_t connections = TCP_CLIENT | TCP_SERVER | UDP_CLIENT;
+			uint8_t connections = TCP_CLIENT_RIGHT | TCP_CLIENT_LEFT | TCP_SERVER | UDP_CLIENT;
 
 			NetworkManager::get()->unregister_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);
 			NetworkManager::get()->register_receive_callback<CommandManager>(&CommandManager::receive_handler, this, connections);

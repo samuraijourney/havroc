@@ -1,4 +1,5 @@
 #include <iostream>
+#include <mutex>
 
 #include <havroc/communications/NetworkManager.h>
 #include <havroc/common/CommandManager.h>
@@ -6,47 +7,57 @@
 
 #define NUM_MOTORS 24
 
-class TestTCPClientCallback
+std::mutex print_lock;
+
+class TestTCPServerCallback
 {
 public:
-	TestTCPClientCallback(){}
-	~TestTCPClientCallback(){}
+	TestTCPServerCallback(){}
+	~TestTCPServerCallback(){}
 
 	void sent_callback(BYTE* msg, size_t size)
 	{
+		print_lock.lock();
 		if (havroc::CommandBuilder::is_command(msg, size))
 		{
-			std::cout << "TCP Client sent packet" << std::endl;
+			std::cout << "TCP Server sent packet" << std::endl;
 			havroc::CommandBuilder::print_command(msg, size, 1);
 		}
 		else
 		{
 			std::string str_msg((char*) msg);
-			std::cout << "TCP Client sent message: " << str_msg << std::endl;
+			std::cout << "TCP Server sent message: " << str_msg << std::endl;
 		}
+		print_lock.unlock();
 	}
 
 	void receive_callback(BYTE* msg, size_t size)
 	{
+		print_lock.lock();
 		if (havroc::CommandBuilder::is_command(msg, size))
 		{
-			std::cout << "TCP Client receiving packet" << std::endl;
+			std::cout << "TCP Server receiving packet" << std::endl;
 		}
 		else
 		{
 			std::string str_msg((char*) msg);
-			std::cout << "TCP Client receiving message: " << str_msg << std::endl;
+			std::cout << "TCP Server receiving message: " << str_msg << std::endl;
 		}
+		print_lock.unlock();
 	}
 
 	void connect_callback()
 	{
-		std::cout << "TCP Client started" << std::endl;
+		print_lock.lock();
+		std::cout << "TCP Server started" << std::endl;
+		print_lock.unlock();
 	}
 
 	void disconnect_callback()
 	{
-		std::cout << "TCP Client stopped" << std::endl;
+		print_lock.lock();
+		std::cout << "TCP Server stopped" << std::endl;
+		print_lock.unlock();
 	}
 };
 
@@ -104,19 +115,45 @@ void error_callback(havroc::command_pkg* pkg)
 
 int main()
 {
+	int port = -1;
+
+	int choice;
+	printf("Target:\t1) Board 1\n\t2) Board 2\nChoice: ");
+
+	std::cin >> choice;
+
+	switch (choice)
+	{
+	case(1) :
+	{
+		port = TCP_CLIENT_PORT_R;
+		break;
+	}
+	case(2) :
+	{
+		port = TCP_CLIENT_PORT_L;
+		break;
+	}
+	default:
+	{
+		printf("Invalid entry. Killing application.");
+		return 0;
+	}
+	}
+
 	havroc::NetworkManager* n_manager = havroc::NetworkManager::get();
 	havroc::CommandManager* c_manager = havroc::CommandManager::get();
 
 	n_manager->set_reconnect(true);
 
-	TestTCPClientCallback* tcp = new TestTCPClientCallback();
+	TestTCPServerCallback* tcp = new TestTCPServerCallback();
 	TestCommandCallback* cmd = new TestCommandCallback();
 
 	n_manager->set_connections(TCP_SERVER);
-	n_manager->register_connect_callback<TestTCPClientCallback>(&TestTCPClientCallback::connect_callback, tcp);
-	n_manager->register_disconnect_callback<TestTCPClientCallback>(&TestTCPClientCallback::disconnect_callback, tcp);
-	n_manager->register_sent_callback<TestTCPClientCallback>(&TestTCPClientCallback::sent_callback, tcp);
-	n_manager->register_receive_callback<TestTCPClientCallback>(&TestTCPClientCallback::receive_callback, tcp);
+	n_manager->register_connect_callback<TestTCPServerCallback>(&TestTCPServerCallback::connect_callback, tcp);
+	n_manager->register_disconnect_callback<TestTCPServerCallback>(&TestTCPServerCallback::disconnect_callback, tcp);
+	n_manager->register_sent_callback<TestTCPServerCallback>(&TestTCPServerCallback::sent_callback, tcp);
+	n_manager->register_receive_callback<TestTCPServerCallback>(&TestTCPServerCallback::receive_callback, tcp);
 
 	n_manager->register_connect_callback(&connect_example_callback_with_no_class);
 
@@ -127,13 +164,7 @@ int main()
 	c_manager->register_tracking_callback(&tracking_example_callback_with_no_class);
 	c_manager->register_error_callback(&error_callback);
 
-	if(int error = n_manager->start_tcp_server())
-	{
-		printf("TCP Server failed to start with error code: %d\n", error);
-		printf("Terminating program\n");
-		
-		return -1;
-	}
+	n_manager->start_tcp_server(port);
 
 	BYTE indices[NUM_MOTORS];
 	BYTE intensities[NUM_MOTORS];

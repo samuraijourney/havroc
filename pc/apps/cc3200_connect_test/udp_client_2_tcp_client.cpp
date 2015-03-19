@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 
 		udp.end_service();
 
-		havroc::TCPNetworkClient tcp(io_service, _remote_ip);
+		havroc::TCPNetworkClient tcp(io_service, _remote_ip, DEFAULT_TCP_PORT);
 
 		tcp.register_sent_callback(&tcp_sent_handler);
 		tcp.register_receive_callback(&tcp_receive_handler);

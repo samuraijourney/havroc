@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include <mutex>
 #include <ctime>
 #include <boost/thread/thread.hpp>
 
@@ -9,8 +10,11 @@
 
 #define NUM_MOTORS 24
 
+std::mutex print_lock;
+
 void sent_handler(BYTE* msg, size_t size)
 {
+	print_lock.lock();
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
 		std::cout << "TCP Client sent packet" << std::endl;
@@ -21,10 +25,12 @@ void sent_handler(BYTE* msg, size_t size)
 		std::string str_msg((char*) msg);
 		std::cout << "TCP Client sent message: " << str_msg << std::endl;
 	}
+	print_lock.unlock();
 }
 
 void receive_handler(BYTE* msg, size_t size)
 {
+	print_lock.lock();
 	if (havroc::CommandBuilder::is_command(msg, size))
 	{
 		std::cout << "TCP Client receiving packet" << std::endl;
@@ -35,16 +41,21 @@ void receive_handler(BYTE* msg, size_t size)
 		std::string str_msg((char*) msg);
 		std::cout << "TCP Client receiving message: " << str_msg << std::endl;
 	}
+	print_lock.unlock();
 }
 
 void disconnect_handler()
 {
+	print_lock.lock();
 	std::cout << "TCP Client stopped" << std::endl;
+	print_lock.unlock();
 }
 
 void connect_handler()
 {
+	print_lock.lock();
 	std::cout << "TCP Client started" << std::endl;
+	print_lock.unlock();
 }
 
 int main(int argc, char* argv[])
@@ -64,7 +75,7 @@ int main(int argc, char* argv[])
 	}
 	case(2) :
 	{
-		ip = CC3200_IP;
+		ip = "";
 		break;
 	}
 	case(3) :
@@ -85,7 +96,7 @@ int main(int argc, char* argv[])
 		havroc::NetworkManager* manager = havroc::NetworkManager::get();
 		manager->set_reconnect(true);
 
-		manager->set_connections(TCP_CLIENT);
+		manager->set_connections(TCP_CLIENT_RIGHT | TCP_CLIENT_LEFT);
 		manager->register_connect_callback(&connect_handler);
 		manager->register_disconnect_callback(&disconnect_handler);
 		manager->register_sent_callback(&sent_handler);
@@ -94,7 +105,21 @@ int main(int argc, char* argv[])
 		char* c_ip = (char*)malloc(sizeof(char)*(ip.length() + 1));
 		strcpy(c_ip, ip.c_str());
 
-		manager->start_tcp_client(c_ip);
+		if (ip == "")
+		{
+			manager->async_start_tcp_client_left();
+			manager->async_start_tcp_client_right();
+		}
+		else
+		{
+			manager->async_start_tcp_client_left(c_ip);
+			manager->async_start_tcp_client_right(c_ip);
+		}
+
+		while (!manager->is_tcp_client_left_active() || !manager->is_tcp_client_right_active())
+		{
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
+		}
 
 		BYTE indices[NUM_MOTORS];
 		BYTE intensities[NUM_MOTORS];

@@ -47,7 +47,7 @@ namespace havroc
 		static void build_tracking_command(BYTE*& packet, size_t& size, bool on);
 
 		// Populate packet byte pointer and size from simulated tracking data
-		static void build_tracking_data_sim_command(BYTE*& packet, size_t& size, float angles[2 * ANGLES_PER_ARM]);
+		static void build_tracking_data_sim_command(BYTE*& packet, size_t& size, float angles[ANGLES_PER_ARM], BYTE arm);
 
 		// Populate packet byte pointer and size from system command parameters
 		static void build_kill_system_command(BYTE*& packet, size_t& size);

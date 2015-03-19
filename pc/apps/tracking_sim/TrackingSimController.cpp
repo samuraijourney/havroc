@@ -8,12 +8,13 @@
 #include "TrackingSimController.h"
 
 
-TrackingSimController::TrackingSimController(std::string file_path)
+TrackingSimController::TrackingSimController(std::string file_path, BYTE arm)
 : m_file_path(file_path),
   m_loaded(false),
   m_stop(false),
   m_playing(false),
-  m_pause(false){}
+  m_pause(false),
+  m_arm(arm){}
 
 TrackingSimController::~TrackingSimController(){}
 
@@ -129,10 +130,21 @@ bool TrackingSimController::play_action(int action_id, bool repeat)
 				boost::this_thread::sleep(boost::posix_time::milliseconds(100));
 			}
 
-			havroc::CommandBuilder::build_tracking_data_sim_command(msg, size, selected_action.data[i].angles);
-			if (int failures = havroc::NetworkManager::get()->send(msg, size, true))
+			if (m_arm == LEFT_ARM)
 			{
-				return false;
+				havroc::CommandBuilder::build_tracking_data_sim_command(msg, size, selected_action.data[i].left_angles, m_arm);
+				if (int failures = havroc::NetworkManager::get()->send(msg, size, true))
+				{
+					return false;
+				}
+			}
+			else if (m_arm == RIGHT_ARM)
+			{
+				havroc::CommandBuilder::build_tracking_data_sim_command(msg, size, selected_action.data[i].right_angles, m_arm);
+				if (int failures = havroc::NetworkManager::get()->send(msg, size, true))
+				{
+					return false;
+				}
 			}
 
 			if (m_stop)
@@ -207,8 +219,13 @@ void TrackingSimController::parse_line(char* buffer, char* tokens[DATA_PER_LINE]
 
 void TrackingSimController::populate_tracking_packet(tracking_packet& pkg, char* data[DATA_PER_LINE])
 {
-	for (int i = 0; i < 2 * ANGLES_PER_ARM; i++)
+	for (int i = 0; i < ANGLES_PER_ARM; i++)
 	{
-		pkg.angles[i] = (float)atof(data[i+1]);
+		pkg.right_angles[i] = (float)atof(data[i+1]);
+	}
+
+	for (int i = ANGLES_PER_ARM + ANGLES_PER_IMU; i < 2 * ANGLES_PER_ARM + ANGLES_PER_IMU; i++)
+	{
+		pkg.left_angles[i - ANGLES_PER_ARM - ANGLES_PER_IMU] = (float)atof(data[i + 1]);
 	}
 }

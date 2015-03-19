@@ -2,4 +2,4 @@
 #define LEFT_ARM  2
 
 #define ANGLES_PER_IMU 3
-#define ANGLES_PER_ARM 3 * ANGLES_PER_IMU
+#define ANGLES_PER_ARM 2 * ANGLES_PER_IMU

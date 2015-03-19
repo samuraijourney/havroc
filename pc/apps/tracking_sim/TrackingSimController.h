@@ -20,7 +20,8 @@ class TrackingSimController
 {
 	typedef struct _tracking_packet
 	{
-		float angles[2 * ANGLES_PER_ARM];
+		float left_angles [ANGLES_PER_ARM];
+		float right_angles[ANGLES_PER_ARM];
 	} tracking_packet;
 
 	typedef struct _action
@@ -30,7 +31,7 @@ class TrackingSimController
 	} action;
 
 public:
-	TrackingSimController(std::string file_path);
+	TrackingSimController(std::string file_path, BYTE arm);
 	virtual ~TrackingSimController();
 
 	void play(bool repeat, int action_id = -1);
@@ -58,6 +59,8 @@ private:
 	bool m_playing;
 	bool m_pause;
 	bool m_stop;
+
+	BYTE m_arm;
 };
 
 #endif /* TRACKINGSIMCONTROLLER_H_ */

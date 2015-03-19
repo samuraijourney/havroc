@@ -16,9 +16,9 @@ namespace havroc
 		packet[5] = (BYTE)on;				  // Data
 	}
 
-	void CommandBuilder::build_tracking_data_sim_command(BYTE*& packet, size_t& size, float angles[2 * ANGLES_PER_ARM])
+	void CommandBuilder::build_tracking_data_sim_command(BYTE*& packet, size_t& size, float angles[ANGLES_PER_ARM], BYTE arm)
 	{
-		uint16_t data_size = 2 * ANGLES_PER_ARM * sizeof(float);
+		uint16_t data_size = ANGLES_PER_ARM * sizeof(float) + 1;
 		size = OVERHEAD_BYTES_CNT + data_size;
 
 		packet = (BYTE*)malloc(sizeof(BYTE) * size);
@@ -28,14 +28,15 @@ namespace havroc
 		packet[2] = (BYTE)TRACKING_DATA_CMD;
 		packet[3] = (BYTE)((data_size >> 8) & 0x00FF);
 		packet[4] = (BYTE)(data_size & 0x00FF);
+		packet[5] = arm;
 
-		for (int i = 0; i < 2 * ANGLES_PER_ARM; i++)
+		for (int i = 0; i < ANGLES_PER_ARM; i++)
 		{
 			BYTE* p = reinterpret_cast<BYTE*>(&angles[i]);
 
 			for (int j = 0; j < sizeof(float); j++)
 			{
-				packet[i * sizeof(float) + j + OVERHEAD_BYTES_CNT] = p[j];
+				packet[i * sizeof(float) + j + OVERHEAD_BYTES_CNT + 1] = p[j];
 			}
 		}
 	}

@@ -73,10 +73,36 @@ void tracking_end_handler()
 
 int main()
 {
+	int port = -1;
+
+	int choice;
+	printf("Target:\t1) Board 1\n\t2) Board 2\nChoice: ");
+
+	std::cin >> choice;
+
+	switch (choice)
+	{
+	case(1) :
+	{
+		port = TCP_CLIENT_PORT_R;
+		break;
+	}
+	case(2) :
+	{
+		port = TCP_CLIENT_PORT_L;
+		break;
+	}
+	default:
+	{
+		printf("Invalid entry. Killing application.");
+		return 0;
+	}
+	}
+
 	havroc::NetworkManager*  n_manager = havroc::NetworkManager::get();
 	havroc::TrackingManager* t_manager = havroc::TrackingManager::get();
 
-	sim_controller = new TrackingSimController("TrackingData_CSV.csv");
+	sim_controller = new TrackingSimController("TrackingData_CSV.csv", (BYTE)choice);
 
 	n_manager->set_reconnect(true);
 
@@ -87,7 +113,7 @@ int main()
 	t_manager->register_start_callback(&tracking_start_handler);
 	t_manager->register_end_callback(&tracking_end_handler);
 
-	if(int error = n_manager->start_tcp_server())
+	if (int error = n_manager->start_tcp_server(port))
 	{
 		printf("TCP Server failed to start with error code: %d\n", error);
 		printf("Terminating program\n");

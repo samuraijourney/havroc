@@ -1,4 +1,5 @@
 #include <havroc/communications/TCPNetwork.h>
+#include <havroc/common/Logger.h>
 
 namespace havroc
 {
@@ -45,7 +46,9 @@ namespace havroc
 		}
 		m_acceptor.listen();
 
-		printf("\n\nTCP Server waiting for connection...\n\n");
+		printf("\n\n");
+		Logger::log("TCP Server waiting for connection...");
+		printf("\n\n");
 
 		int handles = 1;
 

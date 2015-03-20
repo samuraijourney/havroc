@@ -103,8 +103,6 @@ int main(int argc, char* argv[])
 		manager->register_sent_callback(&sent_handler);
 		manager->register_receive_callback(&receive_handler);
 
-		havroc::Logger::start_logger();
-
 		char* c_ip = (char*)malloc(sizeof(char)*(ip.length() + 1));
 		strcpy(c_ip, ip.c_str());
 

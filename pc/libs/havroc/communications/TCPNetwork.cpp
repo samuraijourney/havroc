@@ -92,11 +92,13 @@ namespace havroc
 	{
 		if (ec)
 		{
-			Logger::log << ec.message() << ". Trying again.\n";
+			Logger::log("%s. Trying again.\n", ec.message().c_str());
 		}
 		else
 		{
 			on_connect();
+
+			Logger::log("TCPNetwork connection successful\n");
 
 			receive();
 		}

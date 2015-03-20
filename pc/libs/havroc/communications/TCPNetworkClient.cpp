@@ -1,4 +1,5 @@
 #include <havroc/communications/TCPNetwork.h>
+#include <havroc/common/Logger.h>
 
 namespace havroc
 {
@@ -42,7 +43,10 @@ namespace havroc
 			return NETWORK_IS_ACTIVE;
 		}
 
-		printf("\n\nTCP Client waiting for connection...\n\n");
+		printf("\n\n");
+		Logger::log("TCP Client waiting for connection...");
+		printf("\n\n");
+
 		int handles = 1;
 
 		m_service.reset();

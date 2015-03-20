@@ -1,15 +1,18 @@
 #ifndef LOGGER_H_
 #define LOGGER_H_
 
-#define PRINT_REMOTE
-#define PRINT_LOCAL
+//#define NO_LOGGER
+
+#define PRINT_LOCAL_AND_REMOTE
+//#define PRINT_REMOTE
+//#define PRINT_LOCAL
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <sstream>
 
 #define LOG_STRING_LIMIT_IN_BYTES	4096
+#define LOG_STRING_PARAMETERS_LIMIT 512
 
 namespace havroc
 {
@@ -21,19 +24,16 @@ namespace havroc
 			Logger();
 			~Logger();
 
-			static void set_remote_print_func(RemotePrintCallback func) { m_remotePrintCallback = func; }
+			static void set_remote_print_func(RemotePrintCallback func) { m_remote_print_callback = func; }
 
-			static std::stringstream log;
-
-			static void start_logger();
-			static void stop_logger();
+#ifndef NO_LOGGER
+			static void log(const char *format, ...);
+#else
+			static void log(const char *format, ...){}
+#endif
 
 		private:
-			static void logger_loop();
-
-			static bool m_active;
-
-			static RemotePrintCallback m_remotePrintCallback;
+			static RemotePrintCallback m_remote_print_callback;
 	};
 } /* namespace havroc */
 

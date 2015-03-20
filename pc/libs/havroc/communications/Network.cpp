@@ -1,4 +1,5 @@
 #include <havroc/communications/Network.h>
+#include <havroc/common/Logger.h>
 
 namespace havroc
 {
@@ -26,6 +27,8 @@ namespace havroc
 	{
 		if (m_active)
 		{
+			Logger::log("Ending network connection\n");
+
 			m_active = false;
 			m_service.stop();
 
@@ -36,7 +39,7 @@ namespace havroc
 
 			if (error != SUCCESS)
 			{
-				printf("Irregular termination of network service has occurred with error code: %d\n", error);
+				Logger::log("Irregular termination of network service has occurred with error code : %d\n", error);
 			}
 
 			on_disconnect();

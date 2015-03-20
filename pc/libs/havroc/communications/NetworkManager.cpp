@@ -305,7 +305,7 @@ namespace havroc
 	{
 		if (m_reconnect && !m_stop)
 		{
-			Logger::log("NetworkManager attempting to reconnect tcp server\n");
+			LOG("NetworkManager attempting to reconnect tcp server\n");
 
 			reset_tcp_server(true);
 			boost::thread(boost::bind(&TCPNetworkServer::start_service, m_tcp_server));
@@ -316,7 +316,7 @@ namespace havroc
 	{
 		if (m_reconnect && !m_stop)
 		{
-			Logger::log("NetworkManager attempting to reconnect tcp client left\n");
+			LOG("NetworkManager attempting to reconnect tcp client left\n");
 
 			reset_tcp_client_left(true);
 			boost::thread(boost::bind(&TCPNetworkClient::start_service, m_tcp_client_left));
@@ -327,7 +327,7 @@ namespace havroc
 	{
 		if (m_reconnect && !m_stop)
 		{
-			Logger::log("NetworkManager attempting to reconnect tcp client right\n");
+			LOG("NetworkManager attempting to reconnect tcp client right\n");
 
 			reset_tcp_client_right(true);
 			boost::thread(boost::bind(&TCPNetworkClient::start_service, m_tcp_client_right));
@@ -338,7 +338,7 @@ namespace havroc
 	{
 		if (m_reconnect && !m_stop)
 		{
-			Logger::log("NetworkManager attempting to reconnect udp server\n");
+			LOG("NetworkManager attempting to reconnect udp server\n");
 
 			reset_udp_server(true);
 			boost::thread(boost::bind(&UDPNetworkServer::start_service, m_udp_server));
@@ -349,7 +349,7 @@ namespace havroc
 	{	
 		if (m_reconnect && !m_stop)
 		{
-			Logger::log("NetworkManager attempting to reconnect udp client\n");
+			LOG("NetworkManager attempting to reconnect udp client\n");
 
 			reset_udp_client(true);
 			boost::thread(boost::bind(&UDPNetworkClient::start_service, m_udp_client));

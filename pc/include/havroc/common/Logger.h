@@ -12,7 +12,9 @@
 #include <stdarg.h>
 
 #define LOG_STRING_LIMIT_IN_BYTES	4096
-#define LOG_STRING_PARAMETERS_LIMIT 512
+
+#define FILE_NAME (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
+#define LOG(a,...) Logger::log(FILE_NAME, __LINE__, (a), __VA_ARGS__)
 
 namespace havroc
 {
@@ -27,7 +29,7 @@ namespace havroc
 			static void set_remote_print_func(RemotePrintCallback func) { m_remote_print_callback = func; }
 
 #ifndef NO_LOGGER
-			static void log(const char *format, ...);
+			static void log(const char* file_name, int line_number, const char *format, ...);
 #else
 			static void log(const char *format, ...){}
 #endif

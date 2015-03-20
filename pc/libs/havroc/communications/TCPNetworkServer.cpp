@@ -47,7 +47,7 @@ namespace havroc
 		m_acceptor.listen();
 
 		printf("\n\n");
-		Logger::log("TCP Server waiting for connection...");
+		LOG("TCP Server waiting for connection...");
 		printf("\n\n");
 
 		int handles = 1;

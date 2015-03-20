@@ -44,7 +44,7 @@ namespace havroc
 		}
 
 		printf("\n\n");
-		Logger::log("TCP Client waiting for connection...");
+		LOG("TCP Client waiting for connection...");
 		printf("\n\n");
 
 		int handles = 1;

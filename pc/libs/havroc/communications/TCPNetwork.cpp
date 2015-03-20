@@ -6,7 +6,7 @@ namespace havroc
 {
 
 	TCPNetwork::TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
-		: Network(service, signals_pack), m_socket(service), m_port(DEFAULT_TCP_PORT){}
+		: Network(service, signals_pack), m_socket(service), m_ip("127.0.0.1"), m_port(DEFAULT_TCP_PORT){}
 
 	TCPNetwork::~TCPNetwork(){}
 
@@ -82,7 +82,7 @@ namespace havroc
 			}
 			else
 			{
-				std::cerr << error.message() << std::endl;
+				LOG(LOG_ERROR, "%s\n", error.message().c_str());
 				end_service(NETWORK_DATA_RECEIVE_FAILURE);
 			}
 		}
@@ -92,13 +92,13 @@ namespace havroc
 	{
 		if (ec)
 		{
-			LOG("%s. Trying again.\n", ec.message().c_str());
+			LOG(LOG_WARNING, "%s. Trying again on %s:%d.\n", ec.message().c_str(), m_ip, m_port);
 		}
 		else
 		{
 			on_connect();
 
-			LOG("TCPNetwork connection successful\n");
+			LOG(LOG_INFO, "TCPNetwork connection successful to %s:%d\n", m_ip, m_port);
 
 			receive();
 		}

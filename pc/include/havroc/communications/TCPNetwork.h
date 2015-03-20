@@ -30,11 +30,12 @@ namespace havroc {
 	protected:
 		void handle_accept(const boost::system::error_code& ec);
 
-		tcp::socket m_socket;
-		tcp::endpoint m_endpoint;
+		tcp::socket		m_socket;
+		tcp::endpoint	m_endpoint;
 
-		int m_port;
-		bool m_connecting;
+		int				m_port;
+		bool			m_connecting;
+		std::string		m_ip;
 
 	private:
 		void receive();
@@ -59,7 +60,7 @@ namespace havroc {
 		int start_service();
 
 	private:
-		std::string m_ip;
+
 	};
 
 	class TCPNetworkServer : public TCPNetwork

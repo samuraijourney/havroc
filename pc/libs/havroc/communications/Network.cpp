@@ -27,7 +27,7 @@ namespace havroc
 	{
 		if (m_active)
 		{
-			LOG("Ending network connection\n");
+			LOG(LOG_INFO, "Ending network connection\n");
 
 			m_active = false;
 			m_service.stop();
@@ -39,7 +39,7 @@ namespace havroc
 
 			if (error != SUCCESS)
 			{
-				LOG("Irregular termination of network service has occurred with error code : %d\n", error);
+				LOG(LOG_ERROR, "Irregular termination of network service has occurred with error code : %d\n", error);
 			}
 
 			on_disconnect();

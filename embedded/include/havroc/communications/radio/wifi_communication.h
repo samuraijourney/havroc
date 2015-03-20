@@ -56,7 +56,8 @@ typedef struct _sendMessage
 	char module;
 	char command;
 	uint16_t length;
-	float data[18];
+	uint8_t arm;
+	float data[6];
 } sendMessage;
 
 //****************************************************************************

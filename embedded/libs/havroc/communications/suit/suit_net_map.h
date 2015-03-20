@@ -37,7 +37,7 @@ SuitNet_Node nodes[NUM_NODES] = {
 
 //supernode init
 SuitNet_SuperNode superNodes[NUM_SUPER_NODES] = {
-	{-1, SUITNET_SNODE_STAT_UNKNOWN, nodes, 7, MUX_BASE_ADDR | 0x07} //0
+	{-1, SUITNET_SNODE_STAT_UNKNOWN, nodes, 3, MUX_BASE_ADDR | 0x07} //0
 };
 
 #endif

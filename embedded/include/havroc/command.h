@@ -24,6 +24,12 @@ enum Tracking_Messages
 	TRACKING_MAX
 };
 
+enum Tracking_Mode
+{
+	RIGHT_ARM = 1,
+	LEFT_ARM
+};
+
 enum Motor_Messages
 {
 	MOTOR_DATA_CMD = 20,

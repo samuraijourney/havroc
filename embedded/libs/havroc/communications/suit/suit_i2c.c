@@ -86,13 +86,10 @@ SuitI2CErrorCode suit_i2c_write(uint8_t addr,
 								size_t writeCount)
 {
 	SuitI2CErrorCode retVal = SUIT_I2C_E_SUCCESS;
-	uint8_t* writeBuff2;
-
-	writeBuff2 = Memory_alloc(NULL, writeCount + 1, 0, NULL);
+	uint8_t writeBuff2[2];
 
 	writeBuff2[0] = regAddr;
-
-	memcpy(writeBuff2 + 1, writeBuff, writeCount);
+	writeBuff2[1] = writeBuff[0];
 
 	/* Get access to I2C */
 	Semaphore_pend(sem, BIOS_WAIT_FOREVER);
@@ -105,8 +102,6 @@ SuitI2CErrorCode suit_i2c_write(uint8_t addr,
 
 	/* Release I2C*/
 	Semaphore_post(sem);
-
-	Memory_free(NULL, writeBuff2, writeCount + 1);
 
 	return retVal;
 }

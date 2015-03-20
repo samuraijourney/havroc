@@ -31,8 +31,8 @@ void NewIMU(IMU* imu_object, int imu_index)
 
     //  MPU9250 defaults
 
-    imu_object->m_MPU9250GyroAccelSampleRate = 80;
-    imu_object->m_MPU9250CompassSampleRate = 80;
+    imu_object->m_MPU9250GyroAccelSampleRate = 100;
+    imu_object->m_MPU9250CompassSampleRate = 100;
     imu_object->m_MPU9250GyroLpf = MPU9250_GYRO_LPF_41;
     imu_object->m_MPU9250AccelLpf = MPU9250_ACCEL_LPF_41;
     imu_object->m_MPU9250GyroFsr = MPU9250_GYROFSR_1000;
@@ -273,9 +273,9 @@ int IMUInit(IMU* imu_object)
 
     txBuff[0] = 0x00;
     retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_PWR_MGMT_1, txBuff, 1);
-
+    delay(100);
     retVal += suitNetManager_imu_i2c_read(imu_object->m_imu_index, false, MPU9250_WHO_AM_I, rxBuff, 1);
-
+    delay(100);
     if (rxBuff[0] != MPU9250_ID) {
          return IMU_MPU_START_FAIL;
     }
@@ -303,9 +303,9 @@ int IMUInit(IMU* imu_object)
 
 	txBuff[0] = 0x0f;
 	retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
-
+	
 	retVal += suitNetManager_imu_i2c_read(imu_object->m_imu_index, true, AK8963_ASAX, rxBuff, 3);
-
+	
     //  convert asa to usable scale factor
 
     imu_object->m_compassAdjust[0] = ((float)rxBuff[0] - 128.0) / 256.0 + 1.0f;
@@ -314,7 +314,7 @@ int IMUInit(IMU* imu_object)
 
     txBuff[0] = 0x00;
     retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, true, AK8963_CNTL, txBuff, 1);
-
+    
     if (!bypassOff(imu_object))
         return IMU_MPU_START_FAIL;
 
@@ -322,7 +322,7 @@ int IMUInit(IMU* imu_object)
 
     txBuff[0] = 0x40;
     retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_MST_CTRL, txBuff, 1);
-
+  
     txBuff[0] = 0x80 | AK8963_ADDRESS;
     retVal += suitNetManager_imu_i2c_write(imu_object->m_imu_index, false, MPU9250_I2C_SLV0_ADDR, txBuff, 1);
 
@@ -523,6 +523,7 @@ bool IMURead(IMU* imu_object)
     if (count == 1024) {
         resetFifo(imu_object);
         imu_object->m_timestamp += imu_object->m_sampleInterval * (1024 / MPU9250_FIFO_CHUNK_SIZE + 1); // try to fix timestamp
+        Report("FIFO Overflow %i \n\r", count);
         return false;
     }
 
@@ -537,8 +538,10 @@ bool IMURead(IMU* imu_object)
     }
 
     if (count < MPU9250_FIFO_CHUNK_SIZE)
+    {
+       // Report("Not enough FIFO contents %i \n\r", count);
         return false;
-
+    }
     suitNetManager_imu_i2c_read(imu_object->m_imu_index, false, MPU9250_FIFO_R_W, fifoData, MPU9250_FIFO_CHUNK_SIZE);
 
     suitNetManager_imu_i2c_read(imu_object->m_imu_index, false, MPU9250_EXT_SENS_DATA_00, compassData, 8);

@@ -17,6 +17,7 @@ static float yaw[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 static float pitch[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 static float roll[IMU_ID_MAX] = {0, 0, 0, 0, 0, 0};
 
+
 static unsigned long millis ()
 {
 	Types_FreqHz freq;
@@ -41,13 +42,16 @@ void Setup_IMUs(int imu_start, int count)
 	}
 }
 
-void Tracking_Update(int imu_index)
+#define delay(ms) UtilsDelay((80000/5)*ms)
+
+
+void Tracking_Update(int imu_start, int count)
 {
 	int i;
-	static unsigned long prevTimestamp[3] = {0,0,0};
-	unsigned long now = 0;
+	//static unsigned long prevTimestamp[3] = {0,0,0};
+	//unsigned long now = 0;
 
-	for(i = 0; i <= imu_index; i++)
+	for(i = imu_start; i < count; i++)
 	{
 		if(IMURead(&imu_object[i]))
 		{
@@ -56,17 +60,19 @@ void Tracking_Update(int imu_index)
 			roll[i] = fusion_object[i].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
 			pitch[i] = fusion_object[i].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
 			yaw[i] = fusion_object[i].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
-			now = millis();
-			if (i == 0)
-				Report("IMU index: %i, roll: %.0f, pitch %.0f, yaw %.0f, timestamp dif %i \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
+			//now = millis();
 
-			prevTimestamp[i] = now;
+//			if(i == 0)
+//				Report("IMU index: %i, roll: %.0f, pitch %.0f, yaw %.0f, timestamp dif %i \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
+
+			//prevTimestamp[i] = now;
+			//delay(5);
 			//Task_sleep(50);
 		}
-		else
-		{
-			//Report("Skipped imu update \n\r");
-		}
+//		else
+//		{
+//			//Report("Skipped imu update \n\r");
+//		}
 	}
 }
 
@@ -76,28 +82,17 @@ void Tracking_Publish()
 
 	message.module = TRACKING_MOD;
 	message.command = TRACKING_DATA_CMD;
-	message.length = ((((uint16_t)0x00) << 8) & 0xFF00) | (((uint16_t)0x48) & 0x00FF);
+	message.length = ((((uint16_t)0x00) << 8) & 0xFF00) | (((uint16_t)0x19) & 0x00FF);
+	message.arm = RIGHT_ARM;
 	message.data[0] = yaw[0];
 	message.data[1] = pitch[0];
 	message.data[2] = roll[0];
 	message.data[3] = yaw[1];
 	message.data[4] = pitch[1];
 	message.data[5] = roll[1];
-	message.data[6] = yaw[2];
-	message.data[7] = pitch[2];
-	message.data[8] = roll[2];
-	message.data[9] = yaw[3];
-	message.data[10] = pitch[3];
-	message.data[11] = roll[3];
-	message.data[12] = yaw[4];
-	message.data[13] = pitch[4];
-	message.data[14] = roll[4];
-	message.data[15] = yaw[5];
-	message.data[16] = pitch[5];
-	message.data[17] = roll[5];
 
 	Report("Shoulder: Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[0], message.data[1],message.data[2]);
-	//Report("Elbow:    Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[3], message.data[4],message.data[5]);
+	Report("Elbow:    Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[3], message.data[4],message.data[5]);
 	//Report("Wrist:    Yaw: %.0f, Pitch: %.0f, Roll: %.0f \n\r", message.data[6], message.data[7],message.data[8]);
 
 

@@ -35,7 +35,6 @@
 //fusion test_fusion_object;                                // the fusion object
 
 #define OFFSET_COUNT 1000.0
-#define IMU_SELECT				R_WRIST_IMU_ID
 #define delay(ms) UtilsDelay((80000/5)*ms)
 
 //Void testFxn(UArg arg0, UArg arg1)
@@ -104,11 +103,11 @@
 
 void testFxn2()
 {
-	Setup_IMUs(IMU_SELECT);
+	Setup_IMUs(0, 2);
 
 	while(1)
 	{
-		Tracking_Update(IMU_SELECT);
+		Tracking_Update(0, 2);
 	}
 }
 
@@ -127,8 +126,6 @@ int main(void)
 
     /* Call board init functions */
     Board_initGeneral();
-    //Board_initGPIO();
-    //Board_initI2C();
 
     // Configuring UART
 	InitTerm();

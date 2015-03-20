@@ -65,7 +65,7 @@ extern "C"
 //#define SECURITY_TYPE       SL_SEC_TYPE_OPEN/* Security type (OPEN or WEP or WPA*/
 #define SECURITY_TYPE		SL_SEC_TYPE_WPA_WPA2
 #define SECURITY_USER		0
-#define SECURITY_KEY        "hamdyisbest"              /* Password of the secured AP */
+#define SECURITY_KEY        "geoisgay"              /* Password of the secured AP */
 #define SSID_LEN_MAX        32
 #define BSSID_LEN_MAX       6
 

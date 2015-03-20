@@ -542,17 +542,17 @@ void WiFiRun(UArg arg0, UArg arg1)
 		Task_exit();
 	}
 
-	Setup_IMUs(IMU_SELECT, 2);
+	Setup_IMUs(0, 2);
 
 	isActive = true;
 
 	while (1)
 	{
-		Tracking_Update(IMU_SELECT);
+		Tracking_Update(0, 2);
 
 		if(i == 5)
 		{
-			Tracking_Publish(IMU_SELECT);
+			Tracking_Publish();
 
 			if(newData)
 			{
@@ -598,17 +598,18 @@ void WiFiRun(UArg arg0, UArg arg1)
 int WiFiSendEnQ(sendMessage message)
 {
 	char temp = SYNC_START_CODE_BYTE;
-	if((sendIndex + 4*message.length + 5) < BUFF_SIZE)
+	if((sendIndex + 4*message.length + 6) < BUFF_SIZE)
 	{
 		memcpy(&TCP_SendBuffer[sendIndex++], &(temp), sizeof temp);
 		memcpy(&TCP_SendBuffer[sendIndex++], &(message.module), sizeof message.module);
 		memcpy(&TCP_SendBuffer[sendIndex++], &(message.command), sizeof message.command);
 		memcpy(&TCP_SendBuffer[sendIndex++], (uint8_t*)(&(message.length)) + 1, sizeof(char));
 		memcpy(&TCP_SendBuffer[sendIndex++], &(message.length), sizeof(char));
+		memcpy(&TCP_SendBuffer[sendIndex++], &(message.arm), sizeof message.arm);
 		memcpy(&TCP_SendBuffer[sendIndex], message.data, message.length);
 
 		sendIndex += 4*message.length;
-		sendCount += message.length + 5;
+		sendCount += message.length + 6;
 		newData = true;
 	}
 	else

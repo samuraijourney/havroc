@@ -41,7 +41,7 @@ typedef struct _SuitNet_Node
 	//node type: motor, IMU
 	SuitNetNodeType nodeType;
 	//supernodeId which this node belongs to
-	uint8_t superNodeId;
+	int8_t superNodeId;
 	//mux channel of this node
 	uint8_t muxChannel;
 	//Motor object of node; NULL if type IMU

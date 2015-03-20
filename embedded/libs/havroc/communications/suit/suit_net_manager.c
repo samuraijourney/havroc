@@ -103,7 +103,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,
 		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
 		{
 			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
-			if (!suit_i2c_read(addr, regAddr, readBuff, readCount))
+			if (suit_i2c_read(addr, regAddr, readBuff, readCount) != 0)
 			{
 				retVal = SUITNET_E_I2C_ERROR;
 			}
@@ -129,7 +129,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
 		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
 		{
 			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
-			if (!suit_i2c_write(addr, regAddr, writeBuff, writeCount))
+			if (suit_i2c_write(addr, regAddr, writeBuff, writeCount) != 0)
 			{
 				retVal = SUITNET_E_I2C_ERROR;
 			}
@@ -144,41 +144,45 @@ SuitNetErrorCode suitNetManager_nodeSelect(SuitNet_Node *node)
 	SuitNetErrorCode retVal = SUITNET_E_SUCCESS;
 	uint8_t writeBuff[1];
 
-	//deselect current supernode
-	if (currentSelectedSuperNode != node->superNodeId)
+	//if supernode -1, bypass node selection
+	if (node->superNodeId >= 0)
 	{
-		suitNetManager_clearNodeSelect(node);
-	}
-	
-	//get supernode object from array
-	SuitNet_SuperNode *superNode = superNodes + node->superNodeId;
-
-	//select primary mux line
-	if (superNode->primaryMuxLine >= 0)
-	{	
-		writeBuff[0] = 1 << superNode->primaryMuxLine;
-		if (suit_i2c_transfer(PRIMARY_MUX_ADDR, writeBuff, 1, 0, 0) 
-														!= SUIT_I2C_E_SUCCESS)
+		//deselect current supernode
+		if (currentSelectedSuperNode != node->superNodeId)
 		{
-			retVal = SUITNET_E_I2C_ERROR;
-			superNode->status = SUITNET_SNODE_STAT_I2C_ERROR;
+			suitNetManager_clearNodeSelect(node);
 		}
-	}
 
-	//select supernode
-	if (retVal == SUITNET_E_SUCCESS)
-	{
-		writeBuff[0] = 1 << node->muxChannel;
-		if (suit_i2c_transfer(superNode->addr, writeBuff, 1, 0, 0) 
+		//get supernode object from array
+		SuitNet_SuperNode *superNode = superNodes + node->superNodeId;
+
+		//select primary mux line
+		if (superNode->primaryMuxLine >= 0)
+		{
+			writeBuff[0] = 1 << superNode->primaryMuxLine;
+			if (suit_i2c_transfer(PRIMARY_MUX_ADDR, writeBuff, 1, 0, 0)
 															!= SUIT_I2C_E_SUCCESS)
-		{
-			retVal = SUITNET_E_I2C_ERROR;
-			superNode->status = SUITNET_SNODE_STAT_I2C_ERROR;
+			{
+				retVal = SUITNET_E_I2C_ERROR;
+				superNode->status = SUITNET_SNODE_STAT_I2C_ERROR;
+			}
 		}
-		else
+
+		//select supernode
+		if (retVal == SUITNET_E_SUCCESS)
 		{
-			superNode->status = SUITNET_SNODE_STAT_OK;
-			currentSelectedSuperNode = node->superNodeId;
+			writeBuff[0] = 1 << node->muxChannel;
+			if (suit_i2c_transfer(superNode->addr, writeBuff, 1, 0, 0)
+																!= SUIT_I2C_E_SUCCESS)
+			{
+				retVal = SUITNET_E_I2C_ERROR;
+				superNode->status = SUITNET_SNODE_STAT_I2C_ERROR;
+			}
+			else
+			{
+				superNode->status = SUITNET_SNODE_STAT_OK;
+				currentSelectedSuperNode = node->superNodeId;
+			}
 		}
 	}
 

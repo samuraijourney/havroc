@@ -53,6 +53,18 @@ namespace havroc
 		packet[4] = (BYTE)0;
 	}
 
+	void CommandBuilder::build_heartbeat_system_command(BYTE*& packet, size_t& size)
+	{
+		size = OVERHEAD_BYTES_CNT;
+		packet = (BYTE*)malloc(sizeof(BYTE) * size);
+
+		packet[0] = (BYTE)START_SYNC;
+		packet[1] = (BYTE)SYSTEM_MOD;
+		packet[2] = (BYTE)SYSTEM_HEARTBEAT_CMD;
+		packet[3] = (BYTE)0;
+		packet[4] = (BYTE)0;
+	}
+
 	void CommandBuilder::build_motor_command(BYTE*& packet, size_t& size, BYTE* index, BYTE* intensity, int length)
 	{
 		uint16_t data_size = sizeof(BYTE) * 2 * length + length;

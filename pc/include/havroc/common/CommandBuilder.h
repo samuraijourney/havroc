@@ -16,16 +16,17 @@
 #define SYSTEM_MOD	 2
 #define MOTOR_MOD	 3
 
-#define TRACKING_STATE_CMD 10
-#define TRACKING_DATA_CMD  11
+#define TRACKING_STATE_CMD   10
+#define TRACKING_DATA_CMD    11
 
-#define MOTOR_DATA_CMD	   20
+#define MOTOR_DATA_CMD	     20
 
-#define SYSTEM_KILL_CMD	   30
+#define SYSTEM_KILL_CMD	     30
+#define SYSTEM_HEARTBEAT_CMD 31
 
-#define ERROR_CMD		   0
+#define ERROR_CMD		     0
 
-#define OVERHEAD_BYTES_CNT 5
+#define OVERHEAD_BYTES_CNT   5
 
 namespace havroc
 {
@@ -51,6 +52,9 @@ namespace havroc
 
 		// Populate packet byte pointer and size from system command parameters
 		static void build_kill_system_command(BYTE*& packet, size_t& size);
+
+		// Populate packet byte pointer and size from system command parameters
+		static void build_heartbeat_system_command(BYTE*& packet, size_t& size);
 
 		// Populate packet byte pointer and size from motor command parameters
 		static void build_motor_command(BYTE*& packet, size_t& size, BYTE* index, BYTE* intensity, int length);

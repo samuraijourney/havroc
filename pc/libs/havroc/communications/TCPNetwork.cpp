@@ -1,12 +1,12 @@
 #include <havroc/communications/TCPNetwork.h>
-#include <havroc/common/CommandBuilder.h>
+#include <havroc/common/CommandManager.h>
 #include <havroc/common/Logger.h>
 
 namespace havroc
 {
 
 	TCPNetwork::TCPNetwork(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
-		: Network(service, signals_pack), m_socket(service), m_ip("127.0.0.1"), m_port(DEFAULT_TCP_PORT){}
+		: Network(service, signals_pack), m_socket(service), m_ip("127.0.0.1"), m_port(DEFAULT_TCP_PORT), m_heartbeat(false){}
 
 	TCPNetwork::~TCPNetwork(){}
 
@@ -100,6 +100,10 @@ namespace havroc
 
 			LOG(LOG_INFO, "TCPNetwork connection successful to %s:%d\n", m_ip, m_port);
 
+			m_heartbeat_kill = false;
+			CommandManager::get()->register_system_callback(&TCPNetwork::heartbeat, this);
+			m_heartbeat_thread = boost::thread(boost::bind(&TCPNetwork::heartbeat_loop, this));
+
 			receive();
 		}
 	}
@@ -107,6 +111,8 @@ namespace havroc
 	int TCPNetwork::kill_socket()
 	{
 		boost::system::error_code error;
+
+		CommandManager::get()->unregister_system_callback(&TCPNetwork::heartbeat, this);
 
 		m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, error);
 		if (error)
@@ -121,6 +127,39 @@ namespace havroc
 		}
 
 		return SUCCESS;
+	}
+
+	void TCPNetwork::heartbeat_loop()
+	{
+		while (is_active())
+		{
+			BYTE* msg;
+			size_t size;
+
+			havroc::CommandBuilder::build_heartbeat_system_command(msg, size);
+
+			send(msg, size, true);
+
+			boost::this_thread::sleep(boost::posix_time::milliseconds(HEARTBEAT_WAIT_TIME_IN_MS));
+
+			if (!m_heartbeat)
+			{
+				LOG(LOG_ERROR, "No heartbeat present from %s:%d\n", m_ip, m_port);
+				m_heartbeat_kill = true;
+			}
+			else
+			{
+				m_heartbeat = false;
+			}
+		}
+	}
+
+	void TCPNetwork::heartbeat(command_pkg* pkg)
+	{
+		if (pkg->command == SYSTEM_HEARTBEAT_CMD)
+		{
+			m_heartbeat = true;
+		}
 	}
 
 } /* namespace havroc */

@@ -2,6 +2,7 @@
 #define NETWORK_H_
 
 #include <string>
+#include <mutex>
 
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
@@ -140,6 +141,7 @@ namespace havroc
 		boost::asio::io_service& m_service;
 
 		bool m_cancel;
+		bool m_heartbeat_kill;
 
 	private:
 		void init_loop();
@@ -149,7 +151,8 @@ namespace havroc
 
 		boost::thread m_poll_thread;
 
-		bool m_active;
+		std::mutex m_end_lock;
+		bool	   m_active;
 	};
 } /* namespace havroc */
 

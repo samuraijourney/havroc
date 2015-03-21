@@ -1,28 +1,14 @@
+
+// common interface includes
+#include "common.h"
+
+/* HaVRoc Library Includes */
 #include "havroc/tracking/MPU9250_Driver.h"
 #include "havroc/tracking/Calibration.h"
 #include <havroc/communications/suit/suit_net_manager.h>
-
-#include <utils.h>
-#include "common.h"
 #include <havroc/error.h>
+#include <havroc/havroc_utils/havrocutils.h>
 
-#include <xdc/runtime/Timestamp.h>
-#include <xdc/runtime/Types.h>
-//#include <ti/sysbios/knl/Clock.h>
-
-#include "uart_if.h"
-#include "common.h"
-
-#define delay(ms) UtilsDelay((80000/5)*ms)
-
-unsigned long millis ()
-{
-	Types_FreqHz freq;
-
-	Timestamp_getFreq(&freq);
-
-	return (Timestamp_get32()*1000.0/(1.0*freq.lo));
-}
 
 void NewIMU(IMU* imu_object, int imu_index)
 {

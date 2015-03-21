@@ -18,10 +18,9 @@
 #define EVENT_BUFF_SIZE 1000
 #define MAX_CALLBACKS   10
 
-
 typedef struct _event
 {
-    int8_t 	    module;
+    uint8_t 	    module;
     uint8_t		command;
     uint16_t 	data_len;
     uint8_t*    data_buff;

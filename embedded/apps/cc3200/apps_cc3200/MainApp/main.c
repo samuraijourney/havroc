@@ -48,6 +48,7 @@
 /* HaVRoC library files */
 #include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/eventmgr/eventmgr.h"
+#include "havroc/havroc_system/havrocsystem.h"
 #include "havroc/communications/suit/suit_i2c.h"
 
 static void BoardInit(void)
@@ -80,7 +81,7 @@ int main(void)
     	System_flush();
     }
 
-	WlanStartTask();
+    SystemStartTask();
 	EventStart();
 
     /* Start BIOS */

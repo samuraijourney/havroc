@@ -39,6 +39,7 @@ enum Motor_Messages
 enum System_Messages
 {
 	SYSTEM_KILL_CMD = 30,
+	SYSTEM_HEART_BEAT,
 	SYSTEM_MAX
 };
 

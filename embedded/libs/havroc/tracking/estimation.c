@@ -1,15 +1,15 @@
-#include "havroc/tracking/Estimation.h"
 
-#include "uart_if.h"
-#include "common.h"
+
+/* HaVRoc Library Includes */
+#include "havroc/tracking/Estimation.h"
+#include "havroc/havroc_utils/havrocutils.h"
+
 
 //  The QVALUE affects the gyro response.
-
 #define QVALUE	0.001f
 
 //  The RVALUE controls the influence of the accels and compass.
 //  The bigger the value, the more sluggish the response.
-
 #define RVALUE	0.0005f
 
 void reset(fusion* fusion_object)

@@ -2,14 +2,8 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-#include "uart_if.h"
-#include "common.h"
-
 /* XDC Tools Header Files */
 #include <xdc/runtime/System.h>
-#include <xdc/runtime/Timestamp.h>
-#include <xdc/runtime/Types.h>
-#include <ti/sysbios/knl/Event.h>
 
 /* HaVRoc Library Includes */
 #include "havroc/communications/radio/wifi_communication.h"
@@ -17,6 +11,7 @@
 #include <havroc/error.h>
 #include <havroc/id.h>
 #include <havroc/tracking/Tracking_Manager.h>
+#include <havroc/havroc_utils/havrocutils.h>
 
 
 //*****************************************************************************
@@ -77,7 +72,7 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent) {
 				pWlanEvent->EventData.STAandP2PModeWlanConnected.bssid,
 				SL_BSSID_LENGTH);
 
-		UART_PRINT("[WLAN EVENT] STA Connected to the AP: %s ,"
+		Report("[WLAN EVENT] STA Connected to the AP: %s ,"
 				" BSSID: %x:%x:%x:%x:%x:%x\n\r", g_ucConnectionSSID,
 				g_ucConnectionBSSID[0], g_ucConnectionBSSID[1],
 				g_ucConnectionBSSID[2], g_ucConnectionBSSID[3],
@@ -323,18 +318,6 @@ static long ConfigureSimpleLinkToDefaultState() {
 			&ucConfigLen, (unsigned char *) (&ver));
 	ASSERT_ON_ERROR(lRetVal);
 
-	Report("Host Driver Version: %s\n\r", SL_DRIVER_VERSION);
-	Report("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n\r",
-			ver.NwpVersion[0], ver.NwpVersion[1], ver.NwpVersion[2],
-			ver.NwpVersion[3], ver.ChipFwAndPhyVersion.FwVersion[0],
-			ver.ChipFwAndPhyVersion.FwVersion[1],
-			ver.ChipFwAndPhyVersion.FwVersion[2],
-			ver.ChipFwAndPhyVersion.FwVersion[3],
-			ver.ChipFwAndPhyVersion.PhyVersion[0],
-			ver.ChipFwAndPhyVersion.PhyVersion[1],
-			ver.ChipFwAndPhyVersion.PhyVersion[2],
-			ver.ChipFwAndPhyVersion.PhyVersion[3]);
-
 	// Set connection policy to Auto + SmartConfig
 	//      (Device's default connection policy)
 	lRetVal = sl_WlanPolicySet(SL_POLICY_CONNECTION,
@@ -516,85 +499,17 @@ int WiFiStartup(void)
 
 	Report("Connected to AP: %s \n\r", SSID_NAME);
 
-	Report("Device IP: %d.%d.%d.%d\n\r\n\r", SL_IPV4_BYTE(IP_Address, 3),
-			SL_IPV4_BYTE(IP_Address, 2), SL_IPV4_BYTE(IP_Address, 1),
-			SL_IPV4_BYTE(IP_Address, 0));
-
 	if (Setup_Socket(PORT_NUM_TCP) < 0)
 	{
 		Report("TCP socket setup failed\n\r");
 		return WiFi_START_FAIL;
 	}
 
+	isActive = true;
+
 	return SUCCESS;
 }
 
-void WiFiRun(UArg arg0, UArg arg1)
-{
-	int iStatus = 100;
-	int recvStatus = 0;
-	int buff_index = 0;
-	long result = WiFiStartup();
-	int i = 0;
-
-	if(result != 0)
-	{
-		Task_exit();
-	}
-
-	Setup_IMUs(0, 2);
-
-	isActive = true;
-
-	while (1)
-	{
-		Tracking_Update(0, 2);
-
-		if(i == 5)
-		{
-			Tracking_Publish();
-
-			if(newData)
-			{
-				WiFiSend();
-			}
-
-			i = 0;
-		}
-		else
-		{
-			i++;
-		}
-
-		recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
-
-		if (recvStatus <= 0 && recvStatus != -11)
-		{
-			while(iStatus != 0)
-			{
-				Report("Disconnecting on error: %d at I2C_Receive()\n\r", recvStatus);
-
-				WlanOff();
-				iStatus = WiFiStartup();
-			}
-		}
-
-		buff_index = 0;
-
-		if(recvStatus > 0)
-		{
-			while (buff_index < recvStatus)
-			{
-				if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
-				{
-					buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
-				}
-			}
-		}
-
-		Task_yield();
-	}
-}
 int WiFiSendEnQ(sendMessage message)
 {
 	char temp = SYNC_START_CODE_BYTE;
@@ -620,42 +535,84 @@ int WiFiSendEnQ(sendMessage message)
 	return SUCCESS;
 }
 
-static void WiFiSend()
+int WiFiSend()
 {
 	int iStatus;
 	long lLoopCount = 0;
 
-	// sending multiple packets to the TCP server
-	while (lLoopCount < TCP_PACKET_COUNT)
+	if(!newData)
 	{
-		// sending packet
-		iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
-
-		while (iStatus <= 0 && iStatus != -11)
+		// sending multiple packets to the TCP server
+		while (lLoopCount < TCP_PACKET_COUNT)
 		{
-			// error
-			Report("Disconnecting on error: %d at I2C_Send()\n\r", iStatus);
-			WlanOff();
-			iStatus = WiFiStartup();
+			// sending packet
+			iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 
-			if (iStatus > 0)
+			while (iStatus <= 0 && iStatus != -11)
 			{
-				lLoopCount--;
+				// error
+				Report("Disconnecting on error: %d at I2C_Send()\n\r", iStatus);
+				WlanOff();
+				iStatus = WiFiStartup();
+
+				if (iStatus > 0)
+				{
+					lLoopCount--;
+				}
 			}
+
+			if(iStatus == -11)
+			{
+				Report("iStatus is -11 in I2C_Send()\n\r");
+			}
+
+			lLoopCount++;
 		}
 
-		if(iStatus == -11)
-		{
-			Report("iStatus is -11 in I2C_Send()\n\r");
-		}
+		sendIndex = 0;
+		sendCount = 0;
+		newData = false;
 
-		lLoopCount++;
+		return iStatus;
 	}
 
-	sendIndex = 0;
-	sendCount = 0;
-	newData = false;
-	//Report("TCP sent %i bytes successful\n\r", iStatus);
+	return 0;
+}
+
+int WiFiReceive()
+{
+	int recvStatus = 0;
+	int buff_index = 0;
+
+	recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
+
+	if (recvStatus <= 0 && recvStatus != -11)
+	{
+		recvStatus = 100;
+
+		while(recvStatus != 0)
+		{
+			Report("Disconnecting on error: %d at I2C_Receive()\n\r", recvStatus);
+
+			WlanOff();
+			recvStatus = WiFiStartup();
+		}
+	}
+
+	buff_index = 0;
+
+	if(recvStatus > 0)
+	{
+		while (buff_index < recvStatus)
+		{
+			if (TCP_ReceiveBuffer[buff_index++] == SYNC_START_CODE_BYTE)
+			{
+				buff_index += EventEnQ(&TCP_ReceiveBuffer[buff_index]);
+			}
+		}
+	}
+
+	return recvStatus;
 }
 
 //****************************************************************************
@@ -697,18 +654,12 @@ static long WlanConnect()
 	return SUCCESS;
 }
 
-void WlanStartTask()
-{
-	Task_Handle task0 = Task_Object_get(NULL, 0);
-	Task_setPri(task0, 10);
-}
-
 bool isWiFiActive()
 {
 	return isActive;
 }
 
-static int WlanOff()
+int WlanOff()
 {
 	// close the connected socket after receiving from connected TCP client
 	ASSERT_ON_ERROR(sl_Close(connected_SockID));
@@ -740,21 +691,21 @@ static int WlanInit()
 	if (lRetVal < 0)
 	{
 		if (DEVICE_NOT_IN_STATION_MODE == lRetVal)
-			UART_PRINT("Failed to configure the device in its default state \n\r");
+			Report("Failed to configure the device in its default state \n\r");
 
 		return WiFi_START_FAIL;
 	}
 
-	UART_PRINT("Device is configured in default state \n\r");
+	Report("Device is configured in default state \n\r");
 
 	lRetVal = sl_Start(0, 0, 0);
 	if (lRetVal < 0 || lRetVal != ROLE_STA)
 	{
-		UART_PRINT("Failed to start the device \n\r");
+		Report("Failed to start the device \n\r");
 		return WiFi_START_FAIL;
 	}
 
-	UART_PRINT("Device started as STATION \n\r");
+	Report("Device started as STATION \n\r");
 
 	return SUCCESS;
 }

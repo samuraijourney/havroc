@@ -1,13 +1,16 @@
-#include "stdbool.h"
-#include "uart_if.h"
 
+/* Standard C Includes */
+#include "stdbool.h"
+
+/* HaVRoc Library Includes */
 #include "havroc/communications/suit/suit_net_manager.h"
 #include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/actuation/motor.h"
 #include "havroc/command.h"
+#include <havroc/havroc_utils/havrocutils.h>
+#include "havroc/communications/suit/suit_net_map.h"
 
-#include "suit_net_map.h"
 
 #define SELECTED_SNODE_NONE		0xFF
 

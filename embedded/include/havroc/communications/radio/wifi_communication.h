@@ -8,9 +8,13 @@
 #ifndef WIFI_COMMUNICATION_H_
 #define WIFI_COMMUNICATION_H_
 
+/* BIOS Header files */
+#include <ti/sysbios/BIOS.h>
+
 // Standard includes
 #include <stdlib.h>
 #include <string.h>
+#include "stdbool.h"
 
 // simplelink includes
 #include "simplelink.h"
@@ -31,11 +35,10 @@
 // common interface includes
 #include "udma_if.h"
 #include "common.h"
-
-#include "havroc/command.h"
 #include "pin_mux_config.h"
-#include <ti/sysbios/BIOS.h>
-#include "stdbool.h"
+
+/* HaVRoc Library Includes */
+#include "havroc/command.h"
 
 #define IP_ADDR           			0xc0a8006E /* 192.168.0.110 */
 #define PORT_NUM_TCP        		13
@@ -53,11 +56,11 @@ typedef enum{
 
 typedef struct _sendMessage
 {
-	char module;
-	char command;
-	uint16_t length;
-	uint8_t arm;
-	float data[6];
+	uint8_t 	module;
+	uint8_t 	command;
+	uint16_t 	length;
+	uint8_t 	arm;
+	float	    data[6];
 } sendMessage;
 
 //****************************************************************************
@@ -65,13 +68,12 @@ typedef struct _sendMessage
 //****************************************************************************
 int WiFiSendEnQ(sendMessage message);
 int WiFiStartup();
-void WlanStartTask();
-void WiFiRun(UArg arg0, UArg arg1);
 bool isWiFiActive();
-static void WiFiSend();
+int WiFiSend();
+int WiFiReceive();
+int WlanOff();
 static int Setup_Socket(unsigned short usPort);
 static int WlanInit();
-static int  WlanOff();
 static long WlanConnect();
 static void InitializeAppVariables();
 static long ConfigureSimpleLinkToDefaultState();

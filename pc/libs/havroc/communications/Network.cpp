@@ -26,8 +26,6 @@ namespace havroc
 
 	int Network::end_service(int error)
 	{
-		m_end_lock.lock();
-
 		if (m_active)
 		{
 			LOG(LOG_INFO, "Ending network connection\n");
@@ -47,13 +45,7 @@ namespace havroc
 
 			on_disconnect();
 
-			m_end_lock.unlock();
-
 			return error;
-		}
-		else
-		{
-			m_end_lock.unlock();
 		}
 
 		return NETWORK_IS_INACTIVE;

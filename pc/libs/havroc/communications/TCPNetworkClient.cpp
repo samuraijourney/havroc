@@ -44,7 +44,7 @@ namespace havroc
 		}
 
 		printf("\n\n");
-		LOG(LOG_INFO, "TCP Client waiting for connection on %s:%d...", m_ip, m_port);
+		LOG(LOG_INFO, "TCP Client waiting for connection on %s:%d...", m_ip.c_str(), m_port);
 		printf("\n\n");
 
 		int handles = 1;

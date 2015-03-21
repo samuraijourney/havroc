@@ -1,7 +1,10 @@
 #include <string>
+#include <mutex>
 
 #include <boost/thread/thread.hpp>
 #include <havroc/common/Logger.h>
+
+std::mutex _console_lock;
 
 namespace havroc
 {
@@ -17,10 +20,12 @@ namespace havroc
 
 		std::string typeStr = m_type_text[type];
 
+		_console_lock.lock();
 		printf("%s:%s:%d ", typeStr.c_str(), file_name, line_number);
 		va_start(arg, format);
 		vfprintf(stdout, format, arg);
 		va_end(arg);
+		_console_lock.unlock();
 	}
 
 #elif defined(PRINT_REMOTE)
@@ -57,10 +62,12 @@ namespace havroc
 
 		std::string typeStr = m_type_text[type];
 
+		_console_lock.lock();
 		printf("%s:%s:%d ", typeStr.c_str(), file_name, line_number);
 		va_start(arg, format);
 		vfprintf(stdout, format, arg);
 		va_end(arg);
+		_console_lock.unlock();
 
 		if (!m_remote_print_callback)
 		{

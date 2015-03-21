@@ -2,7 +2,6 @@
 #define NETWORK_H_
 
 #include <string>
-#include <mutex>
 
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
@@ -150,9 +149,7 @@ namespace havroc
 		boost::shared_ptr<comm_signals_pack> m_signals_pack;
 
 		boost::thread m_poll_thread;
-
-		std::mutex m_end_lock;
-		bool	   m_active;
+		bool	      m_active;
 	};
 } /* namespace havroc */
 

@@ -92,17 +92,17 @@ namespace havroc
 	{
 		if (ec)
 		{
-			LOG(LOG_WARNING, "%s. Trying again on %s:%d.\n", ec.message().c_str(), m_ip, m_port);
+			LOG(LOG_WARNING, "%s. Trying again on %s:%d.\n", ec.message().c_str(), m_ip.c_str(), m_port);
 		}
 		else
 		{
 			on_connect();
 
-			LOG(LOG_INFO, "TCPNetwork connection successful to %s:%d\n", m_ip, m_port);
+			LOG(LOG_INFO, "TCPNetwork connection successful to %s:%d\n", m_ip.c_str(), m_port);
 
 			m_heartbeat_kill = false;
 			CommandManager::get()->register_system_callback(&TCPNetwork::heartbeat, this);
-			m_heartbeat_thread = boost::thread(boost::bind(&TCPNetwork::heartbeat_loop, this));
+			//m_heartbeat_thread = boost::thread(boost::bind(&TCPNetwork::heartbeat_loop, this));
 
 			receive();
 		}
@@ -144,7 +144,7 @@ namespace havroc
 
 			if (!m_heartbeat)
 			{
-				LOG(LOG_ERROR, "No heartbeat present from %s:%d\n", m_ip, m_port);
+				LOG(LOG_ERROR, "No heartbeat present from %s:%d\n", m_ip.c_str(), m_port);
 				m_heartbeat_kill = true;
 			}
 			else

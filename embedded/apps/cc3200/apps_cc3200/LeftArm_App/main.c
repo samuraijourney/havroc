@@ -51,6 +51,8 @@
 #include "havroc/havroc_system/havrocsystem.h"
 #include "havroc/communications/suit/suit_i2c.h"
 
+#define ARM	LEFT_ARM
+
 static void BoardInit(void)
 {
     // Enable Processor
@@ -81,8 +83,12 @@ int main(void)
     	System_flush();
     }
 
-    SystemStartTask();
-	EventStart();
+    SystemStartTask(ARM);
+
+    if(RIGHT_ARM == ARM)
+    {
+    	EventStart();
+    }
 
     /* Start BIOS */
     BIOS_start();

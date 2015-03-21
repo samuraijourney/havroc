@@ -40,7 +40,6 @@
 /* HaVRoc Library Includes */
 #include "havroc/command.h"
 
-#define IP_ADDR           			0xc0a8006E /* 192.168.0.110 */
 #define PORT_NUM_TCP        		13
 #define BUFF_SIZE	   	   			1000
 #define TCP_PACKET_COUNT   			1
@@ -67,7 +66,7 @@ typedef struct _sendMessage
 //                       FUNCTION PROTOTYPES
 //****************************************************************************
 int WiFiSendEnQ(sendMessage message);
-int WiFiStartup();
+int WiFiStartup(uint8_t board_arm);
 bool isWiFiActive();
 int WiFiSend();
 int WiFiReceive();

@@ -30,6 +30,7 @@ static long connected_SockID = 0;
 static long iSockID = 0;
 static bool newData = false;
 static bool isActive = false;
+static uint8_t m_board_arm;
 
 #define IMU_SELECT				R_SHOULDER_IMU_ID
 
@@ -343,7 +344,12 @@ static long ConfigureSimpleLinkToDefaultState() {
 	}
 
 	SlNetCfgIpV4Args_t ipV4;
-	ipV4.ipV4 = (unsigned long) SL_IPV4_VAL(192, 168, 43, 24); // unsigned long IP  address
+
+	if(m_board_arm == RIGHT_ARM)
+		ipV4.ipV4 = (unsigned long) SL_IPV4_VAL(192, 168, 43, 24); // unsigned long IP  address
+	else
+		ipV4.ipV4 = (unsigned long) SL_IPV4_VAL(192, 168, 43, 23); // unsigned long IP  address
+
 	ipV4.ipV4Mask = (unsigned long) SL_IPV4_VAL(255, 255, 255, 0); // unsigned long Subnet mask for this AP/P2P
 	ipV4.ipV4Gateway = (unsigned long) SL_IPV4_VAL(10, 0, 0, 1); // unsigned long Default gateway address
 	ipV4.ipV4DnsServer = (unsigned long) SL_IPV4_VAL(160, 85, 193, 100); // unsigned long DNS server address
@@ -480,8 +486,10 @@ static int Setup_Socket(unsigned short usPort) {
 	return connected_SockID;
 }
 
-int WiFiStartup(void)
+int WiFiStartup(uint8_t board_arm)
 {
+	m_board_arm = board_arm;
+
 	if(WlanInit() != 0)
 	{
 		Report("Failed to start WiFi radio \n\r");
@@ -539,8 +547,13 @@ int WiFiSend()
 {
 	int iStatus;
 	long lLoopCount = 0;
+	uint8_t imu_select[2];
 
-	if(!newData)
+	imu_select[0] = (m_board_arm ==  RIGHT_ARM ? R_SHOULDER_IMU_ID : L_SHOULDER_IMU_ID);
+	imu_select[1] = (m_board_arm ==  RIGHT_ARM ? R_ELBOW_IMU_ID : L_ELBOW_IMU_ID);
+
+
+	if(newData)
 	{
 		// sending multiple packets to the TCP server
 		while (lLoopCount < TCP_PACKET_COUNT)
@@ -553,7 +566,9 @@ int WiFiSend()
 				// error
 				Report("Disconnecting on error: %d at I2C_Send()\n\r", iStatus);
 				WlanOff();
-				iStatus = WiFiStartup();
+				iStatus = WiFiStartup(m_board_arm);
+
+				Setup_IMUs(imu_select, 2, m_board_arm);
 
 				if (iStatus > 0)
 				{
@@ -583,6 +598,10 @@ int WiFiReceive()
 {
 	int recvStatus = 0;
 	int buff_index = 0;
+	uint8_t imu_select[2];
+
+	imu_select[0] = (m_board_arm ==  RIGHT_ARM ? R_SHOULDER_IMU_ID : L_SHOULDER_IMU_ID);
+	imu_select[1] = (m_board_arm ==  RIGHT_ARM ? R_ELBOW_IMU_ID : L_ELBOW_IMU_ID);
 
 	recvStatus = sl_Recv(connected_SockID, TCP_ReceiveBuffer, BUFF_SIZE, 0);
 
@@ -595,7 +614,8 @@ int WiFiReceive()
 			Report("Disconnecting on error: %d at I2C_Receive()\n\r", recvStatus);
 
 			WlanOff();
-			recvStatus = WiFiStartup();
+			recvStatus = WiFiStartup(m_board_arm);
+			Setup_IMUs(imu_select, 2, m_board_arm);
 		}
 	}
 

@@ -232,11 +232,11 @@ bool setAccelFsr(IMU* imu_object, unsigned char fsr)
 }
 
 
-int IMUInit(IMU* imu_object)
+uint8_t IMUInit(IMU* imu_object)
 {
     uint8_t txBuff[1];
     uint8_t rxBuff[1];
-    int retVal = SUCCESS;
+    uint8_t retVal = SUCCESS;
 
     imu_object->m_firstTime = true;
     //  configure IMU

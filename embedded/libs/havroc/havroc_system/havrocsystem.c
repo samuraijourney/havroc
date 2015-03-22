@@ -19,7 +19,8 @@
 #include <havroc/havroc_system/havrocsystem.h>
 #include <havroc/havroc_utils/havrocutils.h>
 
-#define SEND_DELAY 5
+#define SEND_DELAY  5
+#define IMU_COUNT	2
 
 static uint8_t m_board_arm;
 
@@ -54,7 +55,7 @@ void SystemRun(UArg arg0, UArg arg1)
 		Task_exit();
 	}
 
-	retVal = Setup_IMUs(imu_select, 2, m_board_arm);
+	retVal = Setup_IMUs(imu_select, IMU_COUNT, m_board_arm);
 
 	if(retVal != SUCCESS)
 	{
@@ -72,7 +73,7 @@ void SystemRun(UArg arg0, UArg arg1)
 
 		if(imu_setup)
 		{
-			Tracking_Update(2);
+			Tracking_Update(IMU_COUNT);
 
 			if(i == SEND_DELAY)
 			{
@@ -87,7 +88,7 @@ void SystemRun(UArg arg0, UArg arg1)
 
 		else
 		{
-			retVal = Setup_IMUs(imu_select, 2, m_board_arm);
+			retVal = Setup_IMUs(imu_select, IMU_COUNT, m_board_arm);
 
 			if(retVal != SUCCESS)
 			{

@@ -43,13 +43,15 @@ uint8_t Setup_IMUs(uint8_t* imu_select, uint8_t count, uint8_t board_arm)
 void Tracking_Update(uint8_t count)
 {
 	uint8_t i;
-	unsigned long now = 0;
-	static unsigned long prevTimestamp[IMU_ID_MAX] = {0,0};
+	float now = 0;
+	float before = 0;
+	static float prevTimestamp[IMU_ID_MAX] = {0,0};
 
 	for(i = 0; i < count; i++)
 	{
 		if(IMURead(&imu_object[i]))
 		{
+			before = millis();
 			newIMUData(imu_object[i].m_gyro, imu_object[i].m_accel, imu_object[i].m_compass, imu_object[i].m_timestamp, &fusion_object[i]);
 
 			roll[i] = fusion_object[i].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
@@ -58,7 +60,7 @@ void Tracking_Update(uint8_t count)
 			now = millis();
 
 			if(i == 0)
-				Report("Shoulder:  roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
+				Report("Shoulder:  roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f, proc time %.3f \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i], now-before);
 
 			if(i == 1)
 				Report("Elbow:     roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
@@ -67,6 +69,7 @@ void Tracking_Update(uint8_t count)
 		}
 		else
 		{
+			delay(2);
 			//Report("Skipped imu update \n\r");
 		}
 	}

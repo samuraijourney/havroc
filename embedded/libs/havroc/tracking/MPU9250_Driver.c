@@ -17,8 +17,8 @@ void NewIMU(IMU* imu_object, int imu_index)
 
     //  MPU9250 defaults
 
-    imu_object->m_MPU9250GyroAccelSampleRate = 100;
-    imu_object->m_MPU9250CompassSampleRate = 100;
+    imu_object->m_MPU9250GyroAccelSampleRate = 40;
+    imu_object->m_MPU9250CompassSampleRate = 40;
     imu_object->m_MPU9250GyroLpf = MPU9250_GYRO_LPF_41;
     imu_object->m_MPU9250AccelLpf = MPU9250_ACCEL_LPF_41;
     imu_object->m_MPU9250GyroFsr = MPU9250_GYROFSR_1000;

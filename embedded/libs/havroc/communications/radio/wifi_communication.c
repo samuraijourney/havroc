@@ -564,7 +564,7 @@ int WiFiSend()
 			while (iStatus <= 0 && iStatus != -11)
 			{
 				// error
-				Report("Disconnecting on error: %d at I2C_Send()\n\r", iStatus);
+				Report("Disconnecting on error: %d at WiFiSend()\n\r", iStatus);
 				WlanOff();
 				iStatus = WiFiStartup(m_board_arm);
 
@@ -578,7 +578,7 @@ int WiFiSend()
 
 			if(iStatus == -11)
 			{
-				Report("iStatus is -11 in I2C_Send()\n\r");
+				Report("iStatus is -11 in WiFiSend()\n\r");
 			}
 
 			lLoopCount++;
@@ -611,7 +611,7 @@ int WiFiReceive()
 
 		while(recvStatus != 0)
 		{
-			Report("Disconnecting on error: %d at I2C_Receive()\n\r", recvStatus);
+			Report("Disconnecting on error: %d at WiFiReceive()\n\r", recvStatus);
 
 			WlanOff();
 			recvStatus = WiFiStartup(m_board_arm);

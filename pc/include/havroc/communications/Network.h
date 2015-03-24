@@ -140,7 +140,6 @@ namespace havroc
 		boost::asio::io_service& m_service;
 
 		bool m_cancel;
-		bool m_heartbeat_kill;
 
 	private:
 		void init_loop();

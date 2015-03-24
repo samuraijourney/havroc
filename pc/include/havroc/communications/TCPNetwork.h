@@ -6,7 +6,6 @@
 #include <boost/thread/thread.hpp>
 
 #include <havroc/communications/Network.h>
-#include <havroc/common/CommandBuilder.h>
 
 #define DEFAULT_TCP_PORT 13
 
@@ -46,13 +45,7 @@ namespace havroc {
 		void handle_send(BYTE*, size_t, bool, const boost::system::error_code&, std::size_t);
 		int  kill_socket();
 
-		void heartbeat_loop();
-		void heartbeat(command_pkg* pkg);
-
 		boost::array<char, 49152> m_buffer; // 48 kb
-
-		boost::thread			  m_heartbeat_thread;
-		bool					  m_heartbeat;
 	};
 
 	class TCPNetworkClient : public TCPNetwork

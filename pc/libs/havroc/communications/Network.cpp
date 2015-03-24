@@ -7,8 +7,7 @@ namespace havroc
 	Network::Network(boost::asio::io_service& service, boost::shared_ptr<comm_signals_pack> signals_pack)
 	: m_service(service),
 	  m_active(false),
-	  m_cancel(false),
-	  m_heartbeat_kill(false)
+	  m_cancel(false)
 	{
 		if (signals_pack == 0)
 		{
@@ -68,11 +67,6 @@ namespace havroc
 			if (error)
 			{
 				end_service(NETWORK_UNEXPECTED_EVENT_LOOP_FAILURE);
-			}
-
-			if (m_heartbeat_kill)
-			{
-				end_service(NETWORK_HEARTBEAT_FAILURE);
 			}
 
 			boost::this_thread::sleep(boost::posix_time::milliseconds(1));

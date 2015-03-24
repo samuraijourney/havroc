@@ -65,6 +65,8 @@ extern "C"
 		int ret1 = havroc::NetworkManager::get()->stop_tcp_client_left();
 		int ret2 = havroc::NetworkManager::get()->stop_tcp_client_right();
 
+		havroc::Logger::set_remote_print_func(0);
+
 		return ret1 > ret2 ? ret1 : ret2;
 	}
 

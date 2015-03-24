@@ -50,7 +50,7 @@ MotorErrorCode motor_calibrate(Motor *motor, uint8_t forceRecalibrate);
 /*
  * Run selected motor at specific intensity level ()
  */
-MotorErrorCode motor_run(Motor *motor, int8_t intensity);
+MotorErrorCode motor_run(Motor *motor, uint8_t intensity);
 /*
  * Stop selected motor
  */

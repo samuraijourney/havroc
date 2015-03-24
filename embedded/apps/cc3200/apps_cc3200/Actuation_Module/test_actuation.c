@@ -18,16 +18,25 @@
 #include <Board.h>
 
 /* HaVRoC library files */
-#include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/communications/suit/suit_i2c.h"
+#include "havroc/actuation/motor.h"
 
-static void BoardInit(void)
+extern Motor motors[];
+
+Void TestFxn()
 {
-    // Enable Processor
-    MAP_IntMasterEnable();
-    MAP_IntEnable(FAULT_SYSTICK);
-
-    PRCMCC3200MCUInit();
+	uint8_t buff[1];
+	int i;
+	suitNetManager_boardTest(0x77, 8);
+	Report("Press enter to start motor test...");
+	GetCmd(buff, 10);
+	for (i = 1; i < 3; i++)
+	{
+		Report("Testing %d", i);
+		suitNetManager_boardMotorTest(i);
+		Report("...DONE");
+		GetCmd(buff, 10);
+	}
 }
 
 /*
@@ -37,9 +46,6 @@ int main(void)
 {
 	/* Call board init functions. */
 	Board_initGeneral();
-
-    // Board Initialization
-	BoardInit();
 
 	// Initialize the uDMA
 	UDMAInit();
@@ -54,9 +60,7 @@ int main(void)
     	System_flush();
     }
 
-	WlanStartTask();
-	//EventStart();
-	//ServiceStart();
+    Task_setPri(Test_Task, 5);
 
     /* Start BIOS */
     BIOS_start();

@@ -1,20 +1,17 @@
-
-/* Standard C Includes */
 #include "stdbool.h"
+#include "uart_if.h"
 
-/* HaVRoc Library Includes */
 #include "havroc/communications/suit/suit_net_manager.h"
 #include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/actuation/motor.h"
 #include "havroc/command.h"
-#include <havroc/havroc_utils/havrocutils.h>
-#include "havroc/communications/suit/suit_net_map.h"
 
+#include "havroc/communications/suit/suit_net_map.h"
 
 #define SELECTED_SNODE_NONE		0xFF
 
-#define ACTUATION_TIME			300
+#define ACTUATION_TIME			1000
 
 /*STATIC FXN DEFINITIONS*/
 static void motorEventCallback(event currEvent);
@@ -25,6 +22,7 @@ extern SuitNet_Node nodes[NUM_NODES];
 extern Motor motors[NUM_MOTOR_NODES];
 
 uint8_t currentSelectedSuperNode = SELECTED_SNODE_NONE;
+#define delay(ms) UtilsDelay((80000/5)*ms)
 
 static void motorEventCallback(event currEvent)
 {
@@ -48,19 +46,72 @@ static void processMotorDataCmd(uint8_t* data, uint16_t length)
 		motorId = data[i]; 
 		intensity = data[i+1];
 
-		//run motor
-		motor_run(&(motors[motorId]), intensity);
+		Report("Running motor %d\n\r", motorId);
 
+		if (suitNetManager_nodeSelect(nodes+3+motorId) == 0)
+			motor_run(&(motors[motorId]), intensity);
+		else
+			Report("Run fail(Mux): %d\n\r", motorId);
 	}
 
-	Task_sleep(ACTUATION_TIME);
+	delay(ACTUATION_TIME);
 
 	for (i = 0; i < length; i+=3)
 	{
 		motorId = data[i];
-		//stop motor
-		motor_run(&(motors[motorId]), 0);
+
+		Report("Stopping motor %d\n\r", motorId);
+
+		if (suitNetManager_nodeSelect(nodes+3+motorId) == 0)
+			motor_run(&(motors[motorId]), 0);
+		else
+			Report("Stop fail(Mux): %d\n\r", motorId);
 	}
+}
+
+void suitNetManager_boardTest(uint8_t muxAddr, uint8_t driverTestCount)
+{
+	uint8_t writeBuff[1];
+	uint8_t readBuff[1];
+	int i;
+
+	writeBuff[0] = 0x02;
+	Report("Mux Test --> Verdict: ");
+
+	if (suit_i2c_transfer(muxAddr, writeBuff, 1, NULL, 0) != 0)
+		Report("FAIL!\n\r");
+	else
+		Report("PASS!\n\r");
+
+	for (i = 0; i < driverTestCount; i++)
+	{
+		//switch mux
+		writeBuff[0] = 1 << i;
+		suit_i2c_transfer(muxAddr, writeBuff, 1, NULL, 0);
+		readBuff[0] = 0;
+ 		suit_i2c_read(0x5A, 0x00, readBuff, 1);
+		Report("Motor %i Test --> Read: 0x%02x Verdict: ", i, readBuff[0]);
+		if (readBuff[0] == 0xC0)
+			Report("PASS!\n\r");
+		else
+			Report("FAIL!\n\r");
+
+		delay(100);
+	}
+}
+
+void suitNetManager_boardMotorTest(uint8_t id)
+{
+	uint8_t writeBuff[1];
+
+	//switch mux
+	writeBuff[0] = 1 << id;
+	suit_i2c_transfer(0x77, writeBuff, 1, NULL, 0);
+
+	motor_calibrate(&motors[id], true);
+/*	motor_run(&motors[id], 0xff);
+	delay(2000);
+	motor_run(&motors[id], 0x0);*/
 }
 
 SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,

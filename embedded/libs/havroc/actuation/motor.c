@@ -16,7 +16,7 @@
 #define MOTOR_CTL3_REG			0x1D
 #define MOTOR_CTL3_REG_VAL		0x88
 
-MotorErrorCode motor_run(Motor *motor, int8_t intensity)
+MotorErrorCode motor_run(Motor *motor, uint8_t intensity)
 {
 	uint8_t writeBuff[1];
 	MotorErrorCode retVal = MOTOR_E_SUCCESS;

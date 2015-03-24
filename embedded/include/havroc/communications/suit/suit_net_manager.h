@@ -88,5 +88,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
 											uint8_t regAddr,
 											uint8_t writeBuff[],
 											size_t writeCount);
-
+/*Board diag test*/
+void suitNetManager_boardTest(uint8_t muxAddr, uint8_t driverTestCount);
+void suitNetManager_boardMotorTest(uint8_t id);
 #endif /* SUIT_NET_H_ */

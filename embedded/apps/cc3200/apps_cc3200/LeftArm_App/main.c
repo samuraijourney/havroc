@@ -48,7 +48,10 @@
 /* HaVRoC library files */
 #include "havroc/communications/radio/wifi_communication.h"
 #include "havroc/eventmgr/eventmgr.h"
+#include "havroc/havroc_system/havrocsystem.h"
 #include "havroc/communications/suit/suit_i2c.h"
+
+#define ARM	LEFT_ARM
 
 static void BoardInit(void)
 {
@@ -80,8 +83,12 @@ int main(void)
     	System_flush();
     }
 
-	WlanStartTask();
-	EventStart();
+    SystemStartTask(ARM);
+
+    if(RIGHT_ARM == ARM)
+    {
+    	EventStart();
+    }
 
     /* Start BIOS */
     BIOS_start();

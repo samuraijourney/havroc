@@ -1,5 +1,8 @@
+
+/* Standard C Includes */
 #include <stdbool.h>
 
+/* XDC Tools Header Files */
 #include <xdc/std.h>
 #include <ti/sysbios/BIOS.h>
 #include <xdc/runtime/IHeap.h>
@@ -7,10 +10,9 @@
 #include <xdc/runtime/Memory.h>
 #include <ti/sysbios/knl/Semaphore.h>
 
+/* HaVRoc Library Includes */
 #include "havroc/communications/suit/suit_i2c.h"
-
-#include "uart_if.h"
-#include "common.h"
+#include <havroc/havroc_utils/havrocutils.h>
 
 /* I2C access sem*/
 Semaphore_Handle sem;

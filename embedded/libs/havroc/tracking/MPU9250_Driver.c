@@ -1,28 +1,14 @@
+
+// common interface includes
+#include "common.h"
+
+/* HaVRoc Library Includes */
 #include "havroc/tracking/MPU9250_Driver.h"
 #include "havroc/tracking/Calibration.h"
 #include <havroc/communications/suit/suit_net_manager.h>
-
-#include <utils.h>
-#include "common.h"
 #include <havroc/error.h>
+#include <havroc/havroc_utils/havrocutils.h>
 
-#include <xdc/runtime/Timestamp.h>
-#include <xdc/runtime/Types.h>
-//#include <ti/sysbios/knl/Clock.h>
-
-#include "uart_if.h"
-#include "common.h"
-
-#define delay(ms) UtilsDelay((80000/5)*ms)
-
-unsigned long millis ()
-{
-	Types_FreqHz freq;
-
-	Timestamp_getFreq(&freq);
-
-	return (Timestamp_get32()*1000.0/(1.0*freq.lo));
-}
 
 void NewIMU(IMU* imu_object, int imu_index)
 {
@@ -31,8 +17,8 @@ void NewIMU(IMU* imu_object, int imu_index)
 
     //  MPU9250 defaults
 
-    imu_object->m_MPU9250GyroAccelSampleRate = 100;
-    imu_object->m_MPU9250CompassSampleRate = 100;
+    imu_object->m_MPU9250GyroAccelSampleRate = 40;
+    imu_object->m_MPU9250CompassSampleRate = 40;
     imu_object->m_MPU9250GyroLpf = MPU9250_GYRO_LPF_41;
     imu_object->m_MPU9250AccelLpf = MPU9250_ACCEL_LPF_41;
     imu_object->m_MPU9250GyroFsr = MPU9250_GYROFSR_1000;
@@ -246,11 +232,11 @@ bool setAccelFsr(IMU* imu_object, unsigned char fsr)
 }
 
 
-int IMUInit(IMU* imu_object)
+uint8_t IMUInit(IMU* imu_object)
 {
     uint8_t txBuff[1];
     uint8_t rxBuff[1];
-    int retVal = SUCCESS;
+    uint8_t retVal = SUCCESS;
 
     imu_object->m_firstTime = true;
     //  configure IMU

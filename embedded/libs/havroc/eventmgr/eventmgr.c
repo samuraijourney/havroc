@@ -13,15 +13,12 @@
 #include <ti/sysbios/BIOS.h>
 #include <xdc/runtime/System.h>
 
-/* Driverlib Includes */
-#include "uart_if.h"
-#include "common.h"
-
 /* HaVRoc library includes */
 #include "havroc/command.h"
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/communications/radio/wifi_communication.h"
 #include <havroc/error.h>
+#include <havroc/havroc_utils/havrocutils.h>
 
 #define EventReceived 1
 
@@ -115,8 +112,8 @@ int EventEnQ(char* message)
 
 void EventStart()
 {
-	Task_Handle task1 = Task_Object_get(NULL, 1);
-	Task_setPri(task1, 10);
+	Task_Handle task0 = Task_Object_get(NULL, 0);
+	Task_setPri(task0, 10);
 
 	Command_Received_Handle = Event_Object_get(NULL, 0);
 }

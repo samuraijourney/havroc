@@ -196,7 +196,7 @@ bool setCompassVar(IMU* imu_object, int rate);
 bool setGyroFsr(IMU* imu_object, unsigned char fsr);
 bool setAccelFsr(IMU* imu_object, unsigned char fsr);
 
-int IMUInit(IMU* imu_object);
+uint8_t IMUInit(IMU* imu_object);
 bool IMURead(IMU* imu_object);
 int IMUGetPollInterval(IMU* imu_object);
 

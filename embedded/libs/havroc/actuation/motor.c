@@ -1,5 +1,10 @@
-#include "havroc/actuation/motor.h"
+
+/* Standard C Includes */
 #include "stdbool.h"
+
+/* HaVRoc Library Includes */
+#include "havroc/actuation/motor.h"
+
 
 #define DRV2604L_ADDR 			0x5A
 

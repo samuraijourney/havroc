@@ -77,7 +77,8 @@ void SystemRun(UArg arg0, UArg arg1)
 
 			if(i == SEND_DELAY)
 			{
-				Tracking_Publish();
+				Tracking_Publish_Quaternion();
+				//Tracking_Publish();
 				i = 0;
 			}
 			else

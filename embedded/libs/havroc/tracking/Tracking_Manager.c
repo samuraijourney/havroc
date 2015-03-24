@@ -12,6 +12,7 @@ static fusion fusion_object[2];                                // the fusion obj
 static float yaw[2] = {0, 0};
 static float pitch[2] = {0, 0};
 static float roll[2] = {0, 0};
+static Quaternion qPose[2];
 static uint8_t m_board_arm;
 
 uint8_t Setup_IMUs(uint8_t* imu_select, uint8_t count, uint8_t board_arm)
@@ -57,13 +58,21 @@ void Tracking_Update(uint8_t count)
 			roll[i] = fusion_object[i].m_fusionPose.m_data[0] * RAD_TO_DEGREE;
 			pitch[i] = fusion_object[i].m_fusionPose.m_data[1] * RAD_TO_DEGREE;
 			yaw[i] = fusion_object[i].m_fusionPose.m_data[2] * RAD_TO_DEGREE;
+
+			qPose[i].m_data[0] = fusion_object[i].m_fusionQPose.m_data[0];
+			qPose[i].m_data[1] = fusion_object[i].m_fusionQPose.m_data[1];
+			qPose[i].m_data[2] = fusion_object[i].m_fusionQPose.m_data[2];
+			qPose[i].m_data[3] = fusion_object[i].m_fusionQPose.m_data[3];
+
 			now = millis();
 
 			if(i == 0)
+			{
 				Report("Shoulder:  roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f, proc time %.3f \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i], now-before);
-
+				Report("Shoulder:  scalar: %.5f, x: %.5f, y %.5f, z %.5f, timestamp dif %.3f, proc time %.3f \n\r", (qPose[i].m_data[0]), (qPose[i].m_data[1]), (qPose[i].m_data[2]), (qPose[i].m_data[3]), now - prevTimestamp[i], now-before);
+			}
 			if(i == 1)
-				Report("Elbow:     roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f \n\r", i, round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
+				Report("Elbow:     roll: %.1f, pitch %.1f, yaw %.1f, timestamp dif %.3f \n\r", round(roll[i]), round(pitch[i]), round(yaw[i]), now - prevTimestamp[i]);
 
 			prevTimestamp[i] = now;
 		}
@@ -83,6 +92,9 @@ void Tracking_Publish()
 	message.command = TRACKING_DATA_CMD;
 	message.length = ((((uint16_t)0x00) << 8) & 0xFF00) | (((uint16_t)0x19) & 0x00FF);
 	message.arm = m_board_arm;
+
+	message.data = (float*) malloc(sizeof(float)*(6));
+
 	message.data[0] = yaw[0];
 	message.data[1] = pitch[0];
 	message.data[2] = roll[0];
@@ -91,6 +103,33 @@ void Tracking_Publish()
 	message.data[5] = roll[1];
 
 	WiFiSendEnQ(message);
+
+	free(message.data);
+}
+
+void Tracking_Publish_Quaternion()
+{
+	sendMessage message;
+
+	message.module = TRACKING_MOD;
+	message.command = TRACKING_DATA_CMD;
+	message.length = ((((uint16_t)0x00) << 8) & 0xFF00) | (((uint16_t)0x21) & 0x00FF);
+	message.arm = m_board_arm;
+
+	message.data = (float*) malloc(sizeof(float)*(8));
+
+	message.data[0] = qPose[0].m_data[0];
+	message.data[1] = qPose[0].m_data[1];
+	message.data[2] = qPose[0].m_data[2];
+	message.data[3] = qPose[0].m_data[3];
+	message.data[4] = qPose[1].m_data[0];
+	message.data[5] = qPose[1].m_data[1];
+	message.data[6] = qPose[1].m_data[2];
+	message.data[7] = qPose[1].m_data[3];
+
+	WiFiSendEnQ(message);
+
+	free(message.data);
 }
 
 void Tracking_Publish_Error(uint8_t error_code)

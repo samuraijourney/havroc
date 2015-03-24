@@ -27,7 +27,7 @@
 #include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/tracking/Tracking_Manager.h"
 #include "havroc/id.h"
-
+#include "havroc/command.h"
 #include "uart_if.h"
 #include "common.h"
 
@@ -103,11 +103,16 @@
 
 void testFxn2()
 {
-	Setup_IMUs(0, 2);
+	uint8_t imu_select[2];
+
+	imu_select[0] = R_SHOULDER_IMU_ID;
+	imu_select[1] = R_ELBOW_IMU_ID;
+
+	Setup_IMUs(imu_select, 2, RIGHT_ARM);
 
 	while(1)
 	{
-		Tracking_Update(0, 2);
+		Tracking_Update(2);
 	}
 }
 

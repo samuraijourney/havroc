@@ -561,7 +561,7 @@ int WiFiSend()
 			// sending packet
 			iStatus = sl_Send(connected_SockID, TCP_SendBuffer, sendCount, 0);
 
-			while (iStatus <= 0 && iStatus != -11)
+			while (iStatus < 0 && iStatus != -11)
 			{
 				// error
 				Report("Disconnecting on error: %d at WiFiSend()\n\r", iStatus);
@@ -570,7 +570,7 @@ int WiFiSend()
 
 				Setup_IMUs(imu_select, 2, m_board_arm);
 
-				if (iStatus > 0)
+				if (iStatus >= 0)
 				{
 					lLoopCount--;
 				}

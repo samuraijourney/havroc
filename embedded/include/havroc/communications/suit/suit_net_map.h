@@ -18,14 +18,14 @@
 
 //motors list
 Motor motors[NUM_MOTOR_NODES] = {
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1},
-	{MOTOR_STATE_OFF, 0, 1}
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1},
+	{ 0, 1}
 };
 
 //nodes init

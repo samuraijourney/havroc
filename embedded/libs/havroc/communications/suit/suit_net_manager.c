@@ -108,7 +108,7 @@ void suitNetManager_boardMotorTest(uint8_t id)
 	writeBuff[0] = 1 << id;
 	suit_i2c_transfer(0x77, writeBuff, 1, NULL, 0);
 
-	motor_calibrate(&motors[id], true);
+	motor_calibrate(&motors[id]);
 /*	motor_run(&motors[id], 0xff);
 	delay(2000);
 	motor_run(&motors[id], 0x0);*/

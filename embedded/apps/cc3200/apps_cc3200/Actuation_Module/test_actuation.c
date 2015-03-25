@@ -60,7 +60,13 @@ int main(void)
     	System_flush();
     }
 
-    Task_setPri(Test_Task, 5);
+	Task_Handle task0;
+
+	task0 = Task_create((Task_FuncPtr)TestFxn, NULL, NULL);
+	if (task0 == NULL) {
+		System_printf("Task create failed.\n");
+		System_flush();
+	}
 
     /* Start BIOS */
     BIOS_start();

@@ -17,25 +17,30 @@
 /* Board Header file */
 #include <Board.h>
 
+#include "uart_if.h"
+
 /* HaVRoC library files */
 #include "havroc/communications/suit/suit_i2c.h"
 #include "havroc/actuation/motor.h"
-
-extern Motor motors[];
+#include "havroc/havroc_utils/havrocutils.h"
+#include "havroc/communications/suit/suit_net_manager.h"
 
 Void TestFxn()
 {
-	uint8_t buff[1];
-	int i;
+	char buff[5];
+
 	suitNetManager_boardTest(0x77, 8);
-	Report("Press enter to start motor test...");
-	GetCmd(buff, 10);
-	for (i = 1; i < 3; i++)
+	Report("\n\rEnter to start motor test...");
+	GetCmd(buff, 5);
+
+	int i;
+	for (i = 0; i < 8; i++)
 	{
-		Report("Testing %d", i);
+		Report("Testing motor %i...", i);
 		suitNetManager_boardMotorTest(i);
-		Report("...DONE");
-		GetCmd(buff, 10);
+		delay(300);
+		Report("DONE!");
+		GetCmd(buff, 5);
 	}
 }
 
@@ -60,7 +65,13 @@ int main(void)
     	System_flush();
     }
 
-    Task_setPri(Test_Task, 5);
+	Task_Handle task0;
+
+	task0 = Task_create((Task_FuncPtr)TestFxn, NULL, NULL);
+	if (task0 == NULL) {
+		System_printf("Task create failed.\n");
+		System_flush();
+	}
 
     /* Start BIOS */
     BIOS_start();

@@ -77,9 +77,14 @@
 			<location>C:/Users/Geo/Documents/havroc/embedded/libs/havroc/eventmgr</location>
 		</link>
 		<link>
-			<name>modules/service</name>
+			<name>modules/havroc_system</name>
 			<type>2</type>
-			<locationURI>HAVROC_LOC/libs/havroc/service</locationURI>
+			<locationURI>HAVROC_LOC/libs/havroc/havroc_system</locationURI>
+		</link>
+		<link>
+			<name>modules/havroc_utils</name>
+			<type>2</type>
+			<locationURI>HAVROC_LOC/libs/havroc/havroc_utils</locationURI>
 		</link>
 		<link>
 			<name>modules/tracking</name>

@@ -44,8 +44,6 @@ typedef struct _SuitNet_Node
 	int8_t superNodeId;
 	//mux channel of this node
 	uint8_t muxChannel;
-	//Motor object of node; NULL if type IMU
-	Motor *motor;
 } SuitNet_Node;
 
 /*
@@ -66,7 +64,7 @@ typedef struct _SuitNet_SuperNode
 } SuitNet_SuperNode;
 
 //Selects supernode and opens channel
-SuitNetErrorCode suitNetManager_nodeSelect(SuitNet_Node *node);
+SuitNetErrorCode suitNetManager_nodeSelect(uint8_t nodeIndex);
 //Deselects supernode
 SuitNetErrorCode suitNetManager_clearNodeSelect(SuitNet_Node *node);
 //Deselects all supernodes

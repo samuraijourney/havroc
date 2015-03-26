@@ -7,11 +7,10 @@
 #include "havroc/actuation/motor.h"
 #include "havroc/command.h"
 #include "havroc/havroc_utils/havrocutils.h"
+
 #include "havroc/communications/suit/suit_net_map.h"
 
 #define SELECTED_SNODE_NONE		0xFF
-
-#define ACTUATION_TIME			1000
 
 /*STATIC FXN DEFINITIONS*/
 static void motorEventCallback(event currEvent);
@@ -19,7 +18,6 @@ static void processMotorDataCmd(uint8_t* data, uint16_t length);
 
 extern SuitNet_SuperNode superNodes[NUM_SUPER_NODES];
 extern SuitNet_Node nodes[NUM_NODES];
-extern Motor motors[NUM_MOTOR_NODES];
 
 uint8_t currentSelectedSuperNode = SELECTED_SNODE_NONE;
 
@@ -37,34 +35,18 @@ static void motorEventCallback(event currEvent)
 
 static void processMotorDataCmd(uint8_t* data, uint16_t length)
 {
-	uint8_t motorId, intensity;
+	uint8_t motorId;
 	uint16_t i;
 
 	for (i = 0; i < length; i+=3)
 	{
-		motorId = data[i]; 
-		intensity = data[i+1];
-
 		Report("Running motor %d\n\r", motorId);
+		//get motor node's index
+		motorId = MOTOR_NODE_START_INDEX + data[i];
 
-		if (suitNetManager_nodeSelect(nodes+3+motorId) == 0)
-			motor_run(&(motors[motorId]), intensity);
-		else
-			Report("Run fail(Mux): %d\n\r", motorId);
-	}
-
-	delay(ACTUATION_TIME);
-
-	for (i = 0; i < length; i+=3)
-	{
-		motorId = data[i];
-
-		Report("Stopping motor %d\n\r", motorId);
-
-		if (suitNetManager_nodeSelect(nodes+3+motorId) == 0)
-			motor_run(&(motors[motorId]), 0);
-		else
-			Report("Stop fail(Mux): %d\n\r", motorId);
+		//do supernode select
+		suitNetManager_nodeSelect(motorId);
+		motor_runWaveform();
 	}
 }
 
@@ -107,10 +89,8 @@ void suitNetManager_boardMotorTest(uint8_t id)
 	writeBuff[0] = 1 << id;
 	suit_i2c_transfer(0x77, writeBuff, 1, NULL, 0);
 
-	motor_calibrate(&motors[id], true);
-/*	motor_run(&motors[id], 0xff);
-	delay(2000);
-	motor_run(&motors[id], 0x0);*/
+	motor_init();
+	motor_runWaveform();
 }
 
 SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
@@ -124,9 +104,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_transfer(uint8_t nodeIndex,
 
 	if (nodeIndex < NUM_NODES)
 	{	
-		SuitNet_Node *node = nodes + nodeIndex;
-	
-		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
+		if ((retVal = suitNetManager_nodeSelect(nodeIndex)) == SUITNET_E_SUCCESS)
 		{
 			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
 			if (!suit_i2c_transfer(addr, writeBuff, writeCount,
@@ -151,9 +129,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_read(uint8_t nodeIndex,
 
 	if (nodeIndex < NUM_NODES)
 	{	
-		SuitNet_Node *node = nodes + nodeIndex;
-	
-		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
+		if ((retVal = suitNetManager_nodeSelect(nodeIndex)) == SUITNET_E_SUCCESS)
 		{
 			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
 			if (suit_i2c_read(addr, regAddr, readBuff, readCount) != 0)
@@ -177,9 +153,7 @@ SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
 
 	if (nodeIndex < NUM_NODES)
 	{	
-		SuitNet_Node *node = nodes + nodeIndex;
-	
-		if ((retVal = suitNetManager_nodeSelect(node)) == SUITNET_E_SUCCESS)
+		if ((retVal = suitNetManager_nodeSelect(nodeIndex)) == SUITNET_E_SUCCESS)
 		{
 			uint8_t addr = (isMagnetometer) ? IMU_MAG_ADDR: IMU_MPU_ADDR;
 			if (suit_i2c_write(addr, regAddr, writeBuff, writeCount) != 0)
@@ -192,10 +166,11 @@ SuitNetErrorCode suitNetManager_imu_i2c_write(uint8_t nodeIndex,
 	return retVal;
 }
 
-SuitNetErrorCode suitNetManager_nodeSelect(SuitNet_Node *node)
+SuitNetErrorCode suitNetManager_nodeSelect(uint8_t nodeIndex)
 {
 	SuitNetErrorCode retVal = SUITNET_E_SUCCESS;
 	uint8_t writeBuff[1];
+	SuitNet_Node *node = &nodes[nodeIndex];
 
 	//if supernode -1, bypass node selection
 	if (node->superNodeId >= 0)

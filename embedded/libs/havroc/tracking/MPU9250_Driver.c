@@ -17,8 +17,8 @@ void NewIMU(IMU* imu_object, int imu_index)
 
     //  MPU9250 defaults
 
-    imu_object->m_MPU9250GyroAccelSampleRate = 40;
-    imu_object->m_MPU9250CompassSampleRate = 40;
+    imu_object->m_MPU9250GyroAccelSampleRate = 40; //500
+    imu_object->m_MPU9250CompassSampleRate = 40; //100
     imu_object->m_MPU9250GyroLpf = MPU9250_GYRO_LPF_41;
     imu_object->m_MPU9250AccelLpf = MPU9250_ACCEL_LPF_41;
     imu_object->m_MPU9250GyroFsr = MPU9250_GYROFSR_1000;
@@ -68,11 +68,12 @@ void gyroBiasInit(IMU* imu_object)
 void handleGyroBias(IMU* imu_object)
 {  
     Vector3 deltaAccel = imu_object->m_previousAccel;
+
     deltaAccel  = subtractVector3 (deltaAccel, imu_object->m_accel);   // compute difference
     imu_object->m_previousAccel = imu_object->m_accel;
 
-    if ((squareLength(deltaAccel) < RTIMU_FUZZY_ACCEL_ZERO_SQUARED) && 
-                (squareLength(imu_object->m_gyro) < RTIMU_FUZZY_GYRO_ZERO_SQUARED)) {
+    if ((squareLength(deltaAccel) < FUZZY_ACCEL_ZERO_SQUARED) &&
+                (squareLength(imu_object->m_gyro) < FUZZY_GYRO_ZERO_SQUARED)) {
         // what we are seeing on the gyros should be bias only so learn from this
         imu_object->m_gyroBias.m_data[0] = ((1.0 - imu_object->m_gyroAlpha) * imu_object->m_gyroBias.m_data[0] + imu_object->m_gyroAlpha * imu_object->m_gyro.m_data[0]);
         imu_object->m_gyroBias.m_data[1] = ((1.0 - imu_object->m_gyroAlpha) * imu_object->m_gyroBias.m_data[1] + imu_object->m_gyroAlpha * imu_object->m_gyro.m_data[1]);

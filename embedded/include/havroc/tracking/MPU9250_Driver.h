@@ -9,15 +9,15 @@
 
 //  this defines the accelerometer noise level
 
-#define RTIMU_FUZZY_GYRO_ZERO           (float)0.20
+#define FUZZY_GYRO_ZERO           (float)0.20
 
-#define RTIMU_FUZZY_GYRO_ZERO_SQUARED   (RTIMU_FUZZY_GYRO_ZERO * RTIMU_FUZZY_GYRO_ZERO)
+#define FUZZY_GYRO_ZERO_SQUARED   (FUZZY_GYRO_ZERO * FUZZY_GYRO_ZERO)
 
 //  this defines the accelerometer noise level
 
-#define RTIMU_FUZZY_ACCEL_ZERO          (float)0.05
+#define FUZZY_ACCEL_ZERO          (float)0.05
 
-#define RTIMU_FUZZY_ACCEL_ZERO_SQUARED   (RTIMU_FUZZY_ACCEL_ZERO * RTIMU_FUZZY_ACCEL_ZERO)
+#define FUZZY_ACCEL_ZERO_SQUARED   (FUZZY_ACCEL_ZERO * FUZZY_ACCEL_ZERO)
 
 //  MPU9250 I2C Slave Addresses
 

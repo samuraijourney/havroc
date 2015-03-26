@@ -59,7 +59,7 @@ typedef struct _sendMessage
 	uint8_t 	command;
 	uint16_t 	length;
 	uint8_t 	arm;
-	float*	    data;
+	float	    data[8];
 } sendMessage;
 
 //****************************************************************************

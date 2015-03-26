@@ -6,7 +6,7 @@
 #include "havroc/eventmgr/eventmgr.h"
 #include "havroc/actuation/motor.h"
 #include "havroc/command.h"
-
+#include "havroc/havroc_utils/havrocutils.h"
 #include "havroc/communications/suit/suit_net_map.h"
 
 #define SELECTED_SNODE_NONE		0xFF
@@ -22,7 +22,6 @@ extern SuitNet_Node nodes[NUM_NODES];
 extern Motor motors[NUM_MOTOR_NODES];
 
 uint8_t currentSelectedSuperNode = SELECTED_SNODE_NONE;
-#define delay(ms) UtilsDelay((80000/5)*ms)
 
 static void motorEventCallback(event currEvent)
 {
